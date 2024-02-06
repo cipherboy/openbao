@@ -47,6 +47,18 @@ dev-ui-mem: BUILD_TAGS+=memprofiler
 dev-ui-mem: assetcheck dev-ui
 dev-dynamic-mem: BUILD_TAGS+=memprofiler
 dev-dynamic-mem: dev-dynamic
+dev-agent: BUILD_TAGS+=agent
+dev-agent: dev
+	cp bin/bao bin/bao-agent
+dev-cli: BUILD_TAGS+=cli
+dev-cli: dev
+	cp bin/bao bin/bao-cli
+dev-proxy: BUILD_TAGS+=proxy
+dev-proxy: dev
+	cp bin/bao bin/bao-proxy
+dev-server: BUILD_TAGS+=server
+dev-server: dev
+	cp bin/bao bin/bao-server
 
 # Creates a Docker image by adding the compiled linux/amd64 binary found in ./bin.
 # The resulting image is tagged "openbao:dev".

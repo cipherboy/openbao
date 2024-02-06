@@ -303,6 +303,10 @@ func groupedHelpFunc(f cli.HelpFunc) cli.HelpFunc {
 }
 
 func printCommand(w io.Writer, name string, cmdFn cli.CommandFactory) {
+	if cmdFn == nil {
+		return
+	}
+
 	cmd, err := cmdFn()
 	if err != nil {
 		panic(fmt.Sprintf("failed to load %q command: %s", name, err))
