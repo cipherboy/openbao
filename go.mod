@@ -22,6 +22,24 @@ replace github.com/openbao/openbao/api/auth/userpass => ./api/auth/userpass
 
 replace github.com/openbao/openbao/sdk => ./sdk
 
+replace github.com/openbao/go-kms-wrapping/entropy/v2 v2.0.0-0.20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/entropy/v2 v2.0.0-20240122151027-4d142be5e262
+
+replace github.com/openbao/go-kms-wrapping/v2 v2.0.0-0.20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/v2 v2.0.0-20240122151027-4d142be5e262
+
+replace github.com/openbao/go-kms-wrapping/wrappers/aead/v2 v2.0.0-20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/wrappers/aead/v2 v2.0.0-20240122151027-4d142be5e262
+
+replace github.com/openbao/go-kms-wrapping/wrappers/alicloudkms/v2 v2.0.0-20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/wrappers/alicloudkms/v2 v2.0.0-20240122151027-4d142be5e262
+
+replace github.com/openbao/go-kms-wrapping/wrappers/awskms/v2 v2.0.0-20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/wrappers/awskms/v2 v2.0.0-20240122151027-4d142be5e262
+
+replace github.com/openbao/go-kms-wrapping/wrappers/azurekeyvault/v2 v2.0.0-20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/wrappers/azurekeyvault/v2 v2.0.0-20240122151027-4d142be5e262
+
+replace github.com/openbao/go-kms-wrapping/wrappers/gcpckms/v2 v2.0.0-20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/wrappers/gcpckms/v2 v2.0.0-20240122151027-4d142be5e262
+
+replace github.com/openbao/go-kms-wrapping/wrappers/ocikms/v2 v2.0.0-20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/wrappers/ocikms/v2 v2.0.0-20240122151027-4d142be5e262
+
+replace github.com/openbao/go-kms-wrapping/wrappers/transit/v2 v2.0.0-20240122151027-4d142be5e262 => github.com/openbao/go-kms-wrapping/wrappers/transit/v2 v2.0.0-20240122151027-4d142be5e262
+
 require (
 	cloud.google.com/go/monitoring v1.15.1
 	github.com/ProtonMail/go-crypto v0.0.0-20230626094100-7e9e0395ebec
@@ -118,17 +136,17 @@ require (
 	github.com/okta/okta-sdk-golang/v2 v2.12.1
 	github.com/openbao/go-kms-wrapping/entropy/v2 v2.0.1-0.20240122151027-4d142be5e262
 	github.com/openbao/go-kms-wrapping/v2 v2.0.16-0.20240122151027-4d142be5e262
-	github.com/openbao/go-kms-wrapping/wrappers/aead/v2 v2.0.9-0.20240122151027-4d142be5e262
-	github.com/openbao/go-kms-wrapping/wrappers/alicloudkms/v2 v2.0.3-0.20240122151027-4d142be5e262
-	github.com/openbao/go-kms-wrapping/wrappers/awskms/v2 v2.0.9-0.20240122151027-4d142be5e262
-	github.com/openbao/go-kms-wrapping/wrappers/azurekeyvault/v2 v2.0.11-0.20240122151027-4d142be5e262
-	github.com/openbao/go-kms-wrapping/wrappers/gcpckms/v2 v2.0.11-0.20240122151027-4d142be5e262
-	github.com/openbao/go-kms-wrapping/wrappers/ocikms/v2 v2.0.9-0.20240122151027-4d142be5e262
-	github.com/openbao/go-kms-wrapping/wrappers/transit/v2 v2.0.11-0.20240122151027-4d142be5e262
+	github.com/openbao/go-kms-wrapping/wrappers/aead/v2 v2.0.0-20240122151027-4d142be5e262
+	github.com/openbao/go-kms-wrapping/wrappers/alicloudkms/v2 v2.0.0-20240122151027-4d142be5e262
+	github.com/openbao/go-kms-wrapping/wrappers/awskms/v2 v2.0.0-20240122151027-4d142be5e262
+	github.com/openbao/go-kms-wrapping/wrappers/azurekeyvault/v2 v2.0.0-20240122151027-4d142be5e262
+	github.com/openbao/go-kms-wrapping/wrappers/gcpckms/v2 v2.0.0-20240122151027-4d142be5e262
+	github.com/openbao/go-kms-wrapping/wrappers/ocikms/v2 v2.0.0-20240122151027-4d142be5e262
+	github.com/openbao/go-kms-wrapping/wrappers/transit/v2 v2.0.0-20240122151027-4d142be5e262
 	github.com/openbao/openbao/api v1.9.2
-	github.com/openbao/openbao/api/auth/approle v0.1.0
-	github.com/openbao/openbao/api/auth/userpass v0.1.0
-	github.com/openbao/openbao/sdk v0.9.2
+	github.com/openbao/openbao/api/auth/approle v0.0.0-00010101000000-000000000000
+	github.com/openbao/openbao/api/auth/userpass v0.0.0-00010101000000-000000000000
+	github.com/openbao/openbao/sdk v0.0.0-00010101000000-000000000000
 	github.com/ory/dockertest/v3 v3.10.0
 	github.com/patrickmn/go-cache v2.1.0+incompatible
 	github.com/pires/go-proxyproto v0.6.1
