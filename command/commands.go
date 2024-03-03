@@ -9,21 +9,6 @@ import (
 	"syscall"
 
 	"github.com/mitchellh/cli"
-	"github.com/openbao/openbao/audit"
-	"github.com/openbao/openbao/builtin/plugin"
-	"github.com/openbao/openbao/sdk/logical"
-	"github.com/openbao/openbao/sdk/physical"
-
-	/*
-		The builtinplugins package is initialized here because it, in turn,
-		initializes the database plugins.
-		They register multiple database drivers for the "database/sql" package.
-	*/
-	_ "github.com/openbao/openbao/helper/builtinplugins"
-
-	auditFile "github.com/openbao/openbao/builtin/audit/file"
-	auditSocket "github.com/openbao/openbao/builtin/audit/socket"
-	auditSyslog "github.com/openbao/openbao/builtin/audit/syslog"
 
 	credCert "github.com/openbao/openbao/builtin/credential/cert"
 	credOIDC "github.com/openbao/openbao/builtin/credential/jwt"
@@ -31,16 +16,6 @@ import (
 	credLdap "github.com/openbao/openbao/builtin/credential/ldap"
 	credToken "github.com/openbao/openbao/builtin/credential/token"
 	credUserpass "github.com/openbao/openbao/builtin/credential/userpass"
-
-	logicalDb "github.com/openbao/openbao/builtin/logical/database"
-	logicalKv "github.com/openbao/openbao/builtin/logical/kv"
-
-	physRaft "github.com/openbao/openbao/physical/raft"
-	physFile "github.com/openbao/openbao/sdk/physical/file"
-	physInmem "github.com/openbao/openbao/sdk/physical/inmem"
-
-	sr "github.com/openbao/openbao/serviceregistration"
-	ksr "github.com/openbao/openbao/serviceregistration/kubernetes"
 )
 
 const (
@@ -124,42 +99,6 @@ const (
 	flagNameLogLevel = "log-level"
 )
 
-var (
-	auditBackends = map[string]audit.Factory{
-		"file":   auditFile.Factory,
-		"socket": auditSocket.Factory,
-		"syslog": auditSyslog.Factory,
-	}
-
-	credentialBackends = map[string]logical.Factory{
-		"plugin": plugin.Factory,
-	}
-
-	logicalBackends = map[string]logical.Factory{
-		"plugin":   plugin.Factory,
-		"database": logicalDb.Factory,
-		// This is also available in the plugin catalog, but is here due to the need to
-		// automatically mount it.
-		"kv": logicalKv.Factory,
-	}
-
-	physicalBackends = map[string]physical.Factory{
-		"file_transactional":     physFile.NewTransactionalFileBackend,
-		"file":                   physFile.NewFileBackend,
-		"inmem_ha":               physInmem.NewInmemHA,
-		"inmem_transactional_ha": physInmem.NewTransactionalInmemHA,
-		"inmem_transactional":    physInmem.NewTransactionalInmem,
-		"inmem":                  physInmem.NewInmem,
-		"raft":                   physRaft.NewRaftBackend,
-	}
-
-	serviceRegistrations = map[string]sr.Factory{
-		"kubernetes": ksr.NewServiceRegistration,
-	}
-
-	initCommandsEnt = func(ui, serverCmdUi cli.Ui, runOpts *RunOptions, commands map[string]cli.CommandFactory) {}
-)
-
 func initCommands(ui, serverCmdUi cli.Ui, runOpts *RunOptions) map[string]cli.CommandFactory {
 	loginHandlers := map[string]LoginHandler{
 		"cert":     &credCert.CLIHandler{},
@@ -185,7 +124,6 @@ func initCommands(ui, serverCmdUi cli.Ui, runOpts *RunOptions) map[string]cli.Co
 	}
 
 	commands := getCommandsForBinary(ui, serverCmdUi, runOpts, getBaseCommand, loginHandlers)
-	initCommandsEnt(ui, serverCmdUi, runOpts, commands)
 	return commands
 }
 
