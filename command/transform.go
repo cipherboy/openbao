@@ -1,3 +1,5 @@
+//go:build !agent && !proxy && !server
+
 package command
 
 import (
