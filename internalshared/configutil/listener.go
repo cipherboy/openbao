@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/caddyserver/certmagic"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/go-secure-stdlib/parseutil"
 	"github.com/hashicorp/go-secure-stdlib/strutil"
@@ -39,6 +40,29 @@ type ListenerInFlightRequestLogging struct {
 	UnauthenticatedInFlightAccessRaw interface{}  `hcl:"unauthenticated_in_flight_requests_access,alias:unauthenticatedInFlightAccessRaw"`
 }
 
+type ListenerACMEDNSConfig struct {
+	UnusedKeys  UnusedKeyMap `hcl:",unusedKeyPositions"`
+	ProviderRaw interface{}  `hcl:"provider"`
+
+	TTL    time.Duration `hcl:"-"`
+	TTLRaw interface{}   `hcl:"ttl"`
+
+	PropagationDelay    time.Duration `hcl:"-"`
+	PropagationDelayRaw interface{}   `hcl:"propagation_delay"`
+
+	PropagationTimeout    time.Duration `hcl:"-"`
+	PropagationTimeoutRaw interface{}   `hcl:"propagation_timeout"`
+
+	Resolvers    []string    `hcl:"-"`
+	ResolversRaw interface{} `hcl:"resolvers"`
+
+	OverrideDomain string `hcl"override_domain"`
+}
+
+func (c ListenerACMEDNSConfig) GetProvider() certmagic.ACMEDNSProvider {
+	return nil
+}
+
 // Listener is the listener configuration for the server.
 type Listener struct {
 	UnusedKeys UnusedKeyMap `hcl:",unusedKeyPositions"`
@@ -58,8 +82,10 @@ type Listener struct {
 	RequireRequestHeader    bool          `hcl:"-"`
 	RequireRequestHeaderRaw interface{}   `hcl:"require_request_header"`
 
-	TLSDisable                       bool        `hcl:"-"`
-	TLSDisableRaw                    interface{} `hcl:"tls_disable"`
+	TLSDisable    bool        `hcl:"-"`
+	TLSDisableRaw interface{} `hcl:"tls_disable"`
+	TLSCertGetter interface{} `hcl:"-"`
+
 	TLSCertFile                      string      `hcl:"tls_cert_file"`
 	TLSKeyFile                       string      `hcl:"tls_key_file"`
 	TLSMinVersion                    string      `hcl:"tls_min_version"`
@@ -71,6 +97,15 @@ type Listener struct {
 	TLSClientCAFile                  string      `hcl:"tls_client_ca_file"`
 	TLSDisableClientCerts            bool        `hcl:"-"`
 	TLSDisableClientCertsRaw         interface{} `hcl:"tls_disable_client_certs"`
+
+	TLSACMECachePath   string                 `hcl:"tls_acme_cache_path"`
+	TLSACMECADirectory string                 `hcl:"tls_acme_ca_directory"`
+	TLSACMECARoot      string                 `hcl:"tls_acme_ca_root"`
+	TLSACMEEABKeyId    string                 `hcl:"tls_acme_eab_key_id"`
+	TLSACMEEABMacKey   string                 `hcl:"tls_acme_eab_mac_key"`
+	TLSACMEKeyType     string                 `hcl:"tls_acme_key_type"`
+	TLSACMEEmail       string                 `hcl:"tls_acme_email"`
+	TLSACMEDNSConfig   *ListenerACMEDNSConfig `hcl:"tls_acme_dns_config"`
 
 	HTTPReadTimeout          time.Duration `hcl:"-"`
 	HTTPReadTimeoutRaw       interface{}   `hcl:"http_read_timeout"`
@@ -262,6 +297,43 @@ func ParseListeners(result *SharedConfig, list *ast.ObjectList) error {
 				}
 
 				l.TLSDisableClientCertsRaw = nil
+			}
+		}
+
+		// TLS ACME DNS config
+		{
+			if l.TLSACMEDNSConfig != nil {
+				if l.TLSACMEDNSConfig.TTLRaw != nil {
+					if l.TLSACMEDNSConfig.TTL, err = parseutil.ParseDurationSecond(l.TLSACMEDNSConfig.TTLRaw); err != nil {
+						return multierror.Prefix(fmt.Errorf("invalid value for tls_acme_dns_config.ttl: %w", err), fmt.Sprintf("listeners.%d", i))
+					}
+
+					l.TLSACMEDNSConfig.TTLRaw = nil
+				}
+
+				if l.TLSACMEDNSConfig.PropagationDelayRaw != nil {
+					if l.TLSACMEDNSConfig.PropagationDelay, err = parseutil.ParseDurationSecond(l.TLSACMEDNSConfig.PropagationDelayRaw); err != nil {
+						return multierror.Prefix(fmt.Errorf("invalid value for tls_acme_dns_config.propagation_delay: %w", err), fmt.Sprintf("listeners.%d", i))
+					}
+
+					l.TLSACMEDNSConfig.PropagationDelayRaw = nil
+				}
+
+				if l.TLSACMEDNSConfig.PropagationTimeoutRaw != nil {
+					if l.TLSACMEDNSConfig.PropagationTimeout, err = parseutil.ParseDurationSecond(l.TLSACMEDNSConfig.PropagationTimeoutRaw); err != nil {
+						return multierror.Prefix(fmt.Errorf("invalid value for tls_acme_dns_config.propagation_timeout: %w", err), fmt.Sprintf("listeners.%d", i))
+					}
+
+					l.TLSACMEDNSConfig.PropagationTimeoutRaw = nil
+				}
+
+				if l.TLSACMEDNSConfig.ResolversRaw != nil {
+					if l.TLSACMEDNSConfig.Resolvers, err = parseutil.ParseCommaStringSlice(l.TLSACMEDNSConfig.ResolversRaw); err != nil {
+						return multierror.Prefix(fmt.Errorf("invalid value for tls_acme_dns_config.resolvers: %w", err), fmt.Sprintf("listeners.%d", i))
+					}
+
+					l.TLSACMEDNSConfig.ResolversRaw = nil
+				}
 			}
 		}
 

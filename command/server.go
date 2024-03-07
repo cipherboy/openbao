@@ -852,15 +852,15 @@ func (c *ServerCommand) InitListeners(config *server.Config, disableClustering b
 
 	var errMsg error
 	for i, lnConfig := range config.Listeners {
-		ln, props, reloadFunc, err := server.NewListener(lnConfig, c.logGate, c.UI)
+		ln, props, cg, err := server.NewListener(lnConfig, c.logGate, c.UI)
 		if err != nil {
 			errMsg = fmt.Errorf("Error initializing listener of type %s: %s", lnConfig.Type, err)
 			return 1, nil, nil, errMsg
 		}
 
-		if reloadFunc != nil {
+		if cg != nil {
 			relSlice := (*c.reloadFuncs)["listener|"+lnConfig.Type]
-			relSlice = append(relSlice, reloadFunc)
+			relSlice = append(relSlice, cg.Reload)
 			(*c.reloadFuncs)["listener|"+lnConfig.Type] = relSlice
 		}
 

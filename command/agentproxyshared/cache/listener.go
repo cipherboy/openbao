@@ -18,6 +18,7 @@ import (
 type ListenerBundle struct {
 	Listener      net.Listener
 	TLSConfig     *tls.Config
+	CertGetter    listenerutil.ReloadableCertGetter
 	TLSReloadFunc reloadutil.ReloadFunc
 }
 
@@ -66,7 +67,7 @@ func StartListener(lnConfig *configutil.Listener) (*ListenerBundle, error) {
 	}
 
 	props := map[string]string{"addr": ln.Addr().String()}
-	tlsConf, reloadFunc, err := listenerutil.TLSConfig(lnConfig, props, nil)
+	tlsConf, cg, err := listenerutil.TLSConfig(lnConfig, props, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -77,7 +78,8 @@ func StartListener(lnConfig *configutil.Listener) (*ListenerBundle, error) {
 	cfg := &ListenerBundle{
 		Listener:      ln,
 		TLSConfig:     tlsConf,
-		TLSReloadFunc: reloadFunc,
+		CertGetter:    cg,
+		TLSReloadFunc: cg.Reload,
 	}
 
 	return cfg, nil

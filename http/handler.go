@@ -31,6 +31,7 @@ import (
 	gziphandler "github.com/klauspost/compress/gzhttp"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/internalshared/configutil"
+	"github.com/openbao/openbao/internalshared/listenerutil"
 	"github.com/openbao/openbao/sdk/helper/consts"
 	"github.com/openbao/openbao/sdk/helper/jsonutil"
 	"github.com/openbao/openbao/sdk/helper/pathmanager"
@@ -201,6 +202,13 @@ func handler(props *vault.HandlerProperties) http.Handler {
 			mux.Handle("/v1/sys/metrics", handleMetricsUnauthenticated(core))
 		} else {
 			mux.Handle("/v1/sys/metrics", handleLogicalNoForward(core))
+		}
+
+		// Register ACME HTTP challenge responder, if necessary
+		if props.ListenerConfig != nil && !props.ListenerConfig.TLSDisable {
+			if acg, ok := props.ListenerConfig.TLSCertGetter.(*listenerutil.ACMECertGetter); ok {
+				mux.Handle("/.well-known/acme-challenge", http.HandlerFunc(acg.HandleHTTPChallenge))
+			}
 		}
 
 		if props.ListenerConfig != nil && props.ListenerConfig.Profiling.UnauthenticatedPProfAccess {
