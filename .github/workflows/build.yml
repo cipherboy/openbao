@@ -113,6 +113,7 @@ jobs:
       matrix:
         goos: [freebsd, windows, netbsd, openbsd, solaris]
         goarch: [386, amd64, arm]
+        stripped: [false, true]
         exclude:
           - goos: solaris
             goarch: 386
@@ -126,6 +127,7 @@ jobs:
       create-packages: false
       goarch: ${{ matrix.goarch }}
       goos: ${{ matrix.goos }}
+      stripped: ${{ matrix.stripped }}
       go-tags:
       package-name: ${{ needs.product-metadata.outputs.package-name }}
 #      web-ui-cache-key: ${{ needs.build-ui.outputs.cache-key }}
@@ -141,11 +143,13 @@ jobs:
       matrix:
         goos: [linux]
         goarch: [arm, arm64, 386, amd64, riscv64]
+        stripped: [false, true]
       fail-fast: true
     uses: ./.github/workflows/build-vault-ce.yml
     with:
       goarch: ${{ matrix.goarch }}
       goos: ${{ matrix.goos }}
+      stripped: ${{ matrix.stripped }}
       go-tags:
       package-name: ${{ needs.product-metadata.outputs.package-name }}
 #      web-ui-cache-key: ${{ needs.build-ui.outputs.cache-key }}
@@ -161,12 +165,14 @@ jobs:
       matrix:
         goos: [darwin]
         goarch: [amd64, arm64]
+        stripped: [false, true]
       fail-fast: true
     uses: ./.github/workflows/build-vault-ce.yml
     with:
       create-packages: false
       goarch: ${{ matrix.goarch }}
       goos: ${{ matrix.goos }}
+      stripped: ${{ matrix.stripped }}
       go-tags:
       package-name: ${{ needs.product-metadata.outputs.package-name }}
 #      web-ui-cache-key: ${{ needs.build-ui.outputs.cache-key }}

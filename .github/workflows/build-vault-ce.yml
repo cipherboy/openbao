@@ -32,11 +32,14 @@ on:
       web-ui-cache-key:
         type: string
         default: ""
+      stripped:
+        type: boolean
+        default: false
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    name: OpenBao ${{ inputs.goos }} ${{ inputs.goarch }} v${{ inputs.bao-version }}
+    name: "OpenBao ${{ inputs.goos }} ${{ inputs.goarch }} v${{ inputs.bao-version }} (stripped: ${{ inputs.stripped }})"
     steps:
       - uses: actions/checkout@c85c95e3d7251135ab7dc9ce3241c5835cc595a9 # v3.5.3
       - uses: ./.github/actions/set-up-go
@@ -56,6 +59,7 @@ jobs:
           GOARCH: ${{ inputs.goarch }}
           GOOS: ${{ inputs.goos }}
           VERSION: ${{ inputs.bao-version }}
+          REMOVE_SYMBOLS: ${{ inputs.stripped }}
         run:
             make ci-build
       - name: Determine artifact basename
@@ -63,6 +67,7 @@ jobs:
           GOARCH: ${{ inputs.goarch }}
           GOOS: ${{ inputs.goos }}
           VERSION: ${{ inputs.bao-version }}
+          REMOVE_SYMBOLS: ${{ inputs.stripped }}
         run: echo "ARTIFACT_BASENAME=$(make ci-get-artifact-basename)" >> "$GITHUB_ENV"
       - name: Bundle OpenBao
         env:
