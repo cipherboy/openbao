@@ -34,6 +34,7 @@ function artifact_basename() {
   : "${PKG_NAME:="openbao"}"
   : "${GOOS:=$(go env GOOS)}"
   : "${GOARCH:=$(go env GOARCH)}"
+  : "${REMOVE_SYMBOLS:=""}"
 
   : "${VERSION:=""}"
   if [ -z "$VERSION" ]; then
@@ -41,7 +42,13 @@ function artifact_basename() {
     exit 1
   fi
 
-  echo "${PKG_NAME}_${VERSION}_${GOOS}_${GOARCH}"
+  if [ "$REMOVE_SYMBOLS" == "true" ]; then
+    REMOVE_SYMBOLS="_stripped"
+  else
+    REMOVE_SYMBOLS=""
+  fi
+
+  echo "${PKG_NAME}_${VERSION}_${GOOS}_${GOARCH}${REMOVE_SYMBOLS}"
 }
 
 # Bundle the dist directory into a zip
@@ -91,7 +98,7 @@ function build() {
   msg="--> Building OpenBao revision $revision, built $build_date"
 
   # Keep the symbol and dwarf information by default
-  if [ -n "$REMOVE_SYMBOLS" ]; then
+  if [ "$REMOVE_SYMBOLS" == "true" ]; then
     ldflags="-s -w "
   else
     ldflags=""

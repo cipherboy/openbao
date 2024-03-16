@@ -37,6 +37,10 @@ dev-ui: assetcheck prep
 dev-dynamic: BUILD_TAGS+=testonly
 dev-dynamic: prep
 	@CGO_ENABLED=1 BUILD_TAGS='$(BUILD_TAGS)' OPENBAO_DEV_BUILD=1 sh -c "'$(CURDIR)/scripts/build.sh'"
+dev-stripped: BUILD_TAGS+=testonly
+dev-stripped: LD_FLAGS+=-w -s
+dev-stripped: prep
+	@CGO_ENABLED=$(CGO_ENABLED) BUILD_TAGS='$(BUILD_TAGS)' LD_FLAGS='$(LD_FLAGS)' OPENBAO_DEV_BUILD=1 sh -c "'$(CURDIR)/scripts/build.sh'"
 
 # *-mem variants will enable memory profiling which will write snapshots of heap usage
 # to $TMP/vaultprof every 5 minutes. These can be analyzed using `$ go tool pprof <profile_file>`.
@@ -57,6 +61,11 @@ docker-dev: prep
 docker-dev-ui: BUILD_TAGS+=testonly
 docker-dev-ui: prep
 	docker build --build-arg VERSION=$(GO_VERSION_MIN) --build-arg BUILD_TAGS="$(BUILD_TAGS)" -f scripts/docker/Dockerfile.ui -t openbao:dev-ui .
+
+docker-dev-stripped: BUILD_TAGS+=testonly
+docker-dev-stripped: LD_FLAGS+=-w -s
+docker-dev-stripped: prep
+	docker build --build-arg VERSION=$(GO_VERSION_MIN) --build-arg BUILD_TAGS="$(BUILD_TAGS)" --build-arg LD_FLAGS=$(LD_FLAGS) -f scripts/docker/Dockerfile -t openbao:dev .
 
 # test runs the unit tests and vets the code
 test: BUILD_TAGS+=testonly
