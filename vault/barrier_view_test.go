@@ -17,13 +17,13 @@ func TestBarrierView_impl(t *testing.T) {
 }
 
 func TestBarrierView_spec(t *testing.T) {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "foo/")
 	logical.TestStorage(t, view)
 }
 
 func TestBarrierView_BadKeysKeys(t *testing.T) {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "foo/")
 
 	_, err := view.List(context.Background(), "../")
@@ -52,7 +52,7 @@ func TestBarrierView_BadKeysKeys(t *testing.T) {
 }
 
 func TestBarrierView(t *testing.T) {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "foo/")
 
 	// Write a key outside of foo/
@@ -118,7 +118,7 @@ func TestBarrierView(t *testing.T) {
 }
 
 func TestBarrierView_SubView(t *testing.T) {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	root := NewBarrierView(barrier, "foo/")
 	view := root.SubView("bar/")
 
@@ -180,7 +180,7 @@ func TestBarrierView_SubView(t *testing.T) {
 }
 
 func TestBarrierView_Scan(t *testing.T) {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "view/")
 
 	expect := []string{}
@@ -218,7 +218,7 @@ func TestBarrierView_Scan(t *testing.T) {
 }
 
 func TestBarrierView_CollectKeys(t *testing.T) {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "view/")
 
 	expect := []string{}
@@ -252,7 +252,7 @@ func TestBarrierView_CollectKeys(t *testing.T) {
 }
 
 func TestBarrierView_ClearView(t *testing.T) {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "view/")
 
 	expect := []string{}
@@ -288,7 +288,7 @@ func TestBarrierView_ClearView(t *testing.T) {
 }
 
 func TestBarrierView_Readonly(t *testing.T) {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "foo/")
 
 	// Add a key before enabling read-only

@@ -222,7 +222,7 @@ func TestIdentityStore_EntityIDPassthrough(t *testing.T) {
 	}
 
 	// Mount the noop backend
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 	meUUID, err := uuid.GenerateUUID()
 	if err != nil {

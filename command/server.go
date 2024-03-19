@@ -566,6 +566,7 @@ func (c *ServerCommand) runRecoveryMode() int {
 		DisableMlock: config.DisableMlock,
 		RecoveryMode: c.flagRecovery,
 		ClusterAddr:  config.ClusterAddr,
+		BarrierType:  vault.BarrierType(config.BarrierType),
 	}
 
 	core, newCoreError := vault.NewCore(coreConfig)
@@ -2686,6 +2687,7 @@ func createCoreConfig(c *ServerCommand, config *server.Config, backend physical.
 		EnableResponseHeaderHostname:   config.EnableResponseHeaderHostname,
 		EnableResponseHeaderRaftNodeID: config.EnableResponseHeaderRaftNodeID,
 		AdministrativeNamespacePath:    config.AdministrativeNamespacePath,
+		BarrierType:                    vault.BarrierType(config.BarrierType),
 	}
 
 	if c.flagDev {

@@ -5755,7 +5755,7 @@ func TestTokenStore_TidyLeaseRevocation(t *testing.T) {
 	ts := exp.tokenStore
 
 	noop := &NoopBackend{}
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 	meUUID, err := uuid.GenerateUUID()
 	if err != nil {

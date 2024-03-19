@@ -7,28 +7,23 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
-	"encoding/json"
 	"testing"
 	"time"
 
-	log "github.com/hashicorp/go-hclog"
 	"github.com/openbao/openbao/helper/testhelpers/corehelpers"
-	"github.com/openbao/openbao/sdk/helper/logging"
 	"github.com/openbao/openbao/sdk/logical"
 	"github.com/openbao/openbao/sdk/physical"
 	"github.com/openbao/openbao/sdk/physical/inmem"
 	"github.com/stretchr/testify/require"
 )
 
-var logger = logging.NewVaultLogger(log.Trace)
-
 // mockAESBarrier returns a physical backend, security barrier, and master key
-func mockAESGCMBarrier(t testing.TB) (physical.Backend, SecurityBarrier, []byte) {
+func mockXChaCha20Barrier(t testing.TB) (physical.Backend, SecurityBarrier, []byte) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -40,36 +35,36 @@ func mockAESGCMBarrier(t testing.TB) (physical.Backend, SecurityBarrier, []byte)
 	return inm, b, key
 }
 
-func TestAESGCMBarrier_Basic(t *testing.T) {
+func TestXChaCha20Barrier_Basic(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	testBarrier(t, b)
 }
 
-func TestAESGCMBarrier_Rotate(t *testing.T) {
+func TestXChaCha20Barrier_Rotate(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	testBarrier_Rotate(t, b)
 }
 
-func TestAESGCMBarrier_MissingRotateConfig(t *testing.T) {
+func TestXChaCha20Barrier_MissingRotateConfig(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -92,147 +87,57 @@ func TestAESGCMBarrier_MissingRotateConfig(t *testing.T) {
 	}
 }
 
-func TestAESGCMBarrier_Upgrade(t *testing.T) {
+func TestXChaCha20Barrier_Upgrade(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b1, err := NewAESGCMBarrier(inm)
+	b1, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b2, err := NewAESGCMBarrier(inm)
+	b2, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	testBarrier_Upgrade(t, b1, b2)
 }
 
-func TestAESGCMBarrier_Upgrade_Rekey(t *testing.T) {
+func TestXChaCha20Barrier_Upgrade_Rekey(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b1, err := NewAESGCMBarrier(inm)
+	b1, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b2, err := NewAESGCMBarrier(inm)
+	b2, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	testBarrier_Upgrade_Rekey(t, b1, b2)
 }
 
-func TestAESGCMBarrier_Rekey(t *testing.T) {
+func TestXChaCha20Barrier_Rekey(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
 	testBarrier_Rekey(t, b)
 }
 
-// Test an upgrade from the old (0.1) barrier/init to the new
-// core/keyring style
-func TestAESGCMBarrier_BackwardsCompatible(t *testing.T) {
-	inm, err := inmem.NewInmem(nil, logger)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	b, err := NewAESGCMBarrier(inm)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Generate a barrier/init entry
-	encrypt, _ := b.GenerateKey(rand.Reader)
-	init := &barrierInit{
-		Version: 1,
-		Key:     encrypt,
-	}
-	buf, _ := json.Marshal(init)
-
-	// Protect with master key
-	master, _ := b.GenerateKey(rand.Reader)
-	gcm, _ := b.aeadFromKey(master)
-	value, err := b.encrypt(barrierInitPath, initialKeyTerm, gcm, buf)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// Write to the physical backend
-	pe := &physical.Entry{
-		Key:   barrierInitPath,
-		Value: value,
-	}
-	inm.Put(context.Background(), pe)
-
-	// Create a fake key
-	gcm, _ = b.aeadFromKey(encrypt)
-	value, err = b.encrypt("test/foo", initialKeyTerm, gcm, []byte("test"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	pe = &physical.Entry{
-		Key:   "test/foo",
-		Value: value,
-	}
-	inm.Put(context.Background(), pe)
-
-	// Should still be initialized
-	isInit, err := b.Initialized(context.Background())
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	if !isInit {
-		t.Fatalf("should be initialized")
-	}
-
-	// Unseal should work and migrate online
-	err = b.Unseal(context.Background(), master)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Check for migration
-	out, err := inm.Get(context.Background(), barrierInitPath)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	if out != nil {
-		t.Fatalf("should delete old barrier init")
-	}
-
-	// Should have keyring
-	out, err = inm.Get(context.Background(), keyringPath)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	if out == nil {
-		t.Fatalf("should have keyring file")
-	}
-
-	// Attempt to read encrypted key
-	entry, err := b.Get(context.Background(), "test/foo")
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	if string(entry.Value) != "test" {
-		t.Fatalf("bad: %#v", entry)
-	}
-}
-
 // Verify data sent through is encrypted
-func TestAESGCMBarrier_Confidential(t *testing.T) {
+func TestXChaCha20Barrier_Confidential(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -267,12 +172,12 @@ func TestAESGCMBarrier_Confidential(t *testing.T) {
 }
 
 // Verify data sent through cannot be tampered with
-func TestAESGCMBarrier_Integrity(t *testing.T) {
+func TestXChaCha20Barrier_Integrity(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -304,61 +209,16 @@ func TestAESGCMBarrier_Integrity(t *testing.T) {
 	}
 }
 
-// Verify data sent through cannot be moved
-func TestAESGCMBarrier_MoveIntegrityV1(t *testing.T) {
+func TestXChaCha20Barrier_MoveIntegrity(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b.currentAESGCMVersionByte = AESGCMVersion1
-
-	// Initialize and unseal
-	key, _ := b.GenerateKey(rand.Reader)
-	err = b.Initialize(context.Background(), key, nil, rand.Reader)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	err = b.Unseal(context.Background(), key)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Put a logical entry
-	entry := &logical.StorageEntry{Key: "test", Value: []byte("test")}
-	err = b.Put(context.Background(), entry)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Change the location of the underlying physical entry
-	pe, _ := inm.Get(context.Background(), "test")
-	pe.Key = "moved"
-	err = inm.Put(context.Background(), pe)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Read from the barrier
-	_, err = b.Get(context.Background(), "moved")
-	if err != nil {
-		t.Fatalf("should succeed with version 1!")
-	}
-}
-
-func TestAESGCMBarrier_MoveIntegrityV2(t *testing.T) {
-	inm, err := inmem.NewInmem(nil, logger)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	b, err := NewAESGCMBarrier(inm)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	b.currentAESGCMVersionByte = AESGCMVersion2
+	b.currentXChaCha20VersionByte = XChaCha20Version1
 
 	// Initialize and unseal
 	key, _ := b.GenerateKey(rand.Reader)
@@ -393,67 +253,12 @@ func TestAESGCMBarrier_MoveIntegrityV2(t *testing.T) {
 	}
 }
 
-func TestAESGCMBarrier_UpgradeV1toV2(t *testing.T) {
+func TestXChaCha20Encrypt_Unique(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	b.currentAESGCMVersionByte = AESGCMVersion1
-
-	// Initialize and unseal
-	key, _ := b.GenerateKey(rand.Reader)
-	err = b.Initialize(context.Background(), key, nil, rand.Reader)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	err = b.Unseal(context.Background(), key)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Put a logical entry
-	entry := &logical.StorageEntry{Key: "test", Value: []byte("test")}
-	err = b.Put(context.Background(), entry)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Seal
-	err = b.Seal()
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Open again as version 2
-	b, err = NewAESGCMBarrier(inm)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	b.currentAESGCMVersionByte = AESGCMVersion2
-
-	// Unseal
-	err = b.Unseal(context.Background(), key)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-
-	// Check successful decryption
-	_, err = b.Get(context.Background(), "test")
-	if err != nil {
-		t.Fatalf("Upgrade unsuccessful")
-	}
-}
-
-func TestEncrypt_Unique(t *testing.T) {
-	inm, err := inmem.NewInmem(nil, logger)
-	if err != nil {
-		t.Fatalf("err: %v", err)
-	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -484,12 +289,12 @@ func TestEncrypt_Unique(t *testing.T) {
 	}
 }
 
-func TestInitialize_KeyLength(t *testing.T) {
+func TestXChaCha20Initialize_KeyLength(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -517,12 +322,12 @@ func TestInitialize_KeyLength(t *testing.T) {
 	}
 }
 
-func TestEncrypt_BarrierEncryptor(t *testing.T) {
+func TestXChaCha20Encrypt_BarrierEncryptor(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -553,12 +358,12 @@ func TestEncrypt_BarrierEncryptor(t *testing.T) {
 
 // Ensure Decrypt returns an error (rather than panic) when given a ciphertext
 // that is nil or too short
-func TestDecrypt_InvalidCipherLength(t *testing.T) {
+func TestXChaCha20Decrypt_InvalidCipherLength(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -586,12 +391,12 @@ func TestDecrypt_InvalidCipherLength(t *testing.T) {
 	}
 }
 
-func TestAESGCMBarrier_ReloadKeyring(t *testing.T) {
+func TestXChaCha20Barrier_ReloadKeyring(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b, err := NewAESGCMBarrier(inm)
+	b, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
@@ -614,7 +419,7 @@ func TestAESGCMBarrier_ReloadKeyring(t *testing.T) {
 
 	{
 		// Create a second barrier and rotate the keyring
-		b2, err := NewAESGCMBarrier(inm)
+		b2, err := NewXChaCha20Barrier(inm)
 		if err != nil {
 			t.Fatalf("err: %v", err)
 		}
@@ -664,12 +469,12 @@ func TestAESGCMBarrier_ReloadKeyring(t *testing.T) {
 	}
 }
 
-func TestBarrier_LegacyRotate(t *testing.T) {
+func TestXChaCha20Barrier_LegacyRotate(t *testing.T) {
 	inm, err := inmem.NewInmem(nil, logger)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	}
-	b1, err := NewAESGCMBarrier(inm)
+	b1, err := NewXChaCha20Barrier(inm)
 	if err != nil {
 		t.Fatalf("err: %v", err)
 	} // Initialize the barrier
@@ -697,11 +502,11 @@ func TestBarrier_LegacyRotate(t *testing.T) {
 	}
 }
 
-// TestBarrier_persistKeyring_Context checks that we get the right errors if
+// TestXChaCha20Barrier_persistKeyring_Context checks that we get the right errors if
 // the context is cancelled or times-out before the first part of persistKeyring
 // is able to persist the keyring itself (i.e. we don't go on to try and persist
 // the root key).
-func TestBarrier_persistKeyring_Context(t *testing.T) {
+func TestXChaCha20Barrier_persistKeyring_Context(t *testing.T) {
 	t.Parallel()
 
 	tests := map[string]struct {
@@ -735,7 +540,7 @@ func TestBarrier_persistKeyring_Context(t *testing.T) {
 			// Set up barrier
 			backend, err := inmem.NewInmem(nil, corehelpers.NewTestLogger(t))
 			require.NoError(t, err)
-			barrier, err := NewAESGCMBarrier(backend)
+			barrier, err := NewXChaCha20Barrier(backend)
 			require.NoError(t, err)
 			key, err := barrier.GenerateKey(rand.Reader)
 			require.NoError(t, err)

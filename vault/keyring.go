@@ -42,12 +42,14 @@ type Keyring struct {
 	keys           map[uint32]*Key
 	activeTerm     uint32
 	rotationConfig KeyRotationConfig
+	algorithm      BarrierType
 }
 
 // EncodedKeyring is used for serialization of the keyring
 type EncodedKeyring struct {
 	MasterKey      []byte
 	Keys           []*Key
+	Algorithm      BarrierType
 	RotationConfig KeyRotationConfig
 }
 
@@ -81,11 +83,12 @@ func DeserializeKey(buf []byte) (*Key, error) {
 }
 
 // NewKeyring creates a new keyring
-func NewKeyring() *Keyring {
+func NewKeyring(algo BarrierType) *Keyring {
 	k := &Keyring{
 		keys:           make(map[uint32]*Key),
 		activeTerm:     0,
 		rotationConfig: defaultRotationConfig,
+		algorithm:      algo,
 	}
 	return k
 }
@@ -97,6 +100,7 @@ func (k *Keyring) Clone() *Keyring {
 		keys:           make(map[uint32]*Key, len(k.keys)),
 		activeTerm:     k.activeTerm,
 		rotationConfig: k.rotationConfig,
+		algorithm:      k.algorithm,
 	}
 	for idx, key := range k.keys {
 		clone.keys[idx] = key
@@ -193,6 +197,7 @@ func (k *Keyring) Serialize() ([]byte, error) {
 	enc := EncodedKeyring{
 		MasterKey:      k.rootKey,
 		RotationConfig: k.rotationConfig,
+		Algorithm:      k.algorithm,
 	}
 	for _, key := range k.keys {
 		enc.Keys = append(enc.Keys, key)
@@ -212,8 +217,9 @@ func DeserializeKeyring(buf []byte) (*Keyring, error) {
 	}
 
 	// Create a new keyring
-	k := NewKeyring()
+	k := NewKeyring(MissingBarrierType)
 	k.rootKey = enc.MasterKey
+	k.algorithm = enc.Algorithm
 	k.rotationConfig = enc.RotationConfig
 	k.rotationConfig.Sanitize()
 	for _, key := range enc.Keys {
@@ -222,6 +228,12 @@ func DeserializeKeyring(buf []byte) (*Keyring, error) {
 			k.activeTerm = key.Term
 		}
 	}
+
+	// Upgrade missing values.
+	if k.algorithm == MissingBarrierType {
+		k.algorithm = AESGCMBarrierType
+	}
+
 	return k, nil
 }
 

@@ -533,7 +533,7 @@ func TestAuditBroker_LogResponse(t *testing.T) {
 func TestAuditBroker_AuditHeaders(t *testing.T) {
 	logger := logging.NewVaultLogger(log.Trace)
 	b := NewAuditBroker(logger)
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "headers/")
 	a1 := corehelpers.TestNoopAudit(t, nil)
 	a2 := corehelpers.TestNoopAudit(t, nil)

@@ -12,7 +12,7 @@ import (
 )
 
 func mockAuditedHeadersConfig(t *testing.T) *AuditedHeadersConfig {
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "foo/")
 	return &AuditedHeadersConfig{
 		Headers: make(map[string]*auditedHeaderSettings),

@@ -11,7 +11,7 @@ import (
 )
 
 func TestKeyring(t *testing.T) {
-	k := NewKeyring()
+	k := NewKeyring(AESGCMBarrierType)
 
 	// Term should be 0
 	if term := k.ActiveTerm(); term != 0 {
@@ -111,7 +111,7 @@ func TestKeyring(t *testing.T) {
 }
 
 func TestKeyring_MasterKey(t *testing.T) {
-	k := NewKeyring()
+	k := NewKeyring(XChaCha20BarrierType)
 	master := []byte("test")
 	master2 := []byte("test2")
 
@@ -137,7 +137,7 @@ func TestKeyring_MasterKey(t *testing.T) {
 }
 
 func TestKeyring_Serialize(t *testing.T) {
-	k := NewKeyring()
+	k := NewKeyring(XChaCha20BarrierType)
 	master := []byte("test")
 	k = k.SetRootKey(master)
 

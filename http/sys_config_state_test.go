@@ -175,6 +175,7 @@ func TestSysConfigState_Sanitized(t *testing.T) {
 				"storage":                       tc.expectedStorageOutput,
 				"administrative_namespace_path": "",
 				"imprecise_lease_role_tracking": false,
+				"barrier_algorithm":             "",
 			}
 
 			if tc.expectedHAStorageOutput != nil {

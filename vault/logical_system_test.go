@@ -72,7 +72,7 @@ func TestSystemBackend_RootPaths(t *testing.T) {
 func TestSystemConfigCORS(t *testing.T) {
 	b := testSystemBackend(t)
 	paths := b.(*SystemBackend).configPaths()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "")
 	b.(*SystemBackend).Core.systemBarrierView = view
 

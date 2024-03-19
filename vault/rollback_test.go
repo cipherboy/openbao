@@ -25,7 +25,7 @@ func mockRollback(t *testing.T) (*RollbackManager, *NoopBackend) {
 	router := NewRouter()
 	core, _, _ := TestCoreUnsealed(t)
 
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 
 	mounts.Entries = []*MountEntry{

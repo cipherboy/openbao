@@ -640,6 +640,9 @@ type Core struct {
 
 	// Config value for "detect_deadlocks".
 	detectDeadlocks []string
+
+	// Barrier encryption type.
+	barrierType BarrierType
 }
 
 // c.stateLock needs to be held in read mode before calling this function.
@@ -786,6 +789,8 @@ type CoreConfig struct {
 	AdministrativeNamespacePath string
 
 	NumRollbackWorkers int
+
+	BarrierType BarrierType
 }
 
 // GetServiceRegistration returns the config's ServiceRegistration, or nil if it does
@@ -894,6 +899,16 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		}
 	}
 
+	// Set the barrier type; default to AES if the config value is not set.
+	barrierType := AESGCMBarrierType
+	if conf.BarrierType != MissingBarrierType {
+		if !ValidBarrierType(conf.BarrierType) {
+			return nil, fmt.Errorf("unknown barrier type: %v", conf.BarrierType)
+		}
+
+		barrierType = conf.BarrierType
+	}
+
 	// Setup the core
 	c := &Core{
 		devToken:             conf.DevToken,
@@ -962,6 +977,7 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		numRollbackWorkers:             conf.NumRollbackWorkers,
 		impreciseLeaseRoleTracking:     conf.ImpreciseLeaseRoleTracking,
 		detectDeadlocks:                detectDeadlocks,
+		barrierType:                    barrierType,
 	}
 
 	c.standbyStopCh.Store(make(chan struct{}))
@@ -1063,8 +1079,8 @@ func NewCore(conf *CoreConfig) (*Core, error) {
 		}
 	}
 
-	// Construct a new AES-GCM barrier
-	c.barrier, err = NewAESGCMBarrier(c.physical)
+	// Construct a new barrier
+	c.barrier, err = NewBarrier(c.barrierType, c.physical)
 	if err != nil {
 		return nil, fmt.Errorf("barrier setup failed: %w", err)
 	}

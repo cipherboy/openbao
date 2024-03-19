@@ -6,10 +6,12 @@ package vault
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"time"
 
 	"github.com/openbao/openbao/sdk/logical"
+	"github.com/openbao/openbao/sdk/physical"
 )
 
 var (
@@ -197,4 +199,27 @@ type KeyInfo struct {
 	Term        int
 	InstallTime time.Time
 	Encryptions int64
+}
+
+type BarrierType string
+
+const (
+	MissingBarrierType   BarrierType = ""
+	AESGCMBarrierType    BarrierType = "aes-gcm"
+	XChaCha20BarrierType BarrierType = "xchacha20"
+)
+
+func ValidBarrierType(barrier BarrierType) bool {
+	return barrier == AESGCMBarrierType || barrier == XChaCha20BarrierType
+}
+
+func NewBarrier(barrier BarrierType, physical physical.Backend) (SecurityBarrier, error) {
+	switch barrier {
+	case AESGCMBarrierType:
+		return NewAESGCMBarrier(physical)
+	case XChaCha20BarrierType:
+		return NewXChaCha20Barrier(physical)
+	default:
+		return nil, fmt.Errorf("unknown barrier type: %v", barrier)
+	}
 }

@@ -107,6 +107,8 @@ type Config struct {
 
 	EnableResponseHeaderRaftNodeID    bool        `hcl:"-"`
 	EnableResponseHeaderRaftNodeIDRaw interface{} `hcl:"enable_response_header_raft_node_id"`
+
+	BarrierType string `hcl:"barrier_algorithm"`
 }
 
 const (
@@ -1051,6 +1053,8 @@ func (c *Config) Sanitized() map[string]interface{} {
 		"detect_deadlocks": c.DetectDeadlocks,
 
 		"imprecise_lease_role_tracking": c.ImpreciseLeaseRoleTracking,
+
+		"barrier_algorithm": c.BarrierType,
 	}
 	for k, v := range sharedResult {
 		result[k] = v

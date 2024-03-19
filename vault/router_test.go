@@ -15,7 +15,7 @@ import (
 
 func TestRouter_Mount(t *testing.T) {
 	r := NewRouter()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 
 	meUUID, err := uuid.GenerateUUID()
@@ -127,7 +127,7 @@ func TestRouter_Mount(t *testing.T) {
 
 func TestRouter_MountCredential(t *testing.T) {
 	r := NewRouter()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, credentialBarrierPrefix)
 
 	meUUID, err := uuid.GenerateUUID()
@@ -207,7 +207,7 @@ func TestRouter_MountCredential(t *testing.T) {
 
 func TestRouter_Unmount(t *testing.T) {
 	r := NewRouter()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 
 	meUUID, err := uuid.GenerateUUID()
@@ -240,7 +240,7 @@ func TestRouter_Unmount(t *testing.T) {
 
 func TestRouter_Remount(t *testing.T) {
 	r := NewRouter()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 
 	meUUID, err := uuid.GenerateUUID()
@@ -298,7 +298,7 @@ func TestRouter_Remount(t *testing.T) {
 
 func TestRouter_RootPath(t *testing.T) {
 	r := NewRouter()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 
 	meUUID, err := uuid.GenerateUUID()
@@ -340,7 +340,7 @@ func TestRouter_RootPath(t *testing.T) {
 
 func TestRouter_LoginPath(t *testing.T) {
 	r := NewRouter()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "auth/")
 
 	meUUID, err := uuid.GenerateUUID()
@@ -452,7 +452,7 @@ func TestRouter_LoginPath(t *testing.T) {
 
 func TestRouter_Taint(t *testing.T) {
 	r := NewRouter()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 
 	meUUID, err := uuid.GenerateUUID()
@@ -495,7 +495,7 @@ func TestRouter_Taint(t *testing.T) {
 
 func TestRouter_Untaint(t *testing.T) {
 	r := NewRouter()
-	_, barrier, _ := mockBarrier(t)
+	_, barrier, _ := mockAESGCMBarrier(t)
 	view := NewBarrierView(barrier, "logical/")
 
 	meUUID, err := uuid.GenerateUUID()
