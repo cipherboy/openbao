@@ -7,6 +7,11 @@ option go_package = "github.com/openbao/openbao/helper/forwarding";
 
 package forwarding;
 
+import "google/protobuf/timestamp.proto";
+import "google/protobuf/duration.proto";
+
+import "sdk/logical/identity.proto";
+
 message Request {
 	// Not used right now but reserving in case it turns out that streaming
 	// makes things more economical on the gRPC side
@@ -49,4 +54,145 @@ message Response {
 	// well as any other information
 	map<string, HeaderEntry> header_entries = 4;
 	uint64 last_remote_wal = 5;
+}
+
+message LogicalRequest {
+	string id = 1;
+	// Not used right now.
+	// string replication_ cluster = 2;
+	string operation = 3;
+	string path = 4;
+	// data is serialized to JSON prior to sending.
+	string data = 5;
+	// Reserving identifier for future use.
+	// storage storage = 6;
+	LogicalSecret secret = 7;
+	LogicalAuth auth = 8;
+	map<string, HeaderEntry> headers = 9;
+	LogicalConnection connection = 10;
+	string client_token = 11;
+	string client_token_accessor = 12;
+	string display_name = 13;
+	string mount_point = 14;
+	string mount_type = 15;
+	string mount_accessor = 16;
+	// Not used right now.
+	// string mount_running_version = 17;
+	// string mount_running_sha256 = 18;
+	// bool mount_is_external_plugin = 19;
+	// string mount_class = 20;
+	LogicalRequestWrapInfo wrap_info = 21;
+	int32 client_token_remaining_uses = 22;
+	string entity_id = 23;
+	bool policy_override = 24;
+	bool unauthenticated = 25;
+	// JSON serialized prior to sending.
+	string mfa_creds = 26;
+	// Not used right now.
+	// LogicalTokenEntry token_entry = 27;
+	// int64 last_remote_wal = 28;
+	int32 client_token_source = 29;
+	// not used right now.
+	// HTTPRequest http_request = 30;
+	// HTTPResponseWriter ResponseWriter = 31;
+	// repeated string required_state = 32;
+	// WALState responseState = 33;
+	string client_id = 34;
+	string forwarded_from = 35;
+}
+
+message LogicalSecret {
+	LogicalLeaseOptions lease = 1;
+	// JSON serialized prior to sending.
+	string internal_data = 2;
+	string lease_id = 3;
+}
+
+message LogicalLeaseOptions {
+	google.protobuf.Duration ttl = 1;
+	google.protobuf.Duration max_ttl = 2;
+	bool renewable = 3;
+	google.protobuf.Duration increment = 4;
+	google.protobuf.Timestamp issue_time = 5;
+}
+
+message LogicalAuth {
+	LogicalLeaseOptions lease = 1;
+	// JSON serialized prior to sending.
+	string internal_data = 2;
+	string display_name = 3;
+	repeated string policies = 4;
+	repeated string token_policies = 5;
+	repeated string identity_policies = 6;
+	// JSON serialized prior to sending.
+	string external_namespace_policies = 7;
+	bool no_default_policy = 8;
+	// JSON serialized prior to sending.
+	string metadata = 9;
+	string client_token = 10;
+	string accessor = 11;
+	google.protobuf.Duration period = 12;
+	google.protobuf.Duration explicit_max_ttl = 13;
+	int32 num_uses = 14;
+	string entity_id = 15;
+	logical.Alias alias = 16;
+	repeated logical.Alias group_aliases = 17;
+	repeated string bound_cidrs = 18;
+	string creation_path = 19;
+	bool orphan = 20;
+	LogicalPolicyResults policy_results = 21;
+	logical.MFARequirement mfa_requirement = 22;
+	bool entity_created = 23;
+}
+
+message LogicalPolicyResults {
+	bool allowed = 1;
+	repeated LogicalPolicyInfo granting_policies = 2;
+}
+
+message LogicalPolicyInfo {
+	string name = 1;
+	string namespace_id = 2;
+	string namespace_path = 3;
+	string type = 4;
+}
+
+message LogicalConnection {
+	string remote_addr = 1;
+	int32 remote_port = 2;
+	// Reserved but not used.
+	// TLSConnectionState conn_state = 3;
+}
+
+message LogicalRequestWrapInfo {
+	google.protobuf.Duration ttl = 1;
+	string format = 2;
+	bool seal_wrap = 3;
+}
+
+message LogicalResponse {
+	LogicalSecret secret = 1;
+	LogicalAuth auth = 2;
+	// JSON serialized prior to sending.
+	string data = 3;
+	string redirect = 4;
+	repeated string warnings = 5;
+	LogicalResponseWrapInfo wrap_info = 6;
+	map<string, HeaderEntry> headers = 7;
+
+	// skip a few fields to allow extensibility.
+	string response_error = 99;
+	string marshal_error = 100;
+}
+
+message LogicalResponseWrapInfo {
+	google.protobuf.Duration ttl = 1;
+	string token = 2;
+	string accessor = 3;
+	google.protobuf.Timestamp creation_time = 4;
+	string wrapped_accessor = 5;
+	string wrapped_entity_id = 6;
+	string format = 7;
+	string creation_path = 8;
+	bool seal_wrap = 9;
 }
