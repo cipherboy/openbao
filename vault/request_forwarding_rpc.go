@@ -15,6 +15,7 @@ import (
 	"github.com/openbao/openbao/helper/forwarding"
 	"github.com/openbao/openbao/physical/raft"
 	"github.com/openbao/openbao/sdk/helper/consts"
+	"github.com/openbao/openbao/sdk/logical"
 )
 
 type forwardedRequestRPCServer struct {
@@ -107,6 +108,47 @@ func (s *forwardedRequestRPCServer) Echo(ctx context.Context, in *EchoRequest) (
 	}
 
 	return reply, nil
+}
+
+func (s *forwardedRequestRPCServer) ForwardLogicalRequest(ctx context.Context, freq *forwarding.LogicalRequest) (*forwarding.LogicalResponse, error) {
+	// Parse an http.Request out of it
+	req, err := forwarding.UnmarshalLogicalRequest(freq)
+	if err != nil {
+		return nil, err
+	}
+
+	var marshalErr error
+	var respErr error
+	var resp *forwarding.LogicalResponse
+
+	runRequest := func() {
+		defer func() {
+			if err := recover(); err != nil {
+				s.core.logger.Error("panic serving forwarded logical request", "mount", req.MountPoint, "path", req.Path, "error", err, "stacktrace", string(debug.Stack()))
+			}
+		}()
+
+		var logicalResp *logical.Response
+		logicalResp, respErr = s.core.HandleRequest(ctx, req)
+		if logicalResp != nil {
+			resp, marshalErr = forwarding.MarshalLogicalResponse(logicalResp)
+		}
+	}
+
+	runRequest()
+	if resp == nil {
+		resp = &forwarding.LogicalResponse{}
+	}
+
+	if respErr != nil {
+		resp.ResponseError = respErr.Error()
+	}
+
+	if marshalErr != nil {
+		resp.MarshalError = marshalErr.Error()
+	}
+
+	return resp, nil
 }
 
 type forwardingClient struct {

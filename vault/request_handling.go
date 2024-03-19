@@ -21,6 +21,7 @@ import (
 
 	"github.com/openbao/openbao/api"
 	"github.com/openbao/openbao/command/server"
+	"github.com/openbao/openbao/helper/forwarding"
 	"github.com/openbao/openbao/helper/identity"
 	"github.com/openbao/openbao/helper/identity/mfa"
 	"github.com/openbao/openbao/helper/metricsutil"
@@ -796,8 +797,57 @@ func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request
 }
 
 func (c *Core) doRouting(ctx context.Context, req *logical.Request) (*logical.Response, error) {
-	// If we're replicating and we get a read-only error from a backend, need to forward to primary
-	return c.router.Route(ctx, req)
+	// If we're replicating and we get a read-only error from a backend, we
+	// need to forward this request to the active node. We do this along the
+	// same mechanism http.handleRequestForwarding(...) uses, just a few
+	// layers lower.
+
+	resp, err := c.router.Route(ctx, req)
+	if strings.Contains(err.Error(), logical.ErrReadOnly.Error()) {
+		fwdResp, fwdErr := c.forwardReadOnlyRequest(ctx, req)
+		fwdErr = multierror.Append(fwdErr, err)
+		return fwdResp, fwdErr
+	}
+
+	return resp, err
+}
+
+func (c *Core) forwardReadOnlyRequest(ctx context.Context, req *logical.Request) (*logical.Response, error) {
+	// See c.ForwardRequest for more information.
+	c.requestForwardingConnectionLock.RLock()
+	defer c.requestForwardingConnectionLock.RUnlock()
+
+	if c.rpcForwardingClient == nil {
+		return nil, ErrCannotForward
+	}
+
+	freq, err := forwarding.MarshalLogicalRequest(req)
+	if err != nil {
+		c.logger.Error("error creating forwarding RPC logical request", "error", err)
+		return nil, fmt.Errorf("error creating forwarding RPC logical request")
+	}
+
+	fresp, err := c.rpcForwardingClient.ForwardLogicalRequest(ctx, freq)
+	if err != nil {
+		metrics.IncrCounter([]string{"ha", "rpc", "client", "forward", "errors"}, 1)
+		c.logger.Error("error during forwarded RPC request", "error", err)
+		return nil, fmt.Errorf("error during forwarding RPC request")
+	}
+
+	resp, err := forwarding.UnmarshalLogicalResponse(fresp)
+	if err != nil {
+		c.logger.Error("error parsing forwarding RPC logical response", "error", err)
+		return nil, fmt.Errorf("error parsing forwarding RPC logical response")
+	}
+
+	if fresp.ResponseError != "" {
+		err = multierror.Append(err, errors.New(fresp.ResponseError))
+	}
+	if fresp.MarshalError != "" {
+		err = multierror.Append(err, errors.New(fresp.MarshalError))
+	}
+
+	return resp, err
 }
 
 func (c *Core) isLoginRequest(ctx context.Context, req *logical.Request) bool {

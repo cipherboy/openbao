@@ -55,5 +55,6 @@ message ClientKey {
 
 service RequestForwarding {
 	rpc ForwardRequest(forwarding.Request) returns (forwarding.Response) {}
+	rpc ForwardLogicalRequest(forwarding.LogicalRequest) returns (forwarding.LogicalResponse) {}
 	rpc Echo(EchoRequest) returns (EchoReply) {}
 }

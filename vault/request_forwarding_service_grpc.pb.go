@@ -20,6 +20,7 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RequestForwardingClient interface {
 	ForwardRequest(ctx context.Context, in *forwarding.Request, opts ...grpc.CallOption) (*forwarding.Response, error)
+	ForwardLogicalRequest(ctx context.Context, in *forwarding.LogicalRequest, opts ...grpc.CallOption) (*forwarding.LogicalResponse, error)
 	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoReply, error)
 }
 
@@ -40,6 +41,15 @@ func (c *requestForwardingClient) ForwardRequest(ctx context.Context, in *forwar
 	return out, nil
 }
 
+func (c *requestForwardingClient) ForwardLogicalRequest(ctx context.Context, in *forwarding.LogicalRequest, opts ...grpc.CallOption) (*forwarding.LogicalResponse, error) {
+	out := new(forwarding.LogicalResponse)
+	err := c.cc.Invoke(ctx, "/vault.RequestForwarding/ForwardLogicalRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *requestForwardingClient) Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoReply, error) {
 	out := new(EchoReply)
 	err := c.cc.Invoke(ctx, "/vault.RequestForwarding/Echo", in, out, opts...)
@@ -54,6 +64,7 @@ func (c *requestForwardingClient) Echo(ctx context.Context, in *EchoRequest, opt
 // for forward compatibility
 type RequestForwardingServer interface {
 	ForwardRequest(context.Context, *forwarding.Request) (*forwarding.Response, error)
+	ForwardLogicalRequest(context.Context, *forwarding.LogicalRequest) (*forwarding.LogicalResponse, error)
 	Echo(context.Context, *EchoRequest) (*EchoReply, error)
 	mustEmbedUnimplementedRequestForwardingServer()
 }
@@ -64,6 +75,9 @@ type UnimplementedRequestForwardingServer struct {
 
 func (UnimplementedRequestForwardingServer) ForwardRequest(context.Context, *forwarding.Request) (*forwarding.Response, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ForwardRequest not implemented")
+}
+func (UnimplementedRequestForwardingServer) ForwardLogicalRequest(context.Context, *forwarding.LogicalRequest) (*forwarding.LogicalResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ForwardLogicalRequest not implemented")
 }
 func (UnimplementedRequestForwardingServer) Echo(context.Context, *EchoRequest) (*EchoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Echo not implemented")
@@ -99,6 +113,24 @@ func _RequestForwarding_ForwardRequest_Handler(srv interface{}, ctx context.Cont
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RequestForwarding_ForwardLogicalRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(forwarding.LogicalRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RequestForwardingServer).ForwardLogicalRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/vault.RequestForwarding/ForwardLogicalRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RequestForwardingServer).ForwardLogicalRequest(ctx, req.(*forwarding.LogicalRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _RequestForwarding_Echo_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(EchoRequest)
 	if err := dec(in); err != nil {
@@ -127,6 +159,10 @@ var RequestForwarding_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ForwardRequest",
 			Handler:    _RequestForwarding_ForwardRequest_Handler,
+		},
+		{
+			MethodName: "ForwardLogicalRequest",
+			Handler:    _RequestForwarding_ForwardLogicalRequest_Handler,
 		},
 		{
 			MethodName: "Echo",
