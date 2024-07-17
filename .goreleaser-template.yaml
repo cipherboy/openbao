@@ -30,7 +30,7 @@ builds:
     env:
       - CGO_ENABLED=0
     goos:
-      - linux
+      - REPLACE_WITH_RELEASE_GOOS
     goarch:
       - amd64
       - arm
@@ -40,6 +40,16 @@ builds:
       - s390x
     goarm:
       - "6"
+    ignore:
+      - goos: darwin
+      - goos: dragonfly
+      - goos: freebsd
+      - goos: illumos
+      - goos: netbsd
+      - goos: openbsd
+      - goos: solaris
+      - goos: wasip1
+      - goos: windows
     mod_timestamp: "{{ .CommitTimestamp }}"
     skip: false
   - id: builds-other
@@ -48,15 +58,7 @@ builds:
     env:
       - CGO_ENABLED=0
     goos:
-      - darwin
-      #- dragonfly
-      - freebsd
-      - illumos
-      - netbsd
-      - openbsd
-      - solaris
-      #- wasip1
-      - windows
+      - REPLACE_WITH_RELEASE_GOOS
     goarch:
       - amd64
       - arm
@@ -69,6 +71,7 @@ builds:
       - "6"
       - "7"
     ignore:
+      - goos: linux
       - goos: darwin
         goarm: "6"
       - goos: darwin
@@ -868,8 +871,14 @@ release:
   github:
     owner: openbao
     name: openbao
-  draft: true #${{ .Env.GITHUB_RELEASE_DRAFT }}
-  replace_existing_draft: false
+
   prerelease: ${{ .Env.GITHUB_PRERELEASE }}
   make_latest: ${{ .Env.GITHUB_RELEASE_MAKE_LATEST }}
   disable: false
+
+  # We overwrite the following variables to support multi-stage execution of
+  # goreleaser on the same artifacts with different GOOS values, to avoid
+  # running out of disk space.
+  draft: true
+  replace_existing_draft: false
+  replace_existing_artifacts: false
