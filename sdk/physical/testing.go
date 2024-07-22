@@ -484,122 +484,256 @@ func ExerciseHABackend(t testing.TB, b HABackend, b2 HABackend) {
 	lock2.Unlock()
 }
 
-func ExerciseTransactionalBackend(t testing.TB, b Backend) {
+func ExerciseTransactionalBackend(t testing.TB, b TransactionalBackend) {
 	t.Helper()
-	tb, ok := b.(Transactional)
-	if !ok {
-		t.Fatal("Not a transactional backend")
+
+	// Creating a transaction and committing or rolling it back without doing
+	// anything should succeed, regardless of type of transaction. Doing the
+	// same operation twice should fail as the transaction was already
+	// finished.
+	txn, err := b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin read-write transaction")
+	err = txn.Commit(context.Background())
+	require.NoError(t, err, "failed to commit transaction with no entries")
+	err = txn.Commit(context.Background())
+	require.Error(t, err, "expected double commit of transaction to fail")
+
+	txn, err = b.BeginReadOnlyTx(context.Background())
+	require.NoError(t, err, "failed to begin read-only transaction")
+	err = txn.Commit(context.Background())
+	require.NoError(t, err, "failed to commit read-only transaction with no entries")
+	err = txn.Commit(context.Background())
+	require.Error(t, err, "expected double commit of read-only transaction to fail")
+
+	txn, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin second read-write transaction")
+	err = txn.Rollback(context.Background())
+	require.NoError(t, err, "failed to rollback transaction with no entries")
+	err = txn.Rollback(context.Background())
+	require.Error(t, err, "expected double rollback of transaction to fail")
+
+	txn, err = b.BeginReadOnlyTx(context.Background())
+	require.NoError(t, err, "failed to begin second read-only transaction")
+	err = txn.Rollback(context.Background())
+	require.NoError(t, err, "failed to rollback read-only transaction with no entries")
+	err = txn.Rollback(context.Background())
+	require.Error(t, err, "expected double rollback of read-only transaction to fail")
+
+	// This should also be true if we swap types (commit->rollback and
+	// visa-versa).
+	txn, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin read-write transaction")
+	err = txn.Commit(context.Background())
+	require.NoError(t, err, "failed to commit transaction with no entries")
+	err = txn.Rollback(context.Background())
+	require.Error(t, err, "expected subsequent rollback of transaction to fail")
+
+	txn, err = b.BeginReadOnlyTx(context.Background())
+	require.NoError(t, err, "failed to begin read-only transaction")
+	err = txn.Commit(context.Background())
+	require.NoError(t, err, "failed to commit read-only transaction with no entries")
+	err = txn.Rollback(context.Background())
+	require.Error(t, err, "expected subsequent rollback of read-only transaction to fail")
+
+	txn, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin second read-write transaction")
+	err = txn.Rollback(context.Background())
+	require.NoError(t, err, "failed to rollback transaction with no entries")
+	err = txn.Commit(context.Background())
+	require.Error(t, err, "expected subsequent commit of transaction to fail")
+
+	txn, err = b.BeginReadOnlyTx(context.Background())
+	require.NoError(t, err, "failed to begin second read-only transaction")
+	err = txn.Rollback(context.Background())
+	require.NoError(t, err, "failed to rollback read-only transaction with no entries")
+	err = txn.Commit(context.Background())
+	require.Error(t, err, "expected subsequent commit of read-only transaction to fail")
+
+	// Empty transactions can be interwoven.
+	txn1, err := b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin first interwoven transaction")
+	txn2, err := b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin second interwoven transaction")
+	err = txn2.Commit(context.Background())
+	require.NoError(t, err, "failed to commit second interwoven transaction")
+	err = txn1.Commit(context.Background())
+	require.NoError(t, err, "failed to commit second interwoven transaction")
+
+	// Writing to a read-only transaction should fail; committing this
+	// transaction should have no impact on storage.
+	entry := &Entry{Key: "foo", Value: []byte("test")}
+
+	rtx, err := b.BeginReadOnlyTx(context.Background())
+	require.NoError(t, err, "failed to create read-only transaction for writing")
+	err = rtx.Put(context.Background(), entry)
+	require.Error(t, err, "expected failure to put in read-only transaction")
+	err = rtx.Delete(context.Background(), "foo")
+	require.Error(t, err, "expected failure to delete in read-only transaction")
+
+	err = rtx.Commit(context.Background())
+	require.NoError(t, err, "failed to commit empty read-only transaction")
+
+	entries, err := b.List(context.Background(), "")
+	require.NoError(t, err, "failed to list storage entries")
+	require.Empty(t, entries, "expected nothing in storage")
+
+	// Creating the same entry in two transactions should conflict the
+	// second committed one, even though they have the same contents.
+
+	txn1, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin first conflicting transaction")
+	txn2, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin second conflicting transaction")
+
+	err = txn1.Put(context.Background(), entry)
+	require.NoError(t, err, "unexpected failure writing to first transaction")
+	err = txn2.Put(context.Background(), entry)
+	require.NoError(t, err, "unexpected failure writing to second transaction")
+
+	err = txn1.Commit(context.Background())
+	require.NoError(t, err, "failed to commit first conflicting transaction")
+	err = txn2.Commit(context.Background())
+	require.Error(t, err, "expected failure to commit second conflicting transaction")
+
+	result, err := b.Get(context.Background(), "foo")
+	require.NoError(t, err, "failed to read storage entry")
+	require.Equal(t, result.Value, []byte("test"))
+
+	bazEntry := &Entry{Key: "foo", Value: []byte("baz")}
+
+	txn1, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin first conflicting transaction (round 2)")
+	txn2, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin second conflicting transaction (round 2)")
+
+	err = txn1.Put(context.Background(), bazEntry)
+	require.NoError(t, err, "unexpected failure writing to first transaction (round 2)")
+	err = txn2.Put(context.Background(), bazEntry)
+	require.NoError(t, err, "unexpected failure writing to second transaction (round 2)")
+
+	err = txn2.Commit(context.Background())
+	require.NoError(t, err, "failed to commit second conflicting transaction")
+	err = txn1.Commit(context.Background())
+	require.Error(t, err, "expected failure to commit first conflicting transaction")
+
+	result, err = b.Get(context.Background(), "foo")
+	require.NoError(t, err, "failed to read storage entry")
+	require.Equal(t, result.Value, []byte("baz"))
+
+	// Creating different entries in two transactions should be fine.
+
+	txn1, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin first parallel transaction")
+	txn2, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin second parallel transaction")
+
+	barEntry := &Entry{Key: "bar", Value: []byte("baz")}
+	err = txn1.Put(context.Background(), entry)
+	require.NoError(t, err, "unexpected failure writing to first transaction")
+	err = txn2.Put(context.Background(), barEntry)
+	require.NoError(t, err, "unexpected failure writing to second transaction")
+
+	err = txn1.Commit(context.Background())
+	require.NoError(t, err, "failed to commit first parallel transaction")
+	err = txn2.Commit(context.Background())
+	require.NoError(t, err, "failed to commit second parallel transaction")
+
+	result, err = b.Get(context.Background(), "foo")
+	require.NoError(t, err, "failed to read storage entry")
+	require.Equal(t, result.Value, []byte("test"))
+
+	result, err = b.Get(context.Background(), "bar")
+	require.NoError(t, err, "failed to read storage entry")
+	require.Equal(t, result.Value, []byte("baz"))
+
+	// Getting an item and writing to the same item in different transactions
+	// should fail one of the two.
+
+	txn1, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin first parallel transaction")
+	txn2, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin second parallel transaction")
+
+	result, err = txn1.Get(context.Background(), "bar")
+	require.NoError(t, err, "failed to read storage entry in first transaction")
+	require.Equal(t, result.Value, []byte("baz"))
+	err = txn1.Put(context.Background(), bazEntry)
+	require.NoError(t, err, "failed to put storage entry in first transaction")
+
+	result, err = txn2.Get(context.Background(), "foo")
+	require.NoError(t, err, "failed to read storage entry in second transaction")
+	require.Equal(t, result.Value, []byte("test"))
+	barTestEntry := &Entry{Key: "bar", Value: []byte("test")}
+	err = txn2.Put(context.Background(), barTestEntry)
+	require.NoError(t, err, "failed to put storage entry in second transaction")
+
+	err = txn1.Commit(context.Background())
+	require.NoError(t, err, "failed to commit first conflicting read transaction")
+	err = txn2.Commit(context.Background())
+	require.Error(t, err, "expected failure to commit second conflicting read transaction")
+
+	result, err = b.Get(context.Background(), "foo")
+	require.NoError(t, err, "failed to read storage entry")
+	require.Equal(t, result.Value, []byte("baz"))
+
+	result, err = b.Get(context.Background(), "bar")
+	require.NoError(t, err, "failed to read storage entry")
+	require.Equal(t, result.Value, []byte("baz"))
+
+	// Try again, with delete this time, committing in a different order.
+
+	txn1, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin first parallel transaction")
+	txn2, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin second parallel transaction")
+
+	result, err = txn1.Get(context.Background(), "bar")
+	require.NoError(t, err, "failed to read storage entry in first transaction")
+	require.Equal(t, result.Value, []byte("baz"))
+	err = txn1.Delete(context.Background(), "foo")
+	require.NoError(t, err, "failed to delete storage entry in first transaction")
+
+	result, err = txn2.Get(context.Background(), "foo")
+	require.NoError(t, err, "failed to read storage entry in second transaction")
+	require.Equal(t, result.Value, []byte("baz"))
+	err = txn2.Delete(context.Background(), "bar")
+	require.NoError(t, err, "failed to delete storage entry in second transaction")
+
+	err = txn2.Commit(context.Background())
+	require.NoError(t, err, "failed to commit second conflicting read transaction")
+	err = txn1.Commit(context.Background())
+	require.Error(t, err, "expected failure to commit first conflicting read transaction")
+
+	result, err = b.Get(context.Background(), "foo")
+	require.NoError(t, err, "failed to read storage entry")
+	require.Equal(t, result.Value, []byte("baz"))
+
+	entries, err = b.List(context.Background(), "")
+	require.NoError(t, err, "failed to list storage entries")
+	require.Equal(t, entries, []string{"foo"}, "expected only a single entry in storage")
+
+	// Reading entries that don't exist shouldn't cause issues.
+	txn, err = b.BeginTx(context.Background())
+	require.NoError(t, err, "failed to begin empty-read transaction")
+
+	result, err = txn.Get(context.Background(), "bar")
+	require.NoError(t, err, "failed to read storage entry in first transaction")
+	if result != nil {
+		require.Equal(t, len(result.Value), 0, "expected empty storage entry `bar`")
 	}
 
-	txns := SetupTestingTransactions(t, b)
+	result, err = txn.Get(context.Background(), "foo")
+	require.NoError(t, err, "failed to read storage entry in second transaction")
+	require.Equal(t, result.Value, []byte("baz"))
 
-	if err := tb.Transaction(context.Background(), txns); err != nil {
-		t.Fatal(err)
-	}
+	err = txn.Delete(context.Background(), "foo")
+	require.NoError(t, err, "failed to delete entry in transaction")
 
-	keys, err := b.List(context.Background(), "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	err = txn.Commit(context.Background())
+	require.NoError(t, err, "failed to commit deletion transaction")
 
-	expected := []string{"foo", "zip"}
-
-	sort.Strings(keys)
-	sort.Strings(expected)
-	if !reflect.DeepEqual(keys, expected) {
-		t.Fatalf("mismatch: expected\n%#v\ngot\n%#v\n", expected, keys)
-	}
-
-	entry, err := b.Get(context.Background(), "foo")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if entry == nil {
-		t.Fatal("got nil entry")
-	}
-	if entry.Value == nil {
-		t.Fatal("got nil value")
-	}
-	if string(entry.Value) != "bar3" {
-		t.Fatal("updates did not apply correctly")
-	}
-
-	entry, err = b.Get(context.Background(), "zip")
-	if err != nil {
-		t.Fatal(err)
-	}
-	if entry == nil {
-		t.Fatal("got nil entry")
-	}
-	if entry.Value == nil {
-		t.Fatal("got nil value")
-	}
-	if string(entry.Value) != "zap3" {
-		t.Fatal("updates did not apply correctly")
-	}
-}
-
-func SetupTestingTransactions(t testing.TB, b Backend) []*TxnEntry {
-	t.Helper()
-	// Add a few keys so that we test rollback with deletion
-	if err := b.Put(context.Background(), &Entry{
-		Key:   "foo",
-		Value: []byte("bar"),
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if err := b.Put(context.Background(), &Entry{
-		Key:   "zip",
-		Value: []byte("zap"),
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if err := b.Put(context.Background(), &Entry{
-		Key: "deleteme",
-	}); err != nil {
-		t.Fatal(err)
-	}
-	if err := b.Put(context.Background(), &Entry{
-		Key: "deleteme2",
-	}); err != nil {
-		t.Fatal(err)
-	}
-
-	txns := []*TxnEntry{
-		{
-			Operation: PutOperation,
-			Entry: &Entry{
-				Key:   "foo",
-				Value: []byte("bar2"),
-			},
-		},
-		{
-			Operation: DeleteOperation,
-			Entry: &Entry{
-				Key: "deleteme",
-			},
-		},
-		{
-			Operation: PutOperation,
-			Entry: &Entry{
-				Key:   "foo",
-				Value: []byte("bar3"),
-			},
-		},
-		{
-			Operation: DeleteOperation,
-			Entry: &Entry{
-				Key: "deleteme2",
-			},
-		},
-		{
-			Operation: PutOperation,
-			Entry: &Entry{
-				Key:   "zip",
-				Value: []byte("zap3"),
-			},
-		},
-	}
-
-	return txns
+	// Ensure we left it as we found it.
+	entries, err = b.List(context.Background(), "")
+	require.NoError(t, err, "failed to list storage entries")
+	require.Empty(t, entries, "expected nothing in storage")
 }

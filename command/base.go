@@ -185,7 +185,7 @@ func (c *BaseCommand) Client() (*api.Client, error) {
 
 	// If we don't have a token, check the token helper
 	if token == "" {
-		helper, err := c.TokenHelper()
+		helper, err := c.TokenHelper(client.Address())
 		if err != nil {
 			return nil, errors.Wrap(err, "failed to get token helper")
 		}
@@ -216,12 +216,12 @@ func (c *BaseCommand) SetTokenHelper(th token.TokenHelper) {
 }
 
 // TokenHelper returns the token helper attached to the command.
-func (c *BaseCommand) TokenHelper() (token.TokenHelper, error) {
+func (c *BaseCommand) TokenHelper(vaultAddr string) (token.TokenHelper, error) {
 	if c.tokenHelper != nil {
 		return c.tokenHelper, nil
 	}
 
-	helper, err := DefaultTokenHelper()
+	helper, err := DefaultTokenHelper(vaultAddr)
 	if err != nil {
 		return nil, err
 	}
@@ -441,7 +441,7 @@ func (c *BaseCommand) flagSet(bit FlagSetBit) *FlagSets {
 				Default: false,
 				EnvVar:  api.EnvVaultDisableRedirects,
 				Usage: "Disable the default client behavior, which honors a single " +
-					"redirect response from a request",
+					"redirect response from a request.",
 			})
 
 			f.BoolVar(&BoolVar{
@@ -449,7 +449,7 @@ func (c *BaseCommand) flagSet(bit FlagSetBit) *FlagSets {
 				Target:  &c.flagPolicyOverride,
 				Default: false,
 				Usage: "Override a Sentinel policy that has a soft-mandatory " +
-					"enforcement_level specified",
+					"enforcement_level specified.",
 			})
 
 			f.DurationVar(&DurationVar{
@@ -501,8 +501,8 @@ func (c *BaseCommand) flagSet(bit FlagSetBit) *FlagSets {
 				Name:       "header",
 				Target:     &c.flagHeader,
 				Completion: complete.PredictAnything,
-				Usage: "Key-value pair provided as key=value to provide http header added to any request done by the CLI." +
-					"Trying to add headers starting with 'X-Vault-' is forbidden and will make the command fail " +
+				Usage: "Key-value pair provided as key=value to provide http header added to any request done by the CLI. " +
+					"Trying to add headers starting with 'X-Vault-' is forbidden and will make the command fail. " +
 					"This can be specified multiple times.",
 			})
 
@@ -550,7 +550,7 @@ func (c *BaseCommand) flagSet(bit FlagSetBit) *FlagSets {
 					Target:  &c.flagDetailed,
 					Default: false,
 					EnvVar:  EnvVaultDetailed,
-					Usage:   "Enables additional metadata during some operations",
+					Usage:   "Enables additional metadata during some operations.",
 				})
 			}
 		}

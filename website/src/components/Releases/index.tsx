@@ -3,6 +3,7 @@ interface Release {
         linux: {
             deb: string[];
             rpm: string[];
+            pkg: string[];
             binary: string[];
             docker: string[];
         };
@@ -49,6 +50,7 @@ export function GetReleases(response): Releases {
                 linux: {
                     deb: [],
                     rpm: [],
+                    pkg: [],
                     binary: [],
                     docker: [],
                 },
@@ -70,33 +72,67 @@ export function GetReleases(response): Releases {
             },
         } as Release;
         for (var a of r.assets) {
-            if (a.browser_download_url.includes("windows")) {
+            if (a.browser_download_url.toLowerCase().includes("sbom")) {
+                // skip SBOM release assets, they are not relevant for the
+                // download page
+                continue;
+            }
+            if (a.browser_download_url.toLowerCase().includes(".sig")) {
+                // skip signature release assets, they are not relevant for the
+                // download page
+                continue;
+            }
+            if (a.browser_download_url.toLowerCase().includes(".gpgsig")) {
+                // skip signature release assets, they are not relevant for the
+                // download page
+                continue;
+            }
+            if (a.browser_download_url.toLowerCase().includes(".pem")) {
+                // skip signature release assets, they are not relevant for the
+                // download page
+                continue;
+            }
+            if (a.browser_download_url.toLowerCase().includes("checksums")) {
+                // skip checksum files, they are not relevant for the
+                // download page
+                continue;
+            }
+            if (a.browser_download_url.toLowerCase().includes("windows")) {
                 release.assets.windows.binary.push(a.browser_download_url);
             }
-            if (a.browser_download_url.includes("openbsd")) {
+            if (a.browser_download_url.toLowerCase().includes("openbsd")) {
                 release.assets.openbsd.binary.push(a.browser_download_url);
             }
-            if (a.browser_download_url.includes("netbsd")) {
+            if (a.browser_download_url.toLowerCase().includes("netbsd")) {
                 release.assets.netbsd.binary.push(a.browser_download_url);
             }
-            if (a.browser_download_url.includes("freebsd")) {
+            if (a.browser_download_url.toLowerCase().includes("freebsd")) {
                 release.assets.freebsd.binary.push(a.browser_download_url);
             }
-            if (a.browser_download_url.includes("darwin")) {
+            if (a.browser_download_url.toLowerCase().includes("darwin")) {
                 release.assets.darwin.binary.push(a.browser_download_url);
             }
-            if (a.browser_download_url.includes("docker")) {
+            if (a.browser_download_url.toLowerCase().includes("docker")) {
                 release.assets.linux.docker.push(a.browser_download_url);
                 // docker urls also contain "linux", so contiune if we find it
                 continue;
             }
-            if (a.browser_download_url.includes("rpm")) {
+            if (a.browser_download_url.toLowerCase().includes(".rpm")) {
                 release.assets.linux.rpm.push(a.browser_download_url);
+                // rpm urls also contain "linux", so contiune if we find it
+                continue;
             }
-            if (a.browser_download_url.includes("deb")) {
+            if (a.browser_download_url.toLowerCase().includes(".deb")) {
                 release.assets.linux.deb.push(a.browser_download_url);
+                // deb urls also contain "linux", so contiune if we find it
+                continue;
             }
-            if (a.browser_download_url.includes("linux")) {
+            if (a.browser_download_url.toLowerCase().includes(".pkg")) {
+                release.assets.linux.pkg.push(a.browser_download_url);
+                // pkg urls also contain "linux", so contiune if we find it
+                continue;
+            }
+            if (a.browser_download_url.toLowerCase().includes("linux")) {
                 release.assets.linux.binary.push(a.browser_download_url);
             }
         }
@@ -130,6 +166,12 @@ export function AssetArchitecture(url: string): string {
     }
     if (url.includes("x86_64")) {
         return "x86_64";
+    }
+    if (url.includes("ppc64le")) {
+        return "ppc64le";
+    }
+    if (url.includes("s390x")) {
+        return "s390x";
     }
     return "<none>";
 }

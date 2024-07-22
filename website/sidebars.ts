@@ -400,7 +400,6 @@ const sidebars: SidebarsConfig = {
             Platforms: [
                 "platform/index",
                 {
-                    GitHub: ["platform/github-actions"],
                     Kubernetes: [
                         "platform/k8s/index",
                         "platform/k8s/injector-csi",
@@ -457,12 +456,6 @@ const sidebars: SidebarsConfig = {
                             ],
                         },
                     ],
-                    ServiceNow: [
-                        "platform/servicenow/index",
-                        "platform/servicenow/installation",
-                        "platform/servicenow/configuration",
-                        "platform/servicenow/troubleshooting",
-                    ],
                 },
             ],
             "Upgrade Guides": [
@@ -471,6 +464,9 @@ const sidebars: SidebarsConfig = {
                 "upgrading/plugins",
             ],
             "Release Notes": ["release-notes/index", "release-notes/2-0-0"],
+        },
+        "known-issues",
+        {
             "Deprecation Notices": ["deprecation/index", "deprecation/faq"],
             Policies: [
                 "policies/index",
@@ -481,7 +477,7 @@ const sidebars: SidebarsConfig = {
                 "contributing/index",
                 "contributing/code-organization",
             ],
-            RFCs: ["rfcs/index", "rfcs/paginated-lists"],
+            RFCs: ["rfcs/index", "rfcs/paginated-lists", "rfcs/mlock-removal"],
             FAQ: ["faq/index", "deprecation/faq", "auth/login-mfa/faq"],
         },
         "glossary",

@@ -28,7 +28,6 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/go-secure-stdlib/gatedwriter"
-	"github.com/hashicorp/go-secure-stdlib/mlock"
 	"github.com/hashicorp/go-secure-stdlib/parseutil"
 	"github.com/hashicorp/go-secure-stdlib/reloadutil"
 	"github.com/mitchellh/cli"
@@ -83,8 +82,7 @@ const (
 
 	// Even though there are more types than the ones below, the following consts
 	// are declared internally for value comparison and reusability.
-	storageTypeRaft   = "raft"
-	storageTypeConsul = "consul"
+	storageTypeRaft = "raft"
 )
 
 type ServerCommand struct {
@@ -135,12 +133,10 @@ type ServerCommand struct {
 	flagDevSkipInit        bool
 	flagDevThreeNode       bool
 	flagDevFourCluster     bool
-	flagDevTransactional   bool
 	flagDevAutoSeal        bool
 	flagDevClusterJson     string
 	flagTestVerifyOnly     bool
 	flagTestServerConfig   bool
-	flagDevConsul          bool
 	flagExitOnCoreShutdown bool
 }
 
@@ -290,13 +286,6 @@ func (c *ServerCommand) Flags() *FlagSets {
 		Hidden:  true,
 	})
 
-	f.BoolVar(&BoolVar{
-		Name:    "dev-transactional",
-		Target:  &c.flagDevTransactional,
-		Default: false,
-		Hidden:  true,
-	})
-
 	f.IntVar(&IntVar{
 		Name:   "dev-latency",
 		Target: &c.flagDevLatency,
@@ -347,13 +336,6 @@ func (c *ServerCommand) Flags() *FlagSets {
 	f.BoolVar(&BoolVar{
 		Name:    "dev-four-cluster",
 		Target:  &c.flagDevFourCluster,
-		Default: false,
-		Hidden:  true,
-	})
-
-	f.BoolVar(&BoolVar{
-		Name:    "dev-consul",
-		Target:  &c.flagDevConsul,
 		Default: false,
 		Hidden:  true,
 	})
@@ -562,7 +544,6 @@ func (c *ServerCommand) runRecoveryMode() int {
 		Seal:         barrierSeal,
 		LogLevel:     config.LogLevel,
 		Logger:       c.logger,
-		DisableMlock: config.DisableMlock,
 		RecoveryMode: c.flagRecovery,
 		ClusterAddr:  config.ClusterAddr,
 	}
@@ -762,16 +743,6 @@ func (c *ServerCommand) setupStorage(config *server.Config) (physical.Backend, e
 
 	// Do any custom configuration needed per backend
 	switch config.Storage.Type {
-	case storageTypeConsul:
-		if config.ServiceRegistration == nil {
-			// If Consul is configured for storage and service registration is unconfigured,
-			// use Consul for service registration without requiring additional configuration.
-			// This maintains backward-compatibility.
-			config.ServiceRegistration = &server.ServiceRegistration{
-				Type:   "consul",
-				Config: config.Storage.Config,
-			}
-		}
 	case storageTypeRaft:
 		if envCA := api.ReadBaoVariable("BAO_CLUSTER_ADDR"); envCA != "" {
 			config.ClusterAddr = envCA
@@ -908,13 +879,7 @@ func configureDevTLS(c *ServerCommand) (func(), *server.Config, string, error) {
 	var devStorageType string
 
 	switch {
-	case c.flagDevConsul:
-		devStorageType = "consul"
-	case c.flagDevHA && c.flagDevTransactional:
-		devStorageType = "inmem_transactional_ha"
-	case !c.flagDevHA && c.flagDevTransactional:
-		devStorageType = "inmem_transactional"
-	case c.flagDevHA && !c.flagDevTransactional:
+	case c.flagDevHA:
 		devStorageType = "inmem_ha"
 	default:
 		devStorageType = "inmem"
@@ -990,7 +955,7 @@ func (c *ServerCommand) Run(args []string) int {
 	}
 
 	// Automatically enable dev mode if other dev flags are provided.
-	if c.flagDevConsul || c.flagDevHA || c.flagDevTransactional || c.flagDevLeasedKV || c.flagDevThreeNode || c.flagDevFourCluster || c.flagDevAutoSeal || c.flagDevKVV1 || c.flagDevTLS {
+	if c.flagDevHA || c.flagDevLeasedKV || c.flagDevThreeNode || c.flagDevFourCluster || c.flagDevAutoSeal || c.flagDevKVV1 || c.flagDevTLS {
 		c.flagDev = true
 	}
 
@@ -1097,27 +1062,6 @@ func (c *ServerCommand) Run(args []string) int {
 	}
 
 	logProxyEnvironmentVariables(c.logger)
-
-	if envMlock := api.ReadBaoVariable("BAO_DISABLE_MLOCK"); envMlock != "" {
-		var err error
-		config.DisableMlock, err = strconv.ParseBool(envMlock)
-		if err != nil {
-			c.UI.Output("Error parsing the environment variable BAO_DISABLE_MLOCK")
-			return 1
-		}
-	}
-
-	// If mlockall(2) isn't supported, show a warning. We disable this in dev
-	// because it is quite scary to see when first using Vault. We also disable
-	// this if the user has explicitly disabled mlock in configuration.
-	if !c.flagDev && !config.DisableMlock && !mlock.Supported() {
-		c.UI.Warn(wrapAtLength(
-			"WARNING! mlock is not supported on this system! An mlockall(2)-like " +
-				"syscall to prevent memory from being swapped to disk is not " +
-				"supported on this system. For better security, only run Vault on " +
-				"systems where this call is supported. If you are running Vault " +
-				"in a Docker container, provide the IPC_LOCK cap to the container."))
-	}
 
 	inmemMetrics, metricSink, prometheusEnabled, err := configutil.SetupTelemetry(&configutil.SetupTelemetryOpts{
 		Config:      config.Telemetry,
@@ -1271,7 +1215,7 @@ func (c *ServerCommand) Run(args []string) int {
 
 	if !c.flagDev {
 		inMemStorageTypes := []string{
-			"inmem", "inmem_ha", "inmem_transactional", "inmem_transactional_ha",
+			"inmem", "inmem_ha",
 		}
 
 		if strutil.StrListContains(inMemStorageTypes, coreConfig.StorageType) {
@@ -1301,10 +1245,7 @@ func (c *ServerCommand) Run(args []string) int {
 
 	// Compile server information for output later
 	info["storage"] = config.Storage.Type
-	info["mlock"] = fmt.Sprintf(
-		"supported: %v, enabled: %v",
-		mlock.Supported(), !config.DisableMlock && mlock.Supported())
-	infoKeys = append(infoKeys, "mlock", "storage")
+	infoKeys = append(infoKeys, "storage")
 
 	if coreConfig.ClusterAddr != "" {
 		info["cluster address"] = coreConfig.ClusterAddr
@@ -1848,7 +1789,7 @@ func (c *ServerCommand) enableDev(core *vault.Core, coreConfig *vault.CoreConfig
 
 	// Set the token
 	if !c.flagDevNoStoreToken {
-		tokenHelper, err := c.TokenHelper()
+		tokenHelper, err := c.TokenHelper("dev-server")
 		if err != nil {
 			return nil, err
 		}
@@ -1997,7 +1938,7 @@ func (c *ServerCommand) enableThreeNodeDevCluster(base *vault.CoreConfig, info m
 	}
 
 	// Set the token
-	tokenHelper, err := c.TokenHelper()
+	tokenHelper, err := c.TokenHelper("dev-server")
 	if err != nil {
 		c.UI.Error(fmt.Sprintf("Error getting token helper: %s", err))
 		return 1
@@ -2635,7 +2576,6 @@ func createCoreConfig(c *ServerCommand, config *server.Config, backend physical.
 		ImpreciseLeaseRoleTracking:     config.ImpreciseLeaseRoleTracking,
 		DisableSentinelTrace:           config.DisableSentinelTrace,
 		DisableCache:                   config.DisableCache,
-		DisableMlock:                   config.DisableMlock,
 		MaxLeaseTTL:                    config.MaxLeaseTTL,
 		DefaultLeaseTTL:                config.DefaultLeaseTTL,
 		ClusterName:                    config.ClusterName,
@@ -2678,11 +2618,7 @@ func createCoreConfig(c *ServerCommand, config *server.Config, backend physical.
 		}
 		if c.flagDevLatency > 0 {
 			injectLatency := time.Duration(c.flagDevLatency) * time.Millisecond
-			if _, txnOK := backend.(physical.Transactional); txnOK {
-				coreConfig.Physical = physical.NewTransactionalLatencyInjector(backend, injectLatency, c.flagDevLatencyJitter, c.logger)
-			} else {
-				coreConfig.Physical = physical.NewLatencyInjector(backend, injectLatency, c.flagDevLatencyJitter, c.logger)
-			}
+			coreConfig.Physical = physical.NewLatencyInjector(backend, injectLatency, c.flagDevLatencyJitter, c.logger)
 		}
 	}
 	return *coreConfig
