@@ -731,7 +731,7 @@ func (c *Core) mountInternal(ctx context.Context, entry *MountEntry, updateStora
 	newTable := c.mounts.shallowClone()
 	newTable.Entries = append(newTable.Entries, entry)
 	if updateStorage {
-		if err := c.persistMounts(ctx, nil, newTable, &entry.Local); err != nil {
+		if err := c.persistMounts(ctx, nil, newTable, &entry.Local, entry.UUID); err != nil {
 			c.logger.Error("failed to update mount table", "error", err)
 			return logical.CodedError(500, "failed to update mount table")
 		}
@@ -935,7 +935,7 @@ func (c *Core) removeMountEntry(ctx context.Context, path string, updateStorage 
 
 	if updateStorage {
 		// Update the mount table
-		if err := c.persistMounts(ctx, nil, newTable, &entry.Local); err != nil {
+		if err := c.persistMounts(ctx, nil, newTable, &entry.Local, entry.UUID); err != nil {
 			c.logger.Error("failed to remove entry from mounts table", "error", err)
 			return logical.CodedError(500, "failed to remove entry from mounts table")
 		}
@@ -968,7 +968,7 @@ func (c *Core) taintMountEntry(ctx context.Context, nsID, mountPath string, upda
 
 	if updateStorage {
 		// Update the mount table
-		if err := c.persistMounts(ctx, nil, c.mounts, &entry.Local); err != nil {
+		if err := c.persistMounts(ctx, nil, c.mounts, &entry.Local, entry.UUID); err != nil {
 			c.logger.Error("failed to taint entry in mounts table", "error", err)
 			return logical.CodedError(500, "failed to taint entry in mounts table")
 		}
@@ -1131,7 +1131,7 @@ func (c *Core) remountSecretsEngine(ctx context.Context, src, dst namespace.Moun
 	srcMatch.Path = dst.MountPath
 
 	// Update the mount table
-	if err := c.persistMounts(ctx, nil, c.mounts, &srcMatch.Local); err != nil {
+	if err := c.persistMounts(ctx, nil, c.mounts, &srcMatch.Local, srcMatch.UUID); err != nil {
 		srcMatch.Path = srcPath
 		srcMatch.Tainted = true
 		c.mountsLock.Unlock()
@@ -1449,7 +1449,7 @@ func (c *Core) runMountUpdates(ctx context.Context, barrier logical.Storage, nee
 	}
 
 	// Persist both mount tables
-	if err := c.persistMounts(ctx, barrier, c.mounts, nil); err != nil {
+	if err := c.persistMounts(ctx, barrier, c.mounts, nil, ""); err != nil {
 		c.logger.Error("failed to persist mount table", "error", err)
 		return errLoadMountsFailed
 	}
@@ -1457,7 +1457,7 @@ func (c *Core) runMountUpdates(ctx context.Context, barrier logical.Storage, nee
 }
 
 // persistMounts is used to persist the mount table after modification.
-func (c *Core) persistMounts(ctx context.Context, barrier logical.Storage, table *MountTable, local *bool) error {
+func (c *Core) persistMounts(ctx context.Context, barrier logical.Storage, table *MountTable, local *bool, mount string) error {
 	// Sometimes we may not want to explicitly pass barrier; fetch it if
 	// necessary.
 	if barrier == nil {
@@ -1535,7 +1535,14 @@ func (c *Core) persistMounts(ctx context.Context, barrier logical.Storage, table
 		// Write a transactional-aware mount table series instead.
 		writeTable = func(mt *MountTable, prefix string) (int, error) {
 			var size int
+			var found bool
 			for index, mtEntry := range mt.Entries {
+				if mount != "" && mtEntry.UUID != mount {
+					continue
+				}
+
+				found = true
+
 				// Encode the mount table into JSON. There is little value in
 				// compressing short entries.
 				path := path.Join(prefix, mtEntry.UUID)
@@ -1558,6 +1565,15 @@ func (c *Core) persistMounts(ctx context.Context, barrier logical.Storage, table
 				}
 
 				size += len(encoded)
+			}
+
+			if mount != "" && !found {
+				// Delete this component if it exists. This signifies that
+				// we're removing this mount.
+				path := path.Join(prefix, mount)
+				if err := barrier.Delete(ctx, path); err != nil {
+					return -1, fmt.Errorf("requested removal of mount but failed: %w", err)
+				}
 			}
 
 			// Finally, delete the legacy entries, if any.
