@@ -1725,7 +1725,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 			case strings.HasPrefix(path, "auth/"):
 				err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 			default:
-				err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+				err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 			}
 			if err != nil {
 				mountEntry.Config.UserLockoutConfig.LockoutCounterReset = oldUserLockoutCounterReset
@@ -1752,7 +1752,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Description = oldDesc
@@ -1789,7 +1789,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Version = oldVersion
@@ -1812,7 +1812,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Config.AuditNonHMACRequestKeys = oldVal
@@ -1838,7 +1838,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Config.AuditNonHMACResponseKeys = oldVal
@@ -1869,7 +1869,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Config.ListingVisibility = oldVal
@@ -1931,7 +1931,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Config.PassthroughRequestHeaders = oldVal
@@ -1956,7 +1956,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Config.AllowedResponseHeaders = oldVal
@@ -1982,7 +1982,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Config.AllowedManagedKeys = oldVal
@@ -2063,7 +2063,7 @@ func (b *SystemBackend) handleTuneWriteCommon(ctx context.Context, path string, 
 		case strings.HasPrefix(path, "auth/"):
 			err = b.Core.persistAuth(ctx, b.Core.auth, &mountEntry.Local)
 		default:
-			err = b.Core.persistMounts(ctx, b.Core.mounts, &mountEntry.Local)
+			err = b.Core.persistMounts(ctx, nil, b.Core.mounts, &mountEntry.Local)
 		}
 		if err != nil {
 			mountEntry.Options = oldVal

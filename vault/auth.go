@@ -529,7 +529,7 @@ func (c *Core) loadCredentials(ctx context.Context) error {
 		needPersist = true
 	} else {
 		// only record tableMetrics if we have loaded something from storge
-		c.tableMetrics(len(c.auth.Entries), false, true, raw.Value)
+		c.tableMetrics(len(c.auth.Entries), false, true, len(raw.Value))
 	}
 	if rawLocal != nil {
 		localAuthTable, err := c.decodeMountTable(ctx, rawLocal.Value)
@@ -539,7 +539,7 @@ func (c *Core) loadCredentials(ctx context.Context) error {
 		}
 		if localAuthTable != nil && len(localAuthTable.Entries) > 0 {
 			c.auth.Entries = append(c.auth.Entries, localAuthTable.Entries...)
-			c.tableMetrics(len(localAuthTable.Entries), true, true, rawLocal.Value)
+			c.tableMetrics(len(localAuthTable.Entries), true, true, len(rawLocal.Value))
 		}
 	}
 
@@ -666,26 +666,26 @@ func (c *Core) persistAuth(ctx context.Context, table *MountTable, local *bool) 
 		if err != nil {
 			return err
 		}
-		c.tableMetrics(len(nonLocalAuth.Entries), false, true, compressedBytes)
+		c.tableMetrics(len(nonLocalAuth.Entries), false, true, len(compressedBytes))
 
 		// Write local mounts
 		compressedBytes, err = writeTable(localAuth, coreLocalAuthConfigPath)
 		if err != nil {
 			return err
 		}
-		c.tableMetrics(len(localAuth.Entries), true, true, compressedBytes)
+		c.tableMetrics(len(localAuth.Entries), true, true, len(compressedBytes))
 	case *local:
 		compressedBytes, err = writeTable(localAuth, coreLocalAuthConfigPath)
 		if err != nil {
 			return err
 		}
-		c.tableMetrics(len(localAuth.Entries), true, true, compressedBytes)
+		c.tableMetrics(len(localAuth.Entries), true, true, len(compressedBytes))
 	default:
 		compressedBytes, err = writeTable(nonLocalAuth, coreAuthConfigPath)
 		if err != nil {
 			return err
 		}
-		c.tableMetrics(len(nonLocalAuth.Entries), false, true, compressedBytes)
+		c.tableMetrics(len(nonLocalAuth.Entries), false, true, len(compressedBytes))
 	}
 
 	return err

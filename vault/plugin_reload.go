@@ -208,7 +208,7 @@ func (c *Core) reloadBackendCommon(ctx context.Context, entry *MountEntry, isAut
 				return err
 			}
 		} else {
-			err = c.persistMounts(ctx, c.mounts, &entry.Local)
+			err = c.persistMounts(ctx, nil, c.mounts, &entry.Local)
 			if err != nil {
 				return err
 			}
