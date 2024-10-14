@@ -98,6 +98,7 @@ type cacheTransaction struct {
 	// entries with different keys from parallel threads.
 	modifiedLock sync.Mutex
 	modified     map[string]struct{}
+	fetched      map[string]struct{}
 }
 
 // Verify Cache satisfies the correct interfaces
@@ -310,6 +311,7 @@ func (c *transactionalCache) BeginReadOnlyTx(ctx context.Context) (Transaction, 
 		c,
 		sync.Mutex{},
 		make(map[string]struct{}),
+		make(map[string]struct{}),
 	}, nil
 }
 
@@ -326,7 +328,20 @@ func (c *transactionalCache) BeginTx(ctx context.Context) (Transaction, error) {
 		c,
 		sync.Mutex{},
 		make(map[string]struct{}),
+		make(map[string]struct{}),
 	}, nil
+}
+
+func (c *cacheTransaction) Get(ctx context.Context, key string) (*Entry, error) {
+	if !c.ShouldCache(key) {
+		return c.cache.Get(ctx, key)
+	}
+
+	c.modifiedLock.Lock()
+	c.fetched[key] = struct{}{}
+	c.modifiedLock.Unlock()
+
+	return c.cache.Get(ctx, key)
 }
 
 func (c *cacheTransaction) Put(ctx context.Context, entry *Entry) error {
@@ -357,6 +372,7 @@ func (c *cacheTransaction) Put(ctx context.Context, entry *Entry) error {
 		c.lru.Add(entry.Key, cacheEntry)
 		c.modifiedLock.Lock()
 		c.modified[entry.Key] = struct{}{}
+		c.fetched[entry.Key] = struct{}{}
 		c.modifiedLock.Unlock()
 		c.metricSink.IncrCounter([]string{"cache", "write"}, 1)
 	}
@@ -404,6 +420,9 @@ func (c *cacheTransaction) Commit(ctx context.Context) error {
 
 			c.parent.(*transactionalCache).lru.Remove(key)
 		}()
+	}
+	for key := range c.fetched {
+		c.parent.Get(ctx, key)
 	}
 	c.modifiedLock.Unlock()
 
