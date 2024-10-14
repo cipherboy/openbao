@@ -24,6 +24,8 @@ replace github.com/openbao/openbao/api/auth/userpass/v2 => ./api/auth/userpass
 
 replace github.com/openbao/openbao/sdk/v2 => ./sdk
 
+replace github.com/hashicorp/golang-lru/v2 => /home/cipherboy/GitHub/cipherboy/hashicorp-golang-lru
+
 require (
 	cloud.google.com/go/monitoring v1.17.0
 	github.com/ProtonMail/go-crypto v0.0.0-20230626094100-7e9e0395ebec

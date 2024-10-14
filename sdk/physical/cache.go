@@ -118,10 +118,6 @@ func NewCache(b Backend, size int, logger log.Logger, metricSink metrics.MetricS
 		logger.Debug("creating LRU cache", "size", size)
 	}
 
-	return newCache(b, size, logger, metricSink)
-}
-
-func newCache(b Backend, size int, logger log.Logger, metricSink metrics.MetricSink) Cache {
 	if size <= 0 {
 		size = DefaultCacheSize
 	}
@@ -283,7 +279,19 @@ func (c *cache) cloneWithStorage(b Backend) *cache {
 	// fresh, localized cache. This is globally sub-optimal (as it starts
 	// with an empty cache), but easiest to implement (as the transaction can
 	// modify its cache as it pleases).
-	cacheCopy := newCache(b, c.size/TransactionCacheFactor, c.logger, c.metricSink).(*cache)
+
+	lruCache := c.lru.Clone()
+	cacheCopy := &cache{
+		backend: b,
+		size:    c.size,
+		lru:     lruCache,
+		locks:   locksutil.CreateLocks(),
+		logger:  c.logger,
+		// This fails safe.
+		enabled:         new(uint32),
+		cacheExceptions: c.cacheExceptions,
+		metricSink:      c.metricSink,
+	}
 	cacheCopy.SetEnabled(c.GetEnabled())
 	return cacheCopy
 }
