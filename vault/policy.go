@@ -113,12 +113,13 @@ type PathRules struct {
 
 	// These keys are used at the top level to make the HCL nicer; we store in
 	// the ACLPermissions object though
-	MinWrappingTTLHCL     interface{}              `hcl:"min_wrapping_ttl"`
-	MaxWrappingTTLHCL     interface{}              `hcl:"max_wrapping_ttl"`
-	AllowedParametersHCL  map[string][]interface{} `hcl:"allowed_parameters"`
-	DeniedParametersHCL   map[string][]interface{} `hcl:"denied_parameters"`
-	RequiredParametersHCL []string                 `hcl:"required_parameters"`
-	MFAMethodsHCL         []string                 `hcl:"mfa_methods"`
+	MinWrappingTTLHCL         interface{}              `hcl:"min_wrapping_ttl"`
+	MaxWrappingTTLHCL         interface{}              `hcl:"max_wrapping_ttl"`
+	AllowedParametersHCL      map[string][]interface{} `hcl:"allowed_parameters"`
+	DeniedParametersHCL       map[string][]interface{} `hcl:"denied_parameters"`
+	RequiredParametersHCL     []string                 `hcl:"required_parameters"`
+	MFAMethodsHCL             []string                 `hcl:"mfa_methods"`
+	ResponseKeysFilterPathHCL string                   `hcl:"response_keys_filter_path"`
 }
 
 type IdentityFactor struct {
@@ -128,22 +129,24 @@ type IdentityFactor struct {
 }
 
 type ACLPermissions struct {
-	CapabilitiesBitmap  uint32
-	MinWrappingTTL      time.Duration
-	MaxWrappingTTL      time.Duration
-	AllowedParameters   map[string][]interface{}
-	DeniedParameters    map[string][]interface{}
-	RequiredParameters  []string
-	MFAMethods          []string
-	GrantingPoliciesMap map[uint32][]logical.PolicyInfo
+	CapabilitiesBitmap     uint32
+	MinWrappingTTL         time.Duration
+	MaxWrappingTTL         time.Duration
+	AllowedParameters      map[string][]interface{}
+	DeniedParameters       map[string][]interface{}
+	RequiredParameters     []string
+	MFAMethods             []string
+	GrantingPoliciesMap    map[uint32][]logical.PolicyInfo
+	ResponseKeysFilterPath string
 }
 
 func (p *ACLPermissions) Clone() (*ACLPermissions, error) {
 	ret := &ACLPermissions{
-		CapabilitiesBitmap: p.CapabilitiesBitmap,
-		MinWrappingTTL:     p.MinWrappingTTL,
-		MaxWrappingTTL:     p.MaxWrappingTTL,
-		RequiredParameters: p.RequiredParameters[:],
+		CapabilitiesBitmap:     p.CapabilitiesBitmap,
+		MinWrappingTTL:         p.MinWrappingTTL,
+		MaxWrappingTTL:         p.MaxWrappingTTL,
+		RequiredParameters:     p.RequiredParameters[:],
+		ResponseKeysFilterPath: p.ResponseKeysFilterPath,
 	}
 
 	switch {
@@ -317,6 +320,7 @@ func parsePaths(result *Policy, list *ast.ObjectList, performTemplating bool, en
 			"min_wrapping_ttl",
 			"max_wrapping_ttl",
 			"mfa_methods",
+			"response_keys_filter_path",
 		}
 		if err := hclutil.CheckHCLKeys(item.Val, valid); err != nil {
 			return multierror.Prefix(err, fmt.Sprintf("path %q:", key))
@@ -429,6 +433,15 @@ func parsePaths(result *Policy, list *ast.ObjectList, performTemplating bool, en
 		}
 		if len(pc.RequiredParametersHCL) > 0 {
 			pc.Permissions.RequiredParameters = pc.RequiredParametersHCL[:]
+		}
+		if len(pc.ResponseKeysFilterPathHCL) > 0 {
+			pc.Permissions.ResponseKeysFilterPath = pc.ResponseKeysFilterPathHCL
+			if (pc.Permissions.CapabilitiesBitmap & ListCapabilityInt) == 0 {
+				return errors.New("response_keys_filter_path needs to be used on a path with the list capability")
+			}
+			if !strings.Contains(pc.Permissions.ResponseKeysFilterPath, "{{ .key }}") && !strings.Contains(pc.Permissions.ResponseKeysFilterPath, "{{.key}}") {
+				return errors.New("literal string `{{ .key }}` must be present in response_keys_filter_path")
+			}
 		}
 
 	PathFinished:

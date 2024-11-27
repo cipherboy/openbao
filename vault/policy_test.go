@@ -108,6 +108,10 @@ path "test/+/wildcard/+/*" {
 path "test/+/wildcard/+/end*" {
 	capabilities = ["create", "sudo"]
 }
+path "test/metadata/*" {
+	capabilities = ["list"]
+	response_keys_filter_path = "test/metadata/{{ .key }}"
+}
 `)
 
 func TestPolicy_Parse(t *testing.T) {
@@ -329,6 +333,16 @@ func TestPolicy_Parse(t *testing.T) {
 				CapabilitiesBitmap: (CreateCapabilityInt | SudoCapabilityInt),
 			},
 			HasSegmentWildcards: true,
+		},
+		{
+			Path:         "test/metadata/*",
+			Capabilities: []string{"list"},
+			Permissions: &ACLPermissions{
+				CapabilitiesBitmap:     ListCapabilityInt,
+				ResponseKeysFilterPath: "test/metadata/{{ .key }}",
+			},
+			ResponseKeysFilterPathHCL: "test/metadata/{{ .key }}",
+			HasSegmentWildcards:       true,
 		},
 	}
 
