@@ -119,6 +119,7 @@ type PathRules struct {
 	DeniedParametersHCL   map[string][]interface{} `hcl:"denied_parameters"`
 	RequiredParametersHCL []string                 `hcl:"required_parameters"`
 	MFAMethodsHCL         []string                 `hcl:"mfa_methods"`
+	PaginationLimitHCL    int                      `hcl:"pagination_limit"`
 }
 
 type IdentityFactor struct {
@@ -135,6 +136,7 @@ type ACLPermissions struct {
 	DeniedParameters    map[string][]interface{}
 	RequiredParameters  []string
 	MFAMethods          []string
+	PaginationLimit     int
 	GrantingPoliciesMap map[uint32][]logical.PolicyInfo
 }
 
@@ -144,6 +146,7 @@ func (p *ACLPermissions) Clone() (*ACLPermissions, error) {
 		MinWrappingTTL:     p.MinWrappingTTL,
 		MaxWrappingTTL:     p.MaxWrappingTTL,
 		RequiredParameters: p.RequiredParameters[:],
+		PaginationLimit:    p.PaginationLimit,
 	}
 
 	switch {
@@ -317,6 +320,7 @@ func parsePaths(result *Policy, list *ast.ObjectList, performTemplating bool, en
 			"min_wrapping_ttl",
 			"max_wrapping_ttl",
 			"mfa_methods",
+			"pagination_limit",
 		}
 		if err := hclutil.CheckHCLKeys(item.Val, valid); err != nil {
 			return multierror.Prefix(err, fmt.Sprintf("path %q:", key))
@@ -431,6 +435,7 @@ func parsePaths(result *Policy, list *ast.ObjectList, performTemplating bool, en
 			pc.Permissions.RequiredParameters = pc.RequiredParametersHCL[:]
 		}
 
+		pc.Permissions.PaginationLimit = pc.PaginationLimitHCL
 	PathFinished:
 		paths = append(paths, &pc)
 	}
