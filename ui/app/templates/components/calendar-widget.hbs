@@ -84,20 +84,20 @@
           {{#if this.tooltipTarget}}
             {{! Component must be in curly bracket notation }}
             {{! template-lint-disable no-curly-component-invocation }}
-            {{#modal-dialog
-              tagName="div"
-              tetherTarget=this.tooltipTarget
-              targetAttachment="top right"
-              attachment="top middle"
-              offset="150px 0"
-            }}
-              <div class={{"calendar-tooltip"}}>
+            <ModalDialog
+              @tagName="div"
+              @tetherTarget={{this.tooltipTarget}}
+              @targetAttachment="top right"
+              @attachment="top middle"
+              @offset="150px 0"
+            >
+              <div class="calendar-tooltip">
                 <p>
                   {{this.tooltipText}}
                 </p>
               </div>
               <div class="chart-tooltip-arrow"></div>
-            {{/modal-dialog}}
+            </ModalDialog>
           {{/if}}
         </div>
         <div class="calendar-widget-grid calendar-widget">

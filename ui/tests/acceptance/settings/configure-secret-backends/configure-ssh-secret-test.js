@@ -3,12 +3,11 @@
  * SPDX-License-Identifier: MPL-2.0
  */
 
-import { click, settled } from '@ember/test-helpers';
+import { click, settled, visit } from '@ember/test-helpers';
 import { module, test } from 'qunit';
 import { setupApplicationTest } from 'ember-qunit';
 import { v4 as uuidv4 } from 'uuid';
 
-import { visit } from '@ember/test-helpers';
 import authPage from 'vault/tests/pages/auth';
 import enablePage from 'vault/tests/pages/settings/mount-secret-backend';
 import { create } from 'ember-cli-page-object';
@@ -31,8 +30,8 @@ module('Acceptance | settings/configure/secrets/ssh', function (hooks) {
     const path = `ssh-configure-${this.uid}`;
     await enablePage.enable('ssh', path);
     await settled();
-    visit(`/vault/settings/secrets/configure/${path}`);
-    await settled();
+    await visit(`/vault/settings/secrets/configure/${path}`);
+
     assert.dom(SELECTORS.generateSigningKey).isChecked('generate_signing_key defaults to true');
     await click(SELECTORS.generateSigningKey);
     await click(SELECTORS.saveConfig);
