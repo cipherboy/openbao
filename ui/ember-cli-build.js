@@ -12,6 +12,7 @@ const config = require('./config/environment')();
 const environment = EmberApp.env();
 const isProd = environment === 'production';
 const isTest = environment === 'test';
+
 // const isCI = !!process.env.CI;
 
 const appConfig = {
@@ -47,6 +48,8 @@ const appConfig = {
     onlyIncluded: true,
     precision: 4,
     includePaths: [
+      './node_modules/ember-basic-dropdown/',
+      './node_modules/ember-power-select/',
       './node_modules/@hashicorp/design-system-components/app/styles',
       './node_modules/@hashicorp/design-system-tokens/dist/products/css',
     ],
@@ -79,8 +82,6 @@ module.exports = function (defaults) {
   const app = new EmberApp(defaults, appConfig);
 
   app.import('vendor/string-includes.js');
-  app.import('node_modules/string.prototype.endswith/endswith.js');
-  app.import('node_modules/string.prototype.startswith/startswith.js');
 
   app.import('node_modules/jsonlint/lib/jsonlint.js');
   app.import('node_modules/codemirror/addon/lint/lint.css');
@@ -93,19 +94,6 @@ module.exports = function (defaults) {
 
   app.import('node_modules/@hashicorp/structure-icons/dist/loading.css');
   app.import('node_modules/@hashicorp/structure-icons/dist/run.css');
-
-  // Use `app.import` to add additional libraries to the generated
-  // output files.
-  //
-  // If you need to use different assets in different
-  // environments, specify an object as the first parameter. That
-  // object's keys should be the environment name and the values
-  // should be the asset to use in that environment.
-  //
-  // If the library that you are including contains AMD or ES6
-  // modules that you would like to import into your application
-  // please specify an object with the list of modules as keys
-  // along with the exports of each module as its value.
 
   return app.toTree();
 };
