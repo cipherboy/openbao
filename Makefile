@@ -334,6 +334,7 @@ tidy-all:
 	cd api/auth/ldap && $(GO_CMD) mod tidy
 	cd api/auth/userpass && $(GO_CMD) mod tidy
 	cd sdk && $(GO_CMD) mod tidy
+	cd external && $(GO_CMD) mod tidy
 	$(GO_CMD) mod tidy
 
 .PHONY: ci-tidy-all
@@ -345,6 +346,7 @@ ci-tidy-all:
 	cd api/auth/ldap && $(GO_CMD) mod tidy
 	cd api/auth/userpass && $(GO_CMD) mod tidy
 	cd sdk && $(GO_CMD) mod tidy
+	cd external && $(GO_CMD) mod tidy
 	$(GO_CMD) mod tidy
 	git diff --quiet || (echo -e "\n\nModified files:" && git status --short && echo -e "\n\nRun 'make tidy-all' locally and commit the changes.\n" && exit 1)
 

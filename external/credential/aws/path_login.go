@@ -30,7 +30,7 @@ import (
 	"github.com/hashicorp/go-secure-stdlib/parseutil"
 	"github.com/hashicorp/go-secure-stdlib/strutil"
 	uuid "github.com/hashicorp/go-uuid"
-	"github.com/openbao/openbao/builtin/credential/aws/pkcs7"
+	"github.com/openbao/openbao/external/v2/credential/aws/pkcs7"
 	"github.com/openbao/openbao/sdk/v2/framework"
 	"github.com/openbao/openbao/sdk/v2/helper/cidrutil"
 	"github.com/openbao/openbao/sdk/v2/helper/jsonutil"

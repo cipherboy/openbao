@@ -6,9 +6,9 @@ package main
 import (
 	"os"
 
-	"github.com/hashicorp/go-hclog"
+	hclog "github.com/hashicorp/go-hclog"
 	"github.com/openbao/openbao/api/v2"
-	"github.com/openbao/openbao/builtin/logical/aws"
+	"github.com/openbao/openbao/external/v2/credential/github"
 	"github.com/openbao/openbao/sdk/v2/plugin"
 )
 
@@ -21,7 +21,7 @@ func main() {
 	tlsProviderFunc := api.VaultPluginTLSProvider(tlsConfig)
 
 	if err := plugin.ServeMultiplex(&plugin.ServeOpts{
-		BackendFactoryFunc: aws.Factory,
+		BackendFactoryFunc: github.Factory,
 		// set the TLSProviderFunc so that the plugin maintains backwards
 		// compatibility with Vault versions that don’t support plugin AutoMTLS
 		TLSProviderFunc: tlsProviderFunc,

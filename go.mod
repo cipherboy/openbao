@@ -29,10 +29,7 @@ require (
 	github.com/armon/go-metrics v0.4.1
 	github.com/armon/go-radix v1.0.0
 	github.com/asaskevich/govalidator v0.0.0-20230301143203-a9d515a09cc2
-	github.com/aws/aws-sdk-go v1.55.5
-	github.com/aws/aws-sdk-go-v2/config v1.29.2
 	github.com/cenkalti/backoff/v4 v4.3.0
-	github.com/chrismalek/oktasdk-go v0.0.0-20181212195951-3430665dfaa0
 	github.com/client9/misspell v0.3.4
 	github.com/coreos/go-systemd/v22 v22.5.0
 	github.com/denisenkom/go-mssqldb v0.12.3
@@ -53,7 +50,6 @@ require (
 	github.com/golang/protobuf v1.5.4
 	github.com/golangci/revgrep v0.0.0-20220804021717-745bb2f7c2e6
 	github.com/google/go-cmp v0.6.0
-	github.com/google/go-github v17.0.0+incompatible
 	github.com/google/go-metrics-stackdriver v0.2.0
 	github.com/hashicorp/cap v0.3.0
 	github.com/hashicorp/cli v1.1.6
@@ -69,7 +65,6 @@ require (
 	github.com/hashicorp/go-plugin v1.6.2
 	github.com/hashicorp/go-raftchunking v0.6.3-0.20191002164813-7e9e8525653a
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/hashicorp/go-secure-stdlib/awsutil v0.3.0
 	github.com/hashicorp/go-secure-stdlib/base62 v0.1.2
 	github.com/hashicorp/go-secure-stdlib/fileutil v0.1.0
 	github.com/hashicorp/go-secure-stdlib/gatedwriter v0.1.1
@@ -87,7 +82,6 @@ require (
 	github.com/hashicorp/golang-lru/v2 v2.0.7
 	github.com/hashicorp/hcl v1.0.1-vault-5
 	github.com/hashicorp/hcl/v2 v2.16.2
-	github.com/hashicorp/nomad/api v0.0.0-20250124153748-7add04eb0f0b
 	github.com/hashicorp/raft v1.7.1
 	github.com/hashicorp/raft-autopilot v0.3.0
 	github.com/hashicorp/raft-boltdb/v2 v2.0.0-20210421194847-a7e34179d62c
@@ -218,18 +212,7 @@ require (
 	github.com/agext/levenshtein v1.2.1 // indirect
 	github.com/aliyun/alibaba-cloud-sdk-go v1.62.301 // indirect
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
-	github.com/aws/aws-sdk-go-v2 v1.34.0 // indirect
-	github.com/aws/aws-sdk-go-v2/credentials v1.17.55 // indirect
-	github.com/aws/aws-sdk-go-v2/feature/ec2/imds v1.16.25 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/configsources v1.3.29 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/endpoints/v2 v2.6.29 // indirect
-	github.com/aws/aws-sdk-go-v2/internal/ini v1.8.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/accept-encoding v1.12.2 // indirect
-	github.com/aws/aws-sdk-go-v2/service/internal/presigned-url v1.12.10 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sso v1.24.12 // indirect
-	github.com/aws/aws-sdk-go-v2/service/ssooidc v1.28.11 // indirect
-	github.com/aws/aws-sdk-go-v2/service/sts v1.33.10 // indirect
-	github.com/aws/smithy-go v1.22.2 // indirect
+	github.com/aws/aws-sdk-go v1.55.5 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
 	github.com/boombuler/barcode v1.0.1 // indirect
@@ -284,10 +267,10 @@ require (
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.24.0 // indirect
 	github.com/hailocab/go-hostpool v0.0.0-20160125115350-e80d13ce29ed // indirect
-	github.com/hashicorp/cronexpr v1.1.2 // indirect
 	github.com/hashicorp/go-immutable-radix v1.3.1 // indirect
 	github.com/hashicorp/go-msgpack/v2 v2.1.2 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
+	github.com/hashicorp/go-secure-stdlib/awsutil v0.3.0 // indirect
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.3 // indirect
 	github.com/hashicorp/golang-lru v0.5.4 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
