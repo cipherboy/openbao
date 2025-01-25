@@ -53,8 +53,8 @@ ${GO_CMD} build \
     .
 
 if [ "$1" == "plugin" ]; then
-    for etype in logical credential; do
-        for plugin in builtin/$etype/*; do
+    for etype in logical credential database; do
+        for plugin in {builtin,plugins}/$etype/*; do
             plugin_name="$(basename "$plugin")"
             if [ ! -e "$plugin/cmd" ]; then
                 continue

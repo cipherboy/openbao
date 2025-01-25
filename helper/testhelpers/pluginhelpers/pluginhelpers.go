@@ -52,7 +52,7 @@ func GetPlugin(t testing.T, typ consts.PluginType) (string, string, string, stri
 	case consts.PluginTypeDatabase:
 		pluginType = "postgresql"
 		pluginName = "vault-plugin-database-" + pluginType
-		pluginMain = filepath.Join("plugins", "database", pluginType, fmt.Sprintf("%s-database-plugin", pluginType), "main.go")
+		pluginMain = filepath.Join("plugins", "database", pluginType, "cmd", pluginType, "main.go")
 		pluginVersionLocation = fmt.Sprintf("github.com/openbao/openbao/plugins/database/%s.ReportedVersion", pluginType)
 	default:
 		t.Fatal(typ.String())
