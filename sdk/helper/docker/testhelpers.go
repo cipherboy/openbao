@@ -63,6 +63,10 @@ type RunOptions struct {
 	LogStderr              io.Writer
 	LogStdout              io.Writer
 	VolumeNameToMountPoint map[string]string
+
+	StartInitialWait     time.Duration
+	StartInitialInterval time.Duration
+	StartMaxElapsedTime  time.Duration
 }
 
 func NewDockerAPI() (*client.Client, error) {
@@ -296,6 +300,16 @@ func (d *Runner) StartNewService(ctx context.Context, addSuffix, forceLocalAddr 
 	bo := backoff.NewExponentialBackOff()
 	bo.MaxInterval = time.Second * 5
 	bo.MaxElapsedTime = 2 * time.Minute
+	if d.RunOptions.StartMaxElapsedTime != 0 {
+		bo.MaxElapsedTime = d.RunOptions.StartMaxElapsedTime
+	}
+	if d.RunOptions.StartInitialInterval != 0 {
+		bo.InitialInterval = d.RunOptions.StartInitialInterval
+	}
+
+	if d.RunOptions.StartInitialWait != 0 {
+		time.Sleep(d.RunOptions.StartInitialWait)
+	}
 
 	pieces := strings.Split(result.Addrs[0], ":")
 	portInt, err := strconv.Atoi(pieces[1])
