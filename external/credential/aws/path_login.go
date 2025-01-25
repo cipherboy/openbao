@@ -8,7 +8,6 @@ import (
 	"crypto/subtle"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/pem"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -30,7 +29,6 @@ import (
 	"github.com/hashicorp/go-secure-stdlib/parseutil"
 	"github.com/hashicorp/go-secure-stdlib/strutil"
 	uuid "github.com/hashicorp/go-uuid"
-	"github.com/openbao/openbao/external/v2/credential/aws/pkcs7"
 	"github.com/openbao/openbao/sdk/v2/framework"
 	"github.com/openbao/openbao/sdk/v2/helper/cidrutil"
 	"github.com/openbao/openbao/sdk/v2/helper/jsonutil"
@@ -67,12 +65,6 @@ func (b *backend) pathLogin() *framework.Path {
 If 'role' is not specified, then the login endpoint looks for a role
 bearing the name of the AMI ID of the EC2 instance that is trying to login.
 If a matching role is not found, login fails.`,
-			},
-
-			"pkcs7": {
-				Type: framework.TypeString,
-				Description: `PKCS7 signature of the identity document when using an auth_type
-of ec2.`,
 			},
 
 			"nonce": {
@@ -185,35 +177,22 @@ func (b *backend) pathLoginEc2GetRoleNameAndIdentityDoc(ctx context.Context, req
 		}
 	}
 
-	pkcs7B64 := data.Get("pkcs7").(string)
-
-	// Either the pkcs7 signature of the instance identity document, or
-	// the identity document itself along with its SHA256 RSA signature
+	// The identity document itself along with its SHA256 RSA signature
 	// needs to be provided.
-	if pkcs7B64 == "" && (len(identityDocBytes) == 0 && len(signatureBytes) == 0) {
-		return "", nil, logical.ErrorResponse("either pkcs7 or a tuple containing the instance identity document and its SHA256 RSA signature needs to be provided"), nil
-	} else if pkcs7B64 != "" && (len(identityDocBytes) != 0 && len(signatureBytes) != 0) {
-		return "", nil, logical.ErrorResponse("both pkcs7 and a tuple containing the instance identity document and its SHA256 RSA signature is supplied; provide only one"), nil
+	if len(identityDocBytes) == 0 && len(signatureBytes) == 0 {
+		return "", nil, logical.ErrorResponse("a tuple containing the instance identity document and its SHA256 RSA signature needs to be provided"), nil
+	} else if len(identityDocBytes) != 0 && len(signatureBytes) != 0 {
+		return "", nil, logical.ErrorResponse("a tuple containing the instance identity document and its SHA256 RSA signature is supplied; provide only one"), nil
 	}
 
 	// Verify the signature of the identity document and unmarshal it
 	var identityDocParsed *identityDocument
-	if pkcs7B64 != "" {
-		identityDocParsed, err = b.parseIdentityDocument(ctx, req.Storage, pkcs7B64)
-		if err != nil {
-			return "", nil, nil, err
-		}
-		if identityDocParsed == nil {
-			return "", nil, logical.ErrorResponse("failed to verify the instance identity document using pkcs7"), nil
-		}
-	} else {
-		identityDocParsed, err = b.verifyInstanceIdentitySignature(ctx, req.Storage, identityDocBytes, signatureBytes)
-		if err != nil {
-			return "", nil, nil, err
-		}
-		if identityDocParsed == nil {
-			return "", nil, logical.ErrorResponse("failed to verify the instance identity document using the SHA256 RSA digest"), nil
-		}
+	identityDocParsed, err = b.verifyInstanceIdentitySignature(ctx, req.Storage, identityDocBytes, signatureBytes)
+	if err != nil {
+		return "", nil, nil, err
+	}
+	if identityDocParsed == nil {
+		return "", nil, logical.ErrorResponse("failed to verify the instance identity document using the SHA256 RSA digest"), nil
 	}
 
 	roleName := data.Get("role").(string)
@@ -496,7 +475,7 @@ func (b *backend) verifyInstanceIdentitySignature(ctx context.Context, s logical
 	// certificate and all the registered certificates via
 	// 'config/certificate/<cert_name>' endpoint, for verifying the RSA
 	// digest.
-	publicCerts, err := b.awsPublicCertificates(ctx, s, false)
+	publicCerts, err := b.awsPublicCertificates(ctx, s)
 	if err != nil {
 		return nil, err
 	}
@@ -518,59 +497,6 @@ func (b *backend) verifyInstanceIdentitySignature(ctx context.Context, s logical
 	}
 
 	return nil, fmt.Errorf("instance identity verification using SHA256 RSA signature is unsuccessful")
-}
-
-// Verifies the correctness of the authenticated attributes present in the PKCS#7
-// signature. After verification, extracts the instance identity document from the
-// signature, parses it and returns it.
-func (b *backend) parseIdentityDocument(ctx context.Context, s logical.Storage, pkcs7B64 string) (*identityDocument, error) {
-	// Insert the header and footer for the signature to be able to pem decode it
-	pkcs7B64 = fmt.Sprintf("-----BEGIN PKCS7-----\n%s\n-----END PKCS7-----", pkcs7B64)
-
-	// Decode the PEM encoded signature
-	pkcs7BER, pkcs7Rest := pem.Decode([]byte(pkcs7B64))
-	if len(pkcs7Rest) != 0 {
-		return nil, fmt.Errorf("failed to decode the PEM encoded PKCS#7 signature")
-	}
-
-	// Parse the signature from asn1 format into a struct
-	pkcs7Data, err := pkcs7.Parse(pkcs7BER.Bytes)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse the BER encoded PKCS#7 signature: %w", err)
-	}
-
-	// Get the public certificates that are used to verify the signature.
-	// This returns a slice of certificates containing the default certificate
-	// and all the registered certificates via 'config/certificate/<cert_name>' endpoint
-	publicCerts, err := b.awsPublicCertificates(ctx, s, true)
-	if err != nil {
-		return nil, err
-	}
-	if publicCerts == nil || len(publicCerts) == 0 {
-		return nil, fmt.Errorf("certificates to verify the signature are not found")
-	}
-
-	// Before calling Verify() on the PKCS#7 struct, set the certificates to be used
-	// to verify the contents in the signer information.
-	pkcs7Data.Certificates = publicCerts
-
-	// Verify extracts the authenticated attributes in the PKCS#7 signature, and verifies
-	// the authenticity of the content using 'dsa.PublicKey' embedded in the public certificate.
-	if err := pkcs7Data.Verify(); err != nil {
-		return nil, fmt.Errorf("failed to verify the signature: %w", err)
-	}
-
-	// Check if the signature has content inside of it
-	if len(pkcs7Data.Content) == 0 {
-		return nil, fmt.Errorf("instance identity document could not be found in the signature")
-	}
-
-	var identityDoc identityDocument
-	if err := jsonutil.DecodeJSON(pkcs7Data.Content, &identityDoc); err != nil {
-		return nil, err
-	}
-
-	return &identityDoc, nil
 }
 
 func (b *backend) pathLoginUpdate(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
@@ -758,9 +684,9 @@ func (b *backend) verifyInstanceMeetsRoleRequirements(ctx context.Context,
 }
 
 // pathLoginUpdateEc2 is used to create a Vault token by the EC2 instances
-// by providing the pkcs7 signature of the instance identity document
-// and a client created nonce. Client nonce is optional if 'disallow_reauthentication'
-// option is enabled on the registered role.
+// by providing the instance identity document and a client created nonce.
+// Client nonce is optional if 'disallow_reauthentication' option is enabled
+// on the registered role.
 func (b *backend) pathLoginUpdateEc2(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
 	roleName, identityDocParsed, errResp, err := b.pathLoginEc2GetRoleNameAndIdentityDoc(ctx, req, data)
 	if errResp != nil || err != nil {
@@ -1542,10 +1468,9 @@ func validateLoginIamRequestBody(body string) error {
 // The second is a hasAny, that is, does the request have any of the fields
 // exclusive to this auth method
 func hasValuesForEc2Auth(data *framework.FieldData) (bool, bool) {
-	_, hasPkcs7 := data.GetOk("pkcs7")
 	_, hasIdentity := data.GetOk("identity")
 	_, hasSignature := data.GetOk("signature")
-	return (hasPkcs7 || (hasIdentity && hasSignature)), (hasPkcs7 || hasIdentity || hasSignature)
+	return (hasIdentity && hasSignature), (hasIdentity || hasSignature)
 }
 
 func hasValuesForIamAuth(data *framework.FieldData) (bool, bool) {

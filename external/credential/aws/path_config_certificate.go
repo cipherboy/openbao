@@ -52,17 +52,16 @@ func (b *backend) pathConfigCertificate() *framework.Path {
 			},
 			"aws_public_cert": {
 				Type:        framework.TypeString,
-				Description: "Base64 encoded AWS Public cert required to verify PKCS7 signature of the EC2 instance metadata.",
+				Description: "Base64 encoded AWS Public cert required to verify signature of the EC2 instance metadata.",
 			},
 			"type": {
 				Type:    framework.TypeString,
-				Default: "pkcs7",
+				Default: "identity",
 				Description: `
-Takes the value of either "pkcs7" or "identity", indicating the type of
-document which can be verified using the given certificate. The reason is that
-the PKCS#7 document will have a DSA digest and the identity signature will have
+Takes the value of "identity", indicating the type of document which can be
+verified using the given certificate. The identity signature will have
 an RSA signature, and accordingly the public certificates to verify those also
-vary. Defaults to "pkcs7".`,
+vary. Defaults to "identity".`,
 			},
 		},
 
@@ -149,11 +148,11 @@ func decodePEMAndParseCertificate(certificate string) (*x509.Certificate, error)
 }
 
 // awsPublicCertificates returns a slice of all the parsed AWS public
-// certificates, which are used to verify either the identity, RSA 2048
-// or the PKCS7 signatures of the instance identity documents. This method will
+// certificates, which are used to verify either the identity's RSA 2048
+// signatures of the instance identity documents. This method will
 // append the certificates registered using `config/certificate/<cert_name>`
 // endpoint, along with the default certificates in the backend.
-func (b *backend) awsPublicCertificates(ctx context.Context, s logical.Storage, isPkcs bool) ([]*x509.Certificate, error) {
+func (b *backend) awsPublicCertificates(ctx context.Context, s logical.Storage) ([]*x509.Certificate, error) {
 	// Lock at beginning and use internal method so that we are consistent as
 	// we iterate through
 	b.configMutex.RLock()
@@ -178,8 +177,7 @@ func (b *backend) awsPublicCertificates(ctx context.Context, s logical.Storage, 
 			return nil, fmt.Errorf("certificate storage has a nil entry under the name: %q", cert)
 		}
 		// Append relevant certificates only
-		if (isPkcs && certEntry.Type == "pkcs7") ||
-			(!isPkcs && certEntry.Type == "identity") {
+		if certEntry.Type == "identity" {
 			decodedCert, err := decodePEMAndParseCertificate(certEntry.AWSPublicCert)
 			if err != nil {
 				return nil, err
@@ -261,7 +259,7 @@ func (b *backend) nonLockedAWSPublicCertificateEntry(ctx context.Context, s logi
 	// Handle upgrade for certificate type
 	persistNeeded := false
 	if certEntry.Type == "" {
-		certEntry.Type = "pkcs7"
+		certEntry.Type = "identity"
 		persistNeeded = true
 	}
 
@@ -342,7 +340,6 @@ func (b *backend) pathConfigCertificateCreateUpdate(ctx context.Context, req *lo
 	}
 
 	switch certEntry.Type {
-	case "pkcs7":
 	case "identity":
 	default:
 		return logical.ErrorResponse(fmt.Sprintf("invalid certificate type %q", certEntry.Type)), nil

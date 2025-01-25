@@ -19,6 +19,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/sts"
 	logicaltest "github.com/openbao/openbao/helper/testhelpers/logical"
 	"github.com/openbao/openbao/sdk/v2/framework"
+	"github.com/openbao/openbao/sdk/v2/helper/jsonutil"
 	"github.com/openbao/openbao/sdk/v2/helper/policyutil"
 	"github.com/openbao/openbao/sdk/v2/logical"
 )
@@ -610,162 +611,6 @@ func TestBackend_ConfigClient(t *testing.T) {
 	}
 }
 
-func TestBackend_pathConfigCertificate(t *testing.T) {
-	config := logical.TestBackendConfig()
-	storage := &logical.InmemStorage{}
-	config.StorageView = storage
-
-	b, err := Backend(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	err = b.Setup(context.Background(), config)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	certReq := &logical.Request{
-		Operation: logical.CreateOperation,
-		Storage:   storage,
-		Path:      "config/certificate/cert1",
-	}
-	checkFound, exists, err := b.HandleExistenceCheck(context.Background(), certReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !checkFound {
-		t.Fatal("existence check not found for path 'config/certificate/cert1'")
-	}
-	if exists {
-		t.Fatal("existence check should have returned 'false' for 'config/certificate/cert1'")
-	}
-
-	data := map[string]interface{}{
-		"type": "pkcs7",
-		"aws_public_cert": `LS0tLS1CRUdJTiBDRVJUSUZJQ0FURS0tLS0tCk1JSUM3VENDQXEwQ0NRQ1d1a2paNVY0YVp6QUpC
-Z2NxaGtqT09BUURNRnd4Q3pBSkJnTlZCQVlUQWxWVE1Sa3cKRndZRFZRUUlFeEJYWVhOb2FXNW5k
-Rzl1SUZOMFlYUmxNUkF3RGdZRFZRUUhFd2RUWldGMGRHeGxNU0F3SGdZRApWUVFLRXhkQmJXRjZi
-MjRnVjJWaUlGTmxjblpwWTJWeklFeE1RekFlRncweE1qQXhNRFV4TWpVMk1USmFGdzB6Ck9EQXhN
-RFV4TWpVMk1USmFNRnd4Q3pBSkJnTlZCQVlUQWxWVE1Sa3dGd1lEVlFRSUV4QlhZWE5vYVc1bmRH
-OXUKSUZOMFlYUmxNUkF3RGdZRFZRUUhFd2RUWldGMGRHeGxNU0F3SGdZRFZRUUtFeGRCYldGNmIy
-NGdWMlZpSUZObApjblpwWTJWeklFeE1RekNDQWJjd2dnRXNCZ2NxaGtqT09BUUJNSUlCSHdLQmdR
-Q2prdmNTMmJiMVZRNHl0LzVlCmloNU9PNmtLL24xTHpsbHI3RDhad3RRUDhmT0VwcDVFMm5nK0Q2
-VWQxWjFnWWlwcjU4S2ozbnNzU05wSTZiWDMKVnlJUXpLN3dMY2xuZC9Zb3pxTk5tZ0l5WmVjTjdF
-Z2xLOUlUSEpMUCt4OEZ0VXB0M1FieVlYSmRtVk1lZ042UApodmlZdDVKSC9uWWw0aGgzUGExSEpk
-c2tnUUlWQUxWSjNFUjExK0tvNHRQNm53dkh3aDYrRVJZUkFvR0JBSTFqCmsrdGtxTVZIdUFGY3ZB
-R0tvY1Rnc2pKZW02LzVxb216SnVLRG1iSk51OVF4dzNyQW90WGF1OFFlK01CY0psL1UKaGh5MUtI
-VnBDR2w5ZnVlUTJzNklMMENhTy9idXljVTFDaVlRazQwS05IQ2NIZk5pWmJkbHgxRTlycFVwN2Ju
-RgpsUmEydjFudE1YM2NhUlZEZGJ0UEVXbWR4U0NZc1lGRGs0bVpyT0xCQTRHRUFBS0JnRWJtZXZl
-NWY4TElFL0dmCk1ObVA5Q001ZW92UU9HeDVobzhXcUQrYVRlYnMrazJ0bjkyQkJQcWVacXBXUmE1
-UC8ranJkS21sMXF4NGxsSFcKTVhyczNJZ0liNitoVUlCK1M4ZHo4L21tTzBicHI3NlJvWlZDWFlh
-YjJDWmVkRnV0N3FjM1dVSDkrRVVBSDVtdwp2U2VEQ09VTVlRUjdSOUxJTll3b3VISXppcVFZTUFr
-R0J5cUdTTTQ0QkFNREx3QXdMQUlVV1hCbGs0MHhUd1N3CjdIWDMyTXhYWXJ1c2U5QUNGQk5HbWRY
-MlpCclZOR3JOOU4yZjZST2swazlLCi0tLS0tRU5EIENFUlRJRklDQVRFLS0tLS0K
-`,
-	}
-
-	certReq.Data = data
-	// test create operation
-	resp, err := b.HandleRequest(context.Background(), certReq)
-	if err != nil || (resp != nil && resp.IsError()) {
-		t.Fatalf("resp: %#v, err: %v", resp, err)
-	}
-
-	certReq.Data = nil
-	// test existence check
-	checkFound, exists, err = b.HandleExistenceCheck(context.Background(), certReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !checkFound {
-		t.Fatal("existence check not found for path 'config/certificate/cert1'")
-	}
-	if !exists {
-		t.Fatal("existence check should have returned 'true' for 'config/certificate/cert1'")
-	}
-
-	certReq.Operation = logical.ReadOperation
-	// test read operation
-	resp, err = b.HandleRequest(context.Background(), certReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	expectedCert := `-----BEGIN CERTIFICATE-----
-MIIC7TCCAq0CCQCWukjZ5V4aZzAJBgcqhkjOOAQDMFwxCzAJBgNVBAYTAlVTMRkw
-FwYDVQQIExBXYXNoaW5ndG9uIFN0YXRlMRAwDgYDVQQHEwdTZWF0dGxlMSAwHgYD
-VQQKExdBbWF6b24gV2ViIFNlcnZpY2VzIExMQzAeFw0xMjAxMDUxMjU2MTJaFw0z
-ODAxMDUxMjU2MTJaMFwxCzAJBgNVBAYTAlVTMRkwFwYDVQQIExBXYXNoaW5ndG9u
-IFN0YXRlMRAwDgYDVQQHEwdTZWF0dGxlMSAwHgYDVQQKExdBbWF6b24gV2ViIFNl
-cnZpY2VzIExMQzCCAbcwggEsBgcqhkjOOAQBMIIBHwKBgQCjkvcS2bb1VQ4yt/5e
-ih5OO6kK/n1Lzllr7D8ZwtQP8fOEpp5E2ng+D6Ud1Z1gYipr58Kj3nssSNpI6bX3
-VyIQzK7wLclnd/YozqNNmgIyZecN7EglK9ITHJLP+x8FtUpt3QbyYXJdmVMegN6P
-hviYt5JH/nYl4hh3Pa1HJdskgQIVALVJ3ER11+Ko4tP6nwvHwh6+ERYRAoGBAI1j
-k+tkqMVHuAFcvAGKocTgsjJem6/5qomzJuKDmbJNu9Qxw3rAotXau8Qe+MBcJl/U
-hhy1KHVpCGl9fueQ2s6IL0CaO/buycU1CiYQk40KNHCcHfNiZbdlx1E9rpUp7bnF
-lRa2v1ntMX3caRVDdbtPEWmdxSCYsYFDk4mZrOLBA4GEAAKBgEbmeve5f8LIE/Gf
-MNmP9CM5eovQOGx5ho8WqD+aTebs+k2tn92BBPqeZqpWRa5P/+jrdKml1qx4llHW
-MXrs3IgIb6+hUIB+S8dz8/mmO0bpr76RoZVCXYab2CZedFut7qc3WUH9+EUAH5mw
-vSeDCOUMYQR7R9LINYwouHIziqQYMAkGByqGSM44BAMDLwAwLAIUWXBlk40xTwSw
-7HX32MxXYruse9ACFBNGmdX2ZBrVNGrN9N2f6ROk0k9K
------END CERTIFICATE-----
-`
-	if resp.Data["aws_public_cert"].(string) != expectedCert {
-		t.Fatalf("bad: expected:%s\n got:%s\n", expectedCert, resp.Data["aws_public_cert"].(string))
-	}
-
-	certReq.Operation = logical.CreateOperation
-	certReq.Path = "config/certificate/cert2"
-	certReq.Data = data
-	// create another entry to test the list operation
-	_, err = b.HandleRequest(context.Background(), certReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	certReq.Operation = logical.ListOperation
-	certReq.Path = "config/certificates"
-	// test list operation
-	resp, err = b.HandleRequest(context.Background(), certReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp == nil || resp.IsError() {
-		t.Fatalf("failed to list config/certificates")
-	}
-	keys := resp.Data["keys"].([]string)
-	if len(keys) != 2 {
-		t.Fatalf("invalid keys listed: %#v\n", keys)
-	}
-
-	certReq.Operation = logical.DeleteOperation
-	certReq.Path = "config/certificate/cert1"
-	_, err = b.HandleRequest(context.Background(), certReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	certReq.Path = "config/certificate/cert2"
-	_, err = b.HandleRequest(context.Background(), certReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	certReq.Operation = logical.ListOperation
-	certReq.Path = "config/certificates"
-	// test list operation
-	resp, err = b.HandleRequest(context.Background(), certReq)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if resp == nil || resp.IsError() {
-		t.Fatalf("failed to list config/certificates")
-	}
-	if resp.Data["keys"] != nil {
-		t.Fatalf("no entries should be present")
-	}
-}
-
 func TestBackend_parseAndVerifyRoleTagValue(t *testing.T) {
 	// create a backend
 	config := logical.TestBackendConfig()
@@ -1029,7 +874,6 @@ This is an acceptance test.
 
 	Requires the following env vars:
 	TEST_AWS_EC2_RSA2048
-	TEST_AWS_EC2_PKCS7
 	TEST_AWS_EC2_IDENTITY_DOCUMENT
 	TEST_AWS_EC2_IDENTITY_DOCUMENT_SIG
 	TEST_AWS_EC2_AMI_ID
@@ -1039,7 +883,6 @@ This is an acceptance test.
 	If this is being run on an EC2 instance, you can set the environment vars using this bash snippet:
 
 	export TEST_AWS_EC2_RSA2048=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/rsa2048)
-	export TEST_AWS_EC2_PKCS7=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/pkcs7)
 	export TEST_AWS_EC2_IDENTITY_DOCUMENT=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/document | base64 -w 0)
 	export TEST_AWS_EC2_IDENTITY_DOCUMENT_SIG=$(curl -s http://169.254.169.254/latest/dynamic/instance-identity/signature | tr -d '\n')
 	export TEST_AWS_EC2_AMI_ID=$(curl -s http://169.254.169.254/latest/meta-data/ami-id)
@@ -1064,11 +907,6 @@ func TestBackendAcc_LoginWithInstanceIdentityDocAndAccessListIdentity(t *testing
 		rsa2048 := os.Getenv("TEST_AWS_EC2_RSA2048")
 		if rsa2048 == "" {
 			t.Skipf("env var TEST_AWS_EC2_RSA2048 not set, skipping test")
-		}
-
-		pkcs7 := os.Getenv("TEST_AWS_EC2_PKCS7")
-		if pkcs7 == "" {
-			t.Skipf("env var TEST_AWS_EC2_PKCS7 not set, skipping test")
 		}
 
 		identityDoc := os.Getenv("TEST_AWS_EC2_IDENTITY_DOCUMENT")
@@ -1158,17 +996,18 @@ func TestBackendAcc_LoginWithInstanceIdentityDocAndAccessListIdentity(t *testing
 		}
 
 		loginInput := map[string]interface{}{
-			"pkcs7": pkcs7,
 			"nonce": "vault-client-nonce",
 		}
 
-		parsedIdentityDoc, err := b.parseIdentityDocument(context.Background(), storage, pkcs7)
-		if err != nil {
+		var parsedIdentityDoc identityDocument
+		if err := jsonutil.DecodeJSON([]byte(identityDoc), &parsedIdentityDoc); err != nil {
 			t.Fatal(err)
 		}
 
-		// Perform the login operation with a AMI ID that is not matching
-		// the bound on the role.
+		// Attempt to re-login with the identity signature
+		loginInput["identity"] = identityDoc
+		loginInput["signature"] = identityDocSig
+
 		loginRequest := &logical.Request{
 			Operation: logical.UpdateOperation,
 			Path:      "login",
@@ -1185,6 +1024,7 @@ func TestBackendAcc_LoginWithInstanceIdentityDocAndAccessListIdentity(t *testing
 			"bound_account_id":      accountID,
 			"bound_iam_role_arn":    iamARN,
 			"bound_ec2_instance_id": []string{parsedIdentityDoc.InstanceID, "i-1234567"},
+			"type":                  "identity",
 		}
 
 		roleReq := &logical.Request{
@@ -1194,81 +1034,10 @@ func TestBackendAcc_LoginWithInstanceIdentityDocAndAccessListIdentity(t *testing
 			Data:      data,
 		}
 
-		updateRoleExpectLoginFail := func(roleRequest, loginRequest *logical.Request) error {
-			resp, err := b.HandleRequest(context.Background(), roleRequest)
-			if err != nil || (resp != nil && resp.IsError()) {
-				return fmt.Errorf("bad: failed to create role: resp:%#v\nerr:%v", resp, err)
-			}
-			resp, err = b.HandleRequest(context.Background(), loginRequest)
-			if err != nil || resp == nil || (resp != nil && !resp.IsError()) {
-				return fmt.Errorf("bad: expected login failure: resp:%#v\nerr:%v", resp, err)
-			}
-			return nil
-		}
-
-		// Test a role with the wrong AMI ID
-		data["bound_ami_id"] = []string{"ami-1234567", "ami-7654321"}
-		if err := updateRoleExpectLoginFail(roleReq, loginRequest); err != nil {
-			t.Fatal(err)
-		}
-
-		roleReq.Operation = logical.UpdateOperation
-		// Place the correct AMI ID in one of the values, but make the AccountID wrong
-		data["bound_ami_id"] = []string{"wrong_ami_id_1", amiID, "wrong_ami_id_2"}
-		data["bound_account_id"] = []string{"wrong-account-id", "wrong-account-id-2"}
-		if err := updateRoleExpectLoginFail(roleReq, loginRequest); err != nil {
-			t.Fatal(err)
-		}
-
-		// Place the correct AccountID in one of the values, but make the wrong IAMRoleARN
-		data["bound_account_id"] = []string{"wrong-account-id-1", accountID, "wrong-account-id-2"}
-		data["bound_iam_role_arn"] = []string{"wrong_iam_role_arn", "wrong_iam_role_arn_2"}
-		if err := updateRoleExpectLoginFail(roleReq, loginRequest); err != nil {
-			t.Fatal(err)
-		}
-
-		// Place correct IAM role ARN, but incorrect instance ID
-		data["bound_iam_role_arn"] = []string{"wrong_iam_role_arn_1", iamARN, "wrong_iam_role_arn_2"}
-		data["bound_ec2_instance_id"] = "i-1234567"
-		if err := updateRoleExpectLoginFail(roleReq, loginRequest); err != nil {
-			t.Fatal(err)
-		}
-
-		// Place correct instance ID, but substring of the IAM role ARN
-		data["bound_ec2_instance_id"] = []string{parsedIdentityDoc.InstanceID, "i-1234567"}
-		data["bound_iam_role_arn"] = []string{"wrong_iam_role_arn", iamARN[:len(iamARN)-2], "wrong_iam_role_arn_2"}
-		if err := updateRoleExpectLoginFail(roleReq, loginRequest); err != nil {
-			t.Fatal(err)
-		}
-
-		// place a wildcard in the middle of the role ARN
-		// The :31 gets arn:aws:iam::123456789012:role/
-		// This test relies on the role name having at least two characters
-		data["bound_iam_role_arn"] = []string{"wrong_iam_role_arn", fmt.Sprintf("%s*%s", iamARN[:31], iamARN[32:])}
-		if err := updateRoleExpectLoginFail(roleReq, loginRequest); err != nil {
-			t.Fatal(err)
-		}
-
-		// globbed IAM role ARN
-		data["bound_iam_role_arn"] = []string{"wrong_iam_role_arn_1", fmt.Sprintf("%s*", iamARN[:len(iamARN)-2]), "wrong_iam_role_arn_2"}
 		resp, err := b.HandleRequest(context.Background(), roleReq)
 		if err != nil || (resp != nil && resp.IsError()) {
 			t.Fatalf("bad: failed to create role: resp:%#v\nerr:%v", resp, err)
 		}
-
-		// Now, the login attempt should succeed
-		resp, err = b.HandleRequest(context.Background(), loginRequest)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp == nil || resp.Auth == nil || resp.IsError() {
-			t.Fatalf("bad: failed to login: resp:%#v\nerr:%v", resp, err)
-		}
-
-		// Attempt to re-login with the identity signature
-		delete(loginInput, "pkcs7")
-		loginInput["identity"] = identityDoc
-		loginInput["signature"] = identityDocSig
 
 		resp, err = b.HandleRequest(context.Background(), loginRequest)
 		if err != nil {
@@ -1340,36 +1109,6 @@ func TestBackendAcc_LoginWithInstanceIdentityDocAndAccessListIdentity(t *testing
 		_, ok = resp.Auth.Metadata["nonce"]
 		if !ok {
 			t.Fatalf("expected nonce to be returned")
-		}
-
-		// Attempt to re-login with the rsa2048 signature as a pkcs7 signature
-		wlRequest.Operation = logical.DeleteOperation
-		resp, err = b.HandleRequest(context.Background(), wlRequest)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp.IsError() {
-			t.Fatalf("failed to delete access list identity")
-		}
-		delete(loginInput, "identity")
-		delete(loginInput, "signature")
-		loginInput["pkcs7"] = rsa2048
-
-		resp, err = b.HandleRequest(context.Background(), loginRequest)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if resp == nil || resp.Auth == nil || resp.IsError() {
-			t.Fatalf("bad: failed to login: resp:%#v\nerr:%v", resp, err)
-		}
-
-		// verify the presence of instance_id in the response object.
-		instanceID = resp.Auth.Metadata["instance_id"]
-		if instanceID == "" {
-			t.Fatalf("instance ID not present in the response object")
-		}
-		if instanceID != parsedIdentityDoc.InstanceID {
-			t.Fatalf("instance ID in response (%q) did not match instance ID from identity document (%q)", instanceID, parsedIdentityDoc.InstanceID)
 		}
 	}
 }
