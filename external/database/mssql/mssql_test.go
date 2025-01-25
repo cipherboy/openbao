@@ -13,7 +13,7 @@ import (
 	"testing"
 	"time"
 
-	mssqlhelper "github.com/openbao/openbao/helper/testhelpers/mssql"
+	mssqlhelper "github.com/openbao/openbao/external/v2/helper/testhelpers/mssql"
 	"github.com/openbao/openbao/sdk/v2/database/dbplugin/v5"
 	dbtesting "github.com/openbao/openbao/sdk/v2/database/dbplugin/v5/testing"
 	"github.com/openbao/openbao/sdk/v2/helper/dbtxn"

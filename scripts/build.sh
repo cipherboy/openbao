@@ -72,6 +72,30 @@ if [ "$1" == "plugin" ]; then
                     github.com/openbao/openbao/$dir
             done
         done
+
+        (
+            cd external
+            for plugin in $etype/*; do
+
+                plugin_name="$(basename "$plugin")"
+                if [ ! -e "$plugin/cmd" ]; then
+                    continue
+                fi
+
+                echo "==> Building external/$plugin..."
+                for main in $plugin/cmd/*/main.go; do
+                    dir="$(dirname "$main")"
+                    dirname="$(basename "$dir")"
+                    ${GO_CMD} build \
+                        -gcflags "${GCFLAGS}" \
+                        -ldflags "${LD_FLAGS} -X github.com/openbao/openbao/version.GitCommit='${GIT_COMMIT}${GIT_DIRTY}' -X github.com/openbao/openbao/version.BuildDate=${BUILD_DATE}" \
+                        -o "../bin/$etype-$plugin_name-$dirname" \
+                        -tags "${BUILD_TAGS}" \
+                        github.com/openbao/openbao/external/v2/$dir
+
+                done
+            done
+        )
     done
 fi
 

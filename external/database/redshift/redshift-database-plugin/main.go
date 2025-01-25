@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/openbao/openbao/plugins/database/redshift"
+	"github.com/openbao/openbao/external/v2/database/redshift"
 	"github.com/openbao/openbao/sdk/v2/database/dbplugin/v5"
 )
 

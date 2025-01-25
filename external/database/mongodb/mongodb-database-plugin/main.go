@@ -7,7 +7,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/openbao/openbao/plugins/database/hana"
+	"github.com/openbao/openbao/external/v2/database/mongodb"
 	"github.com/openbao/openbao/sdk/v2/database/dbplugin/v5"
 )
 
@@ -19,9 +19,9 @@ func main() {
 	}
 }
 
-// Run instantiates a HANA object, and runs the RPC server for the plugin
+// Run instantiates a MongoDB object, and runs the RPC server for the plugin
 func Run() error {
-	dbplugin.ServeMultiplex(hana.New)
+	dbplugin.ServeMultiplex(mongodb.New)
 
 	return nil
 }

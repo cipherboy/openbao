@@ -17,8 +17,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
+	"github.com/openbao/openbao/external/v2/helper/testhelpers/mongodb"
 	"github.com/openbao/openbao/helper/testhelpers/certhelpers"
-	"github.com/openbao/openbao/helper/testhelpers/mongodb"
 	dbplugin "github.com/openbao/openbao/sdk/v2/database/dbplugin/v5"
 	dbtesting "github.com/openbao/openbao/sdk/v2/database/dbplugin/v5/testing"
 	"github.com/stretchr/testify/require"
