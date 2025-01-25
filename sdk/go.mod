@@ -20,7 +20,7 @@ require (
 	github.com/evanphx/json-patch/v5 v5.6.0
 	github.com/fatih/structs v1.1.0
 	github.com/go-ldap/ldap/v3 v3.4.9
-	github.com/go-test/deep v1.1.0
+	github.com/go-test/deep v1.1.1
 	github.com/golang/protobuf v1.5.4
 	github.com/golang/snappy v0.0.4
 	github.com/hashicorp/errwrap v1.1.0
@@ -32,8 +32,8 @@ require (
 	github.com/hashicorp/go-retryablehttp v0.7.7
 	github.com/hashicorp/go-secure-stdlib/base62 v0.1.2
 	github.com/hashicorp/go-secure-stdlib/mlock v0.1.3
-	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.7
-	github.com/hashicorp/go-secure-stdlib/password v0.1.1
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.9
+	github.com/hashicorp/go-secure-stdlib/password v0.1.3
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2
 	github.com/hashicorp/go-secure-stdlib/tlsutil v0.1.2
 	github.com/hashicorp/go-sockaddr v1.0.6

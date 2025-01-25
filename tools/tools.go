@@ -40,4 +40,6 @@ import (
 	_ "gotest.tools/gotestsum"
 
 	_ "honnef.co/go/tools/cmd/staticcheck"
+
+	_ "github.com/openbao/openbao/external/v2/tools"
 )

@@ -5,7 +5,7 @@ THIS_FILE := $(lastword $(MAKEFILE_LIST))
 GO_CMD?=go
 DOCKER_CMD?=docker
 
-TEST?=$$($(GO_CMD) list ./... github.com/openbao/openbao/api/v2/... github.com/openbao/openbao/sdk/v2/... | grep -v /vendor/ | grep -v /integ)
+TEST?=$$($(GO_CMD) list ./... github.com/openbao/openbao/api/v2/... github.com/openbao/openbao/sdk/v2/... github.com/openbao/openbao/external/v2/... | grep -v /vendor/ | grep -v /integ)
 TEST_TIMEOUT?=45m
 EXTENDED_TEST_TIMEOUT=60m
 INTEG_TEST_TIMEOUT=120m
@@ -145,6 +145,7 @@ vet-codechecker: bootstrap tools/codechecker/.bin/codechecker prep
 	@$(GO_CMD) vet -vettool=./tools/codechecker/.bin/codechecker -tags=$(BUILD_TAGS) ./... 2>&1 | go run github.com/golangci/revgrep/cmd/revgrep@latest
 	@$(GO_CMD) vet -vettool=./tools/codechecker/.bin/codechecker -tags=$(BUILD_TAGS) github.com/openbao/openbao/api/v2/... 2>&1 | go run github.com/golangci/revgrep/cmd/revgrep@latest
 	@$(GO_CMD) vet -vettool=./tools/codechecker/.bin/codechecker -tags=$(BUILD_TAGS) github.com/openbao/openbao/sdk/v2/... 2>&1 | go run github.com/golangci/revgrep/cmd/revgrep@latest
+	@$(GO_CMD) vet -vettool=./tools/codechecker/.bin/codechecker -tags=$(BUILD_TAGS) github.com/openbao/openbao/external/v2/... 2>&1 | go run github.com/golangci/revgrep/cmd/revgrep@latest
 
 # vet-codechecker runs our custom linters on the test functions. All output gets
 # piped to revgrep which will only return an error if new piece of code that is
@@ -153,6 +154,7 @@ ci-vet-codechecker: ci-bootstrap tools/codechecker/.bin/codechecker prep
 	@$(GO_CMD) vet -vettool=./tools/codechecker/.bin/codechecker -tags=$(BUILD_TAGS) ./... 2>&1 | go run github.com/golangci/revgrep/cmd/revgrep@latest origin/main
 	@$(GO_CMD) vet -vettool=./tools/codechecker/.bin/codechecker -tags=$(BUILD_TAGS) github.com/openbao/openbao/api/v2/... 2>&1 | go run github.com/golangci/revgrep/cmd/revgrep@latest origin/main
 	@$(GO_CMD) vet -vettool=./tools/codechecker/.bin/codechecker -tags=$(BUILD_TAGS) github.com/openbao/openbao/sdk/v2/... 2>&1 | go run github.com/golangci/revgrep/cmd/revgrep@latest origin/main
+	@$(GO_CMD) vet -vettool=./tools/codechecker/.bin/codechecker -tags=$(BUILD_TAGS) github.com/openbao/openbao/external/v2/... 2>&1 | go run github.com/golangci/revgrep/cmd/revgrep@latest origin/main
 
 # lint runs vet plus a number of other checkers, it is more comprehensive, but louder
 lint:
@@ -174,6 +176,13 @@ lint:
 			echo "Lint found suspicious constructs. Please check the reported constructs"; \
 			echo "and fix them if necessary before submitting the code for reviewal."; \
 		fi
+	@$(GO_CMD) list -f '{{.Dir}}' github.com/openbao/openbao/external/v2/... | grep -v /vendor/ \
+		| xargs golangci-lint run; if [ $$? -eq 1 ]; then \
+			echo ""; \
+			echo "Lint found suspicious constructs. Please check the reported constructs"; \
+			echo "and fix them if necessary before submitting the code for reviewal."; \
+		fi
+
 
 # for ci jobs, runs lint against the changed packages in the commit
 ci-lint:
@@ -191,6 +200,7 @@ prep:
 	@GOARCH= GOOS= $(GO_CMD) generate $$($(GO_CMD) list ./... | grep -v /vendor/)
 	@GOARCH= GOOS= $(GO_CMD) generate $$($(GO_CMD) list github.com/openbao/openbao/api/v2/... | grep -v /vendor/)
 	@GOARCH= GOOS= $(GO_CMD) generate $$($(GO_CMD) list github.com/openbao/openbao/sdk/v2/... | grep -v /vendor/)
+	@GOARCH= GOOS= $(GO_CMD) generate $$($(GO_CMD) list github.com/openbao/openbao/external/v2/... | grep -v /vendor/)
 	@if [ -d .git/hooks ]; then cp .hooks/* .git/hooks/; fi
 
 # bootstrap the build by downloading additional tools that may be used by devs
@@ -325,6 +335,7 @@ vulncheck:
 	$(GO_CMD) run golang.org/x/vuln/cmd/govulncheck@latest -show verbose ./...
 	$(GO_CMD) run golang.org/x/vuln/cmd/govulncheck@latest -show verbose github.com/openbao/openbao/api/v2/...
 	$(GO_CMD) run golang.org/x/vuln/cmd/govulncheck@latest -show verbose github.com/openbao/openbao/sdk/v2/...
+	$(GO_CMD) run golang.org/x/vuln/cmd/govulncheck@latest -show verbose github.com/openbao/openbao/external/v2/...
 
 .PHONY: tidy-all
 tidy-all:
@@ -357,8 +368,8 @@ release-changelog: $(wildcard changelog/*.txt)
 	changelog-build -changelog-template changelog/changelog.tmpl -entries-dir changelog -git-dir . -note-template changelog/note.tmpl -last-release $(LAST_RELEASE) -this-release $(THIS_RELEASE)
 
 .PHONY: dev-gorelease
-dev-gorelease: export GORELEASER_PREVIOUS_TAG := $(shell git describe --tags --exclude "api/*" --exclude "sdk/*" --abbrev=0)
-dev-gorelease: export GORELEASER_CURRENT_TAG := $(shell git describe --tags --exclude "api/*" --exclude "sdk/*" )
+dev-gorelease: export GORELEASER_PREVIOUS_TAG := $(shell git describe --tags --exclude "api/*" --exclude "sdk/*" --exclude "external/*" --abbrev=0)
+dev-gorelease: export GORELEASER_CURRENT_TAG := $(shell git describe --tags --exclude "api/*" --exclude "sdk/*" --exclude "external/*" )
 dev-gorelease: export GPG_KEY_FILE := /dev/null
 dev-gorelease:
 	@echo GORELEASER_CURRENT_TAG: $(GORELEASER_CURRENT_TAG)

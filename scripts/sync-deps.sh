@@ -27,6 +27,10 @@ grep '^	' go.mod | while read line; do
 	if grep -q "^	$pkg" sdk/go.mod && grep "$pkg" sdk/go.mod | grep -qv "$pkg $version"; then
 	  ( cd sdk && go get "$pkg"@"$version" )
 	fi
+
+	if grep -q "^	$pkg" external/go.mod && grep "$pkg" external/go.mod | grep -qv "$pkg $version"; then
+	  ( cd external && go get "$pkg"@"$version" )
+	fi
 done
 
 make tidy-all

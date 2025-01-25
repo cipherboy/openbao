@@ -10,13 +10,13 @@ go 1.19
 require (
 	github.com/cenkalti/backoff/v4 v4.3.0
 	github.com/go-jose/go-jose/v3 v3.0.3
-	github.com/go-test/deep v1.1.0
+	github.com/go-test/deep v1.1.1
 	github.com/hashicorp/errwrap v1.1.0
 	github.com/hashicorp/go-cleanhttp v0.5.2
 	github.com/hashicorp/go-hclog v1.6.3
 	github.com/hashicorp/go-multierror v1.1.1
 	github.com/hashicorp/go-retryablehttp v0.7.7
-	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.7
+	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.9
 	github.com/hashicorp/go-secure-stdlib/strutil v0.1.2
 	github.com/hashicorp/hcl v1.0.1-vault-5
 	github.com/mitchellh/mapstructure v1.5.0
