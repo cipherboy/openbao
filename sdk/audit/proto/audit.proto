@@ -1,0 +1,32 @@
+// Copyright (c) 2025 OpenBao a Series of LF Projects, LLC
+// SPDX-License-Identifier: MPL-2.0
+
+syntax = "proto3";
+package audit;
+
+option go_package = "github.com/openbao/openbao/sdk/v2/audit/proto";
+
+message LogInput {}
+
+message LogTestMessageRequest {
+    LogInput Message = 1;
+}
+
+message GetHashRequest {
+    string Data = 1;
+}
+
+message GetHashResponse {
+    string Hash = 1;
+}
+
+message Empty {}
+
+service Backend {
+    rpc LogRequest(LogInput) returns (Empty);
+    rpc LogResponse(LogInput) returns (Empty);
+    rpc LogTestMessage(LogTestMessageRequest) returns (Empty);
+    rpc GetHash(GetHashRequest) returns (GetHashResponse);
+    rpc Reload(Empty) returns (Empty);
+    rpc Invalidate(Empty) returns (Empty);
+}
