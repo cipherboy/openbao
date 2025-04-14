@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/armon/go-metrics"
@@ -71,7 +72,9 @@ type PostgreSQLBackend struct {
 
 	upsert_function string
 
-	haEnabled     bool
+	haEnabled  bool
+	haNonVoter atomic.Bool
+
 	logger        log.Logger
 	permitPool    *physical.PermitPool
 	txnPermitPool *physical.PermitPool
@@ -288,6 +291,18 @@ func NewPostgreSQLBackend(conf map[string]string, logger log.Logger) (physical.B
 		}
 	}
 
+	// Determine if we should participate in leadership elections. This can
+	// be changed at runtime but is not persisted.
+	raw_non_voter, ok := conf["ha_permanent_standby"]
+	if !ok {
+		raw_non_voter = "false"
+	}
+	nonVoter, err := parseutil.ParseBool(raw_non_voter)
+	if err != nil {
+		return nil, fmt.Errorf("failed to parse value for `ha_permanent_standby`: %w", err)
+	}
+	m.haNonVoter.Store(nonVoter)
+
 	return m, nil
 }
 
@@ -449,6 +464,10 @@ func (m *PostgreSQLBackend) ListPage(ctx context.Context, prefix string, after s
 
 // LockWith is used for mutual exclusion based on the given key.
 func (p *PostgreSQLBackend) LockWith(key, value string) (physical.Lock, error) {
+	if !p.haNonVoter.Load() {
+		return nil, nil
+	}
+
 	identity, err := uuid.GenerateUUID()
 	if err != nil {
 		return nil, err
@@ -466,6 +485,15 @@ func (p *PostgreSQLBackend) LockWith(key, value string) (physical.Lock, error) {
 
 func (p *PostgreSQLBackend) HAEnabled() bool {
 	return p.haEnabled
+}
+
+func (p *PostgreSQLBackend) HAIsVoter() (bool, error) {
+	return !p.haNonVoter.Load(), nil
+}
+
+func (p *PostgreSQLBackend) HASetVoter(voter bool) error {
+	p.haNonVoter.Store(voter)
+	return nil
 }
 
 // Lock tries to acquire the lock by repeatedly trying to create a record in the
