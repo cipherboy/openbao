@@ -28,6 +28,7 @@ import (
 	"github.com/openbao/openbao/physical/raft"
 	"github.com/openbao/openbao/sdk/v2/helper/jsonutil"
 	"github.com/openbao/openbao/sdk/v2/logical"
+	"github.com/openbao/openbao/sdk/v2/physical"
 	"github.com/openbao/openbao/vault/seal"
 	"golang.org/x/net/http2"
 )
@@ -1288,6 +1289,16 @@ func (c *Core) RaftBootstrap(ctx context.Context, onInit bool) error {
 
 func (c *Core) isRaftUnseal() bool {
 	return c.raftInfo.Load().(*raftInformation) != nil
+}
+
+// getPostresBackend returns the PostgreSQLBackend from the physical backend,
+// or nil if not of type PostgreSQLBackend.
+func (c *Core) getHABackend() physical.HABackend {
+	if haStorage, ok := c.underlyingPhysical.(physical.HABackend); ok {
+		return haStorage
+	}
+
+	return nil
 }
 
 type answerRespData struct {
