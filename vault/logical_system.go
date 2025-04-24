@@ -167,6 +167,10 @@ func NewSystemBackend(core *Core, logger log.Logger) *SystemBackend {
 		b.Backend.Paths = append(b.Backend.Paths, b.raftStoragePaths()...)
 	}
 
+	if backend := core.getHABackend(); backend != nil {
+		b.Backend.Paths = append(b.Backend.Paths, b.haStoragePaths()...)
+	}
+
 	return b
 }
 
