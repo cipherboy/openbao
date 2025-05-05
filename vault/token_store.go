@@ -728,12 +728,12 @@ func (c *Core) LookupToken(ctx context.Context, token string) (*logical.TokenEnt
 }
 
 // CreateToken creates the given token in the core's token store.
-func (c *Core) CreateToken(ctx context.Context, entry *logical.TokenEntry) error {
+func (c *Core) CreateToken(ctx context.Context, entry *logical.TokenEntry, persistToken bool) error {
 	if c.tokenStore == nil {
 		return errors.New("unable to create token with nil token store")
 	}
 
-	return c.tokenStore.create(ctx, entry)
+	return c.tokenStore.create(ctx, entry, persistToken)
 }
 
 // TokenStore is used to manage client tokens. Tokens are used for
@@ -975,7 +975,7 @@ func (ts *TokenStore) rootToken(ctx context.Context) (*logical.TokenEntry, error
 		NamespaceID:  namespace.RootNamespaceID,
 		Type:         logical.TokenTypeService,
 	}
-	if err := ts.create(ctx, te); err != nil {
+	if err := ts.create(ctx, te, true /* persist */); err != nil {
 		return nil, err
 	}
 	return te, nil
@@ -1024,7 +1024,7 @@ func (ts *TokenStore) tokenStoreAccessorList(ctx context.Context, req *logical.R
 
 // createAccessor is used to create an identifier for the token ID.
 // A storage index, mapping the accessor to the token ID is also created.
-func (ts *TokenStore) createAccessor(ctx context.Context, entry *logical.TokenEntry) error {
+func (ts *TokenStore) createAccessor(ctx context.Context, entry *logical.TokenEntry, persistEntry bool) error {
 	defer metrics.MeasureSince([]string{"token", "createAccessor"}, time.Now())
 
 	var err error
@@ -1064,16 +1064,19 @@ func (ts *TokenStore) createAccessor(ctx context.Context, entry *logical.TokenEn
 		return fmt.Errorf("failed to marshal accessor index entry: %w", err)
 	}
 
-	le := &logical.StorageEntry{Key: saltID, Value: aEntryBytes}
-	if err := ts.accessorView(tokenNS).Put(ctx, le); err != nil {
-		return fmt.Errorf("failed to persist accessor index entry: %w", err)
+	if persistEntry {
+		le := &logical.StorageEntry{Key: saltID, Value: aEntryBytes}
+		if err := ts.accessorView(tokenNS).Put(ctx, le); err != nil {
+			return fmt.Errorf("failed to persist accessor index entry: %w", err)
+		}
 	}
+
 	return nil
 }
 
 // Create is used to create a new token entry. The entry is assigned
 // a newly generated ID if not provided.
-func (ts *TokenStore) create(ctx context.Context, entry *logical.TokenEntry) error {
+func (ts *TokenStore) create(ctx context.Context, entry *logical.TokenEntry, persistToken bool) error {
 	defer metrics.MeasureSince([]string{"token", "create"}, time.Now())
 
 	tokenNS, err := NamespaceByID(ctx, entry.NamespaceID, ts.core)
@@ -1162,15 +1165,18 @@ func (ts *TokenStore) create(ctx context.Context, entry *logical.TokenEntry) err
 			}
 		}
 
-		err = ts.createAccessor(ctx, entry)
+		err = ts.createAccessor(ctx, entry, persistToken)
 		if err != nil {
 			return err
 		}
 
-		err = ts.storeCommon(ctx, entry, true)
-		if err != nil {
-			return err
+		if persistToken {
+			err = ts.storeCommon(ctx, entry, true)
+			if err != nil {
+				return err
+			}
 		}
+
 		entry.ExternalID = entry.ID
 		if !userSelectedID && !ts.core.DisableSSCTokens() {
 			entry.ExternalID = ts.GenerateSSCTokenID(entry.ID, entry)
@@ -3146,7 +3152,7 @@ func (ts *TokenStore) handleCreateCommon(ctx context.Context, req *logical.Reque
 		resp.AddWarning("Supplying a custom ID for the token uses the weaker SHA1 hashing instead of the more secure SHA2-256 HMAC for token obfuscation. SHA1 hashed tokens on the wire leads to less secure lookups.")
 	}
 
-	if err := ts.create(ctx, &te); err != nil {
+	if err := ts.create(ctx, &te, true); err != nil {
 		return logical.ErrorResponse(err.Error()), logical.ErrInvalidRequest
 	}
 

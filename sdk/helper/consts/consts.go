@@ -43,4 +43,23 @@ const (
 	PerformanceReplicationPathTarget = "performance"
 
 	DRReplicationPathTarget = "dr"
+
+	// Path to perform inline authentication against. Any authentication
+	// performed must be single-request.
+	InlineAuthPathHeaderName = "X-Vault-Inline-Auth-Path"
+
+	// Request operation to perform inline authentication with. Defaults to
+	// update.
+	InlineAuthOperationHeaderName = "X-Vault-Inline-Auth-Operation"
+
+	// Prefix of user-specified parameters sent to the endpoint specified
+	// in InlineAuthPathHeaderName. Each parameter is a raw base64 url-safe
+	// (without padding) encoded JSON object containing:
+	//
+	// { "key": <name>, "value": <value> }
+	//
+	// so that typing of the value and case sensitivity of the key can be
+	// preserved. The remainder of the header value (after the trailing
+	// dash) is ignored. Any repeated header keys result in request failure.
+	InlineAuthParameterHeaderPrefix = "X-Vault-Inline-Auth-Parameter-"
 )
