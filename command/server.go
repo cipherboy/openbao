@@ -8,6 +8,7 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net"
@@ -1363,6 +1364,15 @@ func (c *ServerCommand) Run(args []string) int {
 		return 1
 	}
 
+	// Else if we're in production mode, initialize the core as well.
+	c.UI.Error("Trying self-init...")
+	err = c.Initialize(core, config)
+	if err != nil {
+		c.UI.Error(err.Error())
+		return 1
+	}
+	c.UI.Error("Self-init done...")
+
 	// Initialize the HTTP servers
 	err = startHttpServers(c, core, config, lns)
 	if err != nil {
@@ -1672,6 +1682,136 @@ func (c *ServerCommand) notifySystemd(status string) {
 			c.logger.Debug("would have sent systemd notification (systemd not present)", "notification", status)
 		}
 	}
+}
+
+func (c *ServerCommand) Initialize(core *vault.Core, config *server.Config) error {
+	if len(config.Initialization) == 0 {
+		c.UI.Error("skipping initialization")
+		return nil
+	}
+
+	c.UI.Error("beginning initialization")
+
+	var history server.InitializationContext
+	ctx := namespace.ContextWithNamespace(context.Background(), namespace.RootNamespace)
+
+	var recoveryConfig *vault.SealConfig
+	barrierConfig := &vault.SealConfig{
+		SecretShares:    1,
+		SecretThreshold: 1,
+	}
+
+	if core.SealAccess().RecoveryKeySupported() {
+		recoveryConfig = &vault.SealConfig{
+			SecretShares:    1,
+			SecretThreshold: 1,
+		}
+	}
+
+	barrierConfig.StoredShares = 1
+
+	// Initialize it with a basic single key
+	init, err := core.Initialize(ctx, &vault.InitParams{
+		BarrierConfig:  barrierConfig,
+		RecoveryConfig: recoveryConfig,
+	})
+	if err != nil {
+		return fmt.Errorf("self-initialization failed: %w", err)
+	}
+
+	c.UI.Error("beginning unseal")
+	if ok, err := core.Unseal(init.SecretShares[0]); err != nil || !ok {
+		return fmt.Errorf("unesal after self-initialization failed: err=%w ok=%v", err, ok)
+	}
+
+	c.UI.Error("waiting for leadership")
+
+	isLeader, _, _, err := core.Leader()
+	if err != nil && err != vault.ErrHANotEnabled {
+		return fmt.Errorf("failed to check active status: %w", err)
+	}
+	if err == nil {
+		// Raft is slower than dev mode.
+		leaderCount := 35
+		for !isLeader {
+			if leaderCount == 0 {
+				buf := make([]byte, 1<<16)
+				runtime.Stack(buf, true)
+				return fmt.Errorf("failed to get active status after five seconds; call stack is\n%s", buf)
+			}
+			time.Sleep(1 * time.Second)
+			isLeader, _, _, err = core.Leader()
+			if err != nil {
+				return fmt.Errorf("failed to check active status: %w", err)
+			}
+			leaderCount--
+		}
+	}
+
+	c.UI.Error("beginning post-unseal configuration")
+	for initIndex, initBlock := range config.Initialization {
+		initBlockName := initBlock.Type
+
+		c.UI.Error("initializing: " + initBlockName)
+
+		for reqIndex, reqBlock := range initBlock.Requests {
+			reqBlockName := reqBlock.Type
+
+			c.UI.Error("\trequest: " + reqBlockName + fmt.Sprintf(" %#v", reqBlock.DataRaw))
+
+			req := &logical.Request{
+				ID:        fmt.Sprintf("initialize[%d].%s.request[%d].%s", initIndex, initBlockName, reqIndex, reqBlockName),
+				Operation: logical.Operation(reqBlock.Operation),
+				Path:      reqBlock.Path,
+			}
+
+			var err error
+
+			req.ClientToken, err = reqBlock.GetToken(init.RootToken, history)
+			if err != nil {
+				return fmt.Errorf("initialize.%d[%s].request.%d[%s]: error getting token: %w", initIndex, initBlockName, reqIndex, reqBlockName, err)
+			}
+
+			req.Data, err = reqBlock.GetData(history)
+			if err != nil {
+				return fmt.Errorf("initialize.%d[%s].request.%d[%s]: error getting data: %w", initIndex, initBlockName, reqIndex, reqBlockName, err)
+			}
+
+			reqMarshaled, err := json.Marshal(req)
+			if err != nil {
+				return fmt.Errorf("initialize.%d[%s].request.%d[%s]: failed to marshal request: %w", initIndex, initBlockName, reqIndex, reqBlockName, err)
+			}
+
+			c.UI.Error("\trequest data: " + string(reqMarshaled))
+
+			resp, err := core.HandleRequest(ctx, req)
+			if err != nil {
+				return fmt.Errorf("initialize.%d[%s].request.%d[%s]: failed to make request: %w", initIndex, initBlockName, reqIndex, reqBlockName, err)
+			}
+
+			respMarshaled, err := json.Marshal(resp)
+			if err != nil {
+				return fmt.Errorf("initialize.%d[%s].request.%d[%s]: failed to marshal response: %w", initIndex, initBlockName, reqIndex, reqBlockName, err)
+			}
+
+			c.UI.Error("\tresponse: " + string(respMarshaled))
+
+			var respData map[string]interface{}
+			if err := json.Unmarshal(respMarshaled, &respData); err != nil {
+				return fmt.Errorf("initialize.%d[%s].request.%d[%s]: failed to unmarshal response: %w", initIndex, initBlockName, reqIndex, reqBlockName, err)
+			}
+
+			if err := history.AddRequest(initBlockName, reqBlockName, req.Data); err != nil {
+				return fmt.Errorf("initialize.%d[%s].request.%d[%s]: error saving request %w", initIndex, initBlockName, reqIndex, reqBlockName, err)
+			}
+
+			if err := history.AddResponse(initBlockName, reqBlockName, respData); err != nil {
+				return fmt.Errorf("initialize.%d[%s].request.%d[%s]: error saving request %w", initIndex, initBlockName, reqIndex, reqBlockName, err)
+			}
+		}
+	}
+
+	return nil
 }
 
 func (c *ServerCommand) enableDev(core *vault.Core, coreConfig *vault.CoreConfig) (*vault.InitResult, error) {
