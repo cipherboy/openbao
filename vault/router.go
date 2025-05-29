@@ -59,14 +59,17 @@ func NewRouter() *Router {
 
 // routeEntry is used to represent a mount point in the router
 type routeEntry struct {
-	tainted       bool
-	backend       logical.Backend
-	mountEntry    *MountEntry
-	storageView   logical.Storage
-	storagePrefix string
-	rootPaths     atomic.Value
-	loginPaths    atomic.Value
-	l             sync.RWMutex
+	tainted            bool
+	backend            logical.Backend
+	mountEntry         *MountEntry
+	storageView        logical.Storage
+	storagePrefix      string
+	rootPaths          atomic.Value
+	loginPaths         atomic.Value
+	crossPlugin        bool
+	internalRootPaths  atomic.Value
+	internalLoginPaths atomic.Value
+	l                  sync.RWMutex
 }
 
 type wildcardPath struct {
@@ -181,10 +184,22 @@ func (r *Router) Mount(backend logical.Backend, prefix string, mountEntry *Mount
 
 	// Build the paths
 	paths := new(logical.Paths)
+
+	var crossPlugin bool
+	internalPaths := new(logical.Paths)
 	if backend != nil {
 		specialPaths := backend.SpecialPaths()
 		if specialPaths != nil {
 			paths = specialPaths
+		}
+
+		internalBackend, ok := backend.(logical.CrossPluginBackend)
+		if ok {
+			crossPlugin = true
+			internalSpecialPaths := internalBackend.InternalSpecialPaths()
+			if internalSpecialPaths != nil {
+				internalPaths = internalSpecialPaths
+			}
 		}
 	}
 
@@ -195,6 +210,8 @@ func (r *Router) Mount(backend logical.Backend, prefix string, mountEntry *Mount
 		mountEntry:    mountEntry,
 		storagePrefix: storageView.Prefix(),
 		storageView:   storageView,
+
+		crossPlugin: crossPlugin,
 	}
 	re.rootPaths.Store(pathsToRadix(paths.Root))
 	loginPathsEntry, err := parseUnauthenticatedPaths(paths.Unauthenticated)
@@ -202,6 +219,13 @@ func (r *Router) Mount(backend logical.Backend, prefix string, mountEntry *Mount
 		return err
 	}
 	re.loginPaths.Store(loginPathsEntry)
+
+	re.internalRootPaths.Store(pathsToRadix(internalPaths.Root))
+	internalLoginPathsEntry, err := parseUnauthenticatedPaths(internalPaths.Unauthenticated)
+	if err != nil {
+		return err
+	}
+	re.internalLoginPaths.Store(internalLoginPathsEntry)
 
 	switch {
 	case prefix == "":
@@ -593,17 +617,29 @@ func (r *Router) matchingMountEntryByPath(ctx context.Context, path string, apiP
 
 // Route is used to route a given request
 func (r *Router) Route(ctx context.Context, req *logical.Request) (*logical.Response, error) {
-	resp, _, _, err := r.routeCommon(ctx, req, false)
+	resp, _, _, err := r.routeCommon(ctx, req, false, false /* external */)
 	return resp, err
 }
 
 // RouteExistenceCheck is used to route a given existence check request
 func (r *Router) RouteExistenceCheck(ctx context.Context, req *logical.Request) (*logical.Response, bool, bool, error) {
-	resp, ok, exists, err := r.routeCommon(ctx, req, true)
+	resp, ok, exists, err := r.routeCommon(ctx, req, true, false /* external */)
 	return resp, ok, exists, err
 }
 
-func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenceCheck bool) (*logical.Response, bool, bool, error) {
+// RouteInternal is used to route a given internal, cross-plugin request
+func (r *Router) RouteInternal(ctx context.Context, req *logical.Request) (*logical.Response, error) {
+	resp, _, _, err := r.routeCommon(ctx, req, false, true /* internal */)
+	return resp, err
+}
+
+// RouteInternalExistenceCheck is used to route a given existence check request
+func (r *Router) RouteInternalExistenceCheck(ctx context.Context, req *logical.Request) (*logical.Response, bool, bool, error) {
+	resp, ok, exists, err := r.routeCommon(ctx, req, true, true /* internal */)
+	return resp, ok, exists, err
+}
+
+func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenceCheck bool, internal bool) (*logical.Response, bool, bool, error) {
 	ns, err := namespace.FromContext(ctx)
 	if err != nil {
 		return nil, false, false, err
@@ -645,6 +681,11 @@ func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenc
 	// Filtered mounts will have a nil backend
 	if re.backend == nil {
 		return logical.ErrorResponse(fmt.Sprintf("no handler for route %q. route entry found, but backend is nil.", req.Path)), false, false, logical.ErrUnsupportedPath
+	}
+
+	internalBackend, ok := re.backend.(logical.CrossPluginBackend)
+	if !ok && internal {
+		return nil, false, false, fmt.Errorf("attempted cross-plugin request to %v but doesn't accept cross-plugin requests", re.mountEntry.APIPath())
 	}
 
 	// If the path or namespace is tainted, we reject any operation
@@ -719,7 +760,11 @@ func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenc
 		}
 
 	default:
-		req.ClientToken = re.SaltID(req.ClientToken)
+		// Internal requests with a client token come from the context of
+		// already having managed a token.
+		if !internal {
+			req.ClientToken = re.SaltID(req.ClientToken)
+		}
 	}
 
 	// Cache the pointer to the original connection object
@@ -813,10 +858,18 @@ func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenc
 
 	// Invoke the backend
 	if existenceCheck {
-		ok, exists, err := re.backend.HandleExistenceCheck(ctx, req)
+		checkFunc := re.backend.HandleExistenceCheck
+		if internal {
+			checkFunc = internalBackend.HandleInternalExistenceCheck
+		}
+		ok, exists, err := checkFunc(ctx, req)
 		return nil, ok, exists, err
 	} else {
-		resp, err := re.backend.HandleRequest(ctx, req)
+		reqFunc := re.backend.HandleRequest
+		if internal {
+			reqFunc = internalBackend.HandleInternalRequest
+		}
+		resp, err := reqFunc(ctx, req)
 		if resp != nil {
 			if len(allowedResponseHeaders) > 0 {
 				resp.Headers = filteredHeaders(resp.Headers, allowedResponseHeaders, nil)
@@ -877,7 +930,7 @@ func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenc
 }
 
 // RootPath checks if the given path requires root privileges
-func (r *Router) RootPath(ctx context.Context, path string) bool {
+func (r *Router) RootPath(ctx context.Context, path string, internal bool) bool {
 	ns, err := namespace.FromContext(ctx)
 	if err != nil {
 		return false
@@ -898,6 +951,15 @@ func (r *Router) RootPath(ctx context.Context, path string) bool {
 
 	// Check the rootPaths of this backend
 	rootPaths := re.rootPaths.Load().(*radix.Tree)
+	if internal {
+		if !re.crossPlugin {
+			r.logger.Debug("plugin did not advertise as cross-plugin capable", "mount", re.mountEntry)
+			return false
+		}
+
+		rootPaths = re.internalRootPaths.Load().(*radix.Tree)
+	}
+
 	match, raw, ok := rootPaths.LongestPrefix(remain)
 	if !ok {
 		return false
@@ -918,7 +980,7 @@ func (r *Router) RootPath(ctx context.Context, path string) bool {
 //  1. prefix
 //  2. exact
 //  3. wildcard
-func (r *Router) LoginPath(ctx context.Context, path string) bool {
+func (r *Router) LoginPath(ctx context.Context, path string, internal bool) bool {
 	ns, err := namespace.FromContext(ctx)
 	if err != nil {
 		return false
@@ -939,6 +1001,15 @@ func (r *Router) LoginPath(ctx context.Context, path string) bool {
 
 	// Check the loginPaths of this backend
 	pe := re.loginPaths.Load().(*loginPathsEntry)
+	if internal {
+		if !re.crossPlugin {
+			r.logger.Debug("plugin did not advertise as cross-plugin capable", "mount", re.mountEntry)
+			return false
+		}
+
+		pe = re.internalLoginPaths.Load().(*loginPathsEntry)
+	}
+
 	match, raw, ok := pe.paths.LongestPrefix(remain)
 	if !ok && len(pe.wildcardPaths) == 0 {
 		// no match found
