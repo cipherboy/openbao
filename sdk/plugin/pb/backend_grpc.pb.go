@@ -21,6 +21,9 @@ type BackendClient interface {
 	// HandleRequest is used to handle a request and generate a response.
 	// The plugins must check the operation type and handle appropriately.
 	HandleRequest(ctx context.Context, in *HandleRequestArgs, opts ...grpc.CallOption) (*HandleRequestReply, error)
+	// HandleInternalRequest is used to handle an internal, cross-plugin
+	// request. See HandleRequest for more information.
+	HandleInternalRequest(ctx context.Context, in *HandleRequestArgs, opts ...grpc.CallOption) (*HandleRequestReply, error)
 	// SpecialPaths is a list of paths that are special in some way.
 	// See PathType for the types of special paths. The key is the type
 	// of the special path, and the value is a list of paths for this type.
@@ -28,6 +31,9 @@ type BackendClient interface {
 	// ends in '*' then it is a prefix-based match. The '*' can only appear
 	// at the end.
 	SpecialPaths(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SpecialPathsReply, error)
+	// InternalSpecialPaths is a list of internal, cross-plugin paths that are
+	// special. See SpecialPaths for more information.
+	InternalSpecialPaths(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SpecialPathsReply, error)
 	// HandleExistenceCheck is used to handle a request and generate a response
 	// indicating whether the given path exists or not; this is used to
 	// understand whether the request must have a Create or Update capability
@@ -35,6 +41,10 @@ type BackendClient interface {
 	// function was found for the backend; the second indicates whether, if an
 	// existence check function was found, the item exists or not.
 	HandleExistenceCheck(ctx context.Context, in *HandleExistenceCheckArgs, opts ...grpc.CallOption) (*HandleExistenceCheckReply, error)
+	// HandleInternalExistenceCheck is used to handle an internal,
+	// cross-plugin existence check. See HandleExistenceCheck for more
+	// information.
+	HandleInternalExistenceCheck(ctx context.Context, in *HandleExistenceCheckArgs, opts ...grpc.CallOption) (*HandleExistenceCheckReply, error)
 	// Cleanup is invoked during an unmount of a backend to allow it to
 	// handle any cleanup like connection closing or releasing of file handles.
 	// Cleanup is called right before Vault closes the plugin process.
@@ -53,6 +63,9 @@ type BackendClient interface {
 	Initialize(ctx context.Context, in *InitializeArgs, opts ...grpc.CallOption) (*InitializeReply, error)
 	// Type returns the BackendType for the particular backend
 	Type(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*TypeReply, error)
+	// IsCrossPlugin returns whether the Backend implements the extended
+	// CrossPluginBackend interface.
+	IsCrossPlugin(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BackendIsCrossPluginReply, error)
 }
 
 type backendClient struct {
@@ -72,6 +85,15 @@ func (c *backendClient) HandleRequest(ctx context.Context, in *HandleRequestArgs
 	return out, nil
 }
 
+func (c *backendClient) HandleInternalRequest(ctx context.Context, in *HandleRequestArgs, opts ...grpc.CallOption) (*HandleRequestReply, error) {
+	out := new(HandleRequestReply)
+	err := c.cc.Invoke(ctx, "/pb.Backend/HandleInternalRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendClient) SpecialPaths(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SpecialPathsReply, error) {
 	out := new(SpecialPathsReply)
 	err := c.cc.Invoke(ctx, "/pb.Backend/SpecialPaths", in, out, opts...)
@@ -81,9 +103,27 @@ func (c *backendClient) SpecialPaths(ctx context.Context, in *Empty, opts ...grp
 	return out, nil
 }
 
+func (c *backendClient) InternalSpecialPaths(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*SpecialPathsReply, error) {
+	out := new(SpecialPathsReply)
+	err := c.cc.Invoke(ctx, "/pb.Backend/InternalSpecialPaths", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *backendClient) HandleExistenceCheck(ctx context.Context, in *HandleExistenceCheckArgs, opts ...grpc.CallOption) (*HandleExistenceCheckReply, error) {
 	out := new(HandleExistenceCheckReply)
 	err := c.cc.Invoke(ctx, "/pb.Backend/HandleExistenceCheck", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *backendClient) HandleInternalExistenceCheck(ctx context.Context, in *HandleExistenceCheckArgs, opts ...grpc.CallOption) (*HandleExistenceCheckReply, error) {
+	out := new(HandleExistenceCheckReply)
+	err := c.cc.Invoke(ctx, "/pb.Backend/HandleInternalExistenceCheck", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -135,6 +175,15 @@ func (c *backendClient) Type(ctx context.Context, in *Empty, opts ...grpc.CallOp
 	return out, nil
 }
 
+func (c *backendClient) IsCrossPlugin(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*BackendIsCrossPluginReply, error) {
+	out := new(BackendIsCrossPluginReply)
+	err := c.cc.Invoke(ctx, "/pb.Backend/IsCrossPlugin", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // BackendServer is the server API for Backend service.
 // All implementations must embed UnimplementedBackendServer
 // for forward compatibility
@@ -142,6 +191,9 @@ type BackendServer interface {
 	// HandleRequest is used to handle a request and generate a response.
 	// The plugins must check the operation type and handle appropriately.
 	HandleRequest(context.Context, *HandleRequestArgs) (*HandleRequestReply, error)
+	// HandleInternalRequest is used to handle an internal, cross-plugin
+	// request. See HandleRequest for more information.
+	HandleInternalRequest(context.Context, *HandleRequestArgs) (*HandleRequestReply, error)
 	// SpecialPaths is a list of paths that are special in some way.
 	// See PathType for the types of special paths. The key is the type
 	// of the special path, and the value is a list of paths for this type.
@@ -149,6 +201,9 @@ type BackendServer interface {
 	// ends in '*' then it is a prefix-based match. The '*' can only appear
 	// at the end.
 	SpecialPaths(context.Context, *Empty) (*SpecialPathsReply, error)
+	// InternalSpecialPaths is a list of internal, cross-plugin paths that are
+	// special. See SpecialPaths for more information.
+	InternalSpecialPaths(context.Context, *Empty) (*SpecialPathsReply, error)
 	// HandleExistenceCheck is used to handle a request and generate a response
 	// indicating whether the given path exists or not; this is used to
 	// understand whether the request must have a Create or Update capability
@@ -156,6 +211,10 @@ type BackendServer interface {
 	// function was found for the backend; the second indicates whether, if an
 	// existence check function was found, the item exists or not.
 	HandleExistenceCheck(context.Context, *HandleExistenceCheckArgs) (*HandleExistenceCheckReply, error)
+	// HandleInternalExistenceCheck is used to handle an internal,
+	// cross-plugin existence check. See HandleExistenceCheck for more
+	// information.
+	HandleInternalExistenceCheck(context.Context, *HandleExistenceCheckArgs) (*HandleExistenceCheckReply, error)
 	// Cleanup is invoked during an unmount of a backend to allow it to
 	// handle any cleanup like connection closing or releasing of file handles.
 	// Cleanup is called right before Vault closes the plugin process.
@@ -174,6 +233,9 @@ type BackendServer interface {
 	Initialize(context.Context, *InitializeArgs) (*InitializeReply, error)
 	// Type returns the BackendType for the particular backend
 	Type(context.Context, *Empty) (*TypeReply, error)
+	// IsCrossPlugin returns whether the Backend implements the extended
+	// CrossPluginBackend interface.
+	IsCrossPlugin(context.Context, *Empty) (*BackendIsCrossPluginReply, error)
 	mustEmbedUnimplementedBackendServer()
 }
 
@@ -184,11 +246,20 @@ type UnimplementedBackendServer struct {
 func (UnimplementedBackendServer) HandleRequest(context.Context, *HandleRequestArgs) (*HandleRequestReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleRequest not implemented")
 }
+func (UnimplementedBackendServer) HandleInternalRequest(context.Context, *HandleRequestArgs) (*HandleRequestReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleInternalRequest not implemented")
+}
 func (UnimplementedBackendServer) SpecialPaths(context.Context, *Empty) (*SpecialPathsReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SpecialPaths not implemented")
 }
+func (UnimplementedBackendServer) InternalSpecialPaths(context.Context, *Empty) (*SpecialPathsReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method InternalSpecialPaths not implemented")
+}
 func (UnimplementedBackendServer) HandleExistenceCheck(context.Context, *HandleExistenceCheckArgs) (*HandleExistenceCheckReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method HandleExistenceCheck not implemented")
+}
+func (UnimplementedBackendServer) HandleInternalExistenceCheck(context.Context, *HandleExistenceCheckArgs) (*HandleExistenceCheckReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method HandleInternalExistenceCheck not implemented")
 }
 func (UnimplementedBackendServer) Cleanup(context.Context, *Empty) (*Empty, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Cleanup not implemented")
@@ -204,6 +275,9 @@ func (UnimplementedBackendServer) Initialize(context.Context, *InitializeArgs) (
 }
 func (UnimplementedBackendServer) Type(context.Context, *Empty) (*TypeReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Type not implemented")
+}
+func (UnimplementedBackendServer) IsCrossPlugin(context.Context, *Empty) (*BackendIsCrossPluginReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method IsCrossPlugin not implemented")
 }
 func (UnimplementedBackendServer) mustEmbedUnimplementedBackendServer() {}
 
@@ -236,6 +310,24 @@ func _Backend_HandleRequest_Handler(srv interface{}, ctx context.Context, dec fu
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_HandleInternalRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandleRequestArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).HandleInternalRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Backend/HandleInternalRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).HandleInternalRequest(ctx, req.(*HandleRequestArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Backend_SpecialPaths_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(Empty)
 	if err := dec(in); err != nil {
@@ -254,6 +346,24 @@ func _Backend_SpecialPaths_Handler(srv interface{}, ctx context.Context, dec fun
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_InternalSpecialPaths_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).InternalSpecialPaths(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Backend/InternalSpecialPaths",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).InternalSpecialPaths(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _Backend_HandleExistenceCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(HandleExistenceCheckArgs)
 	if err := dec(in); err != nil {
@@ -268,6 +378,24 @@ func _Backend_HandleExistenceCheck_Handler(srv interface{}, ctx context.Context,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(BackendServer).HandleExistenceCheck(ctx, req.(*HandleExistenceCheckArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _Backend_HandleInternalExistenceCheck_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandleExistenceCheckArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).HandleInternalExistenceCheck(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Backend/HandleInternalExistenceCheck",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).HandleInternalExistenceCheck(ctx, req.(*HandleExistenceCheckArgs))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -362,6 +490,24 @@ func _Backend_Type_Handler(srv interface{}, ctx context.Context, dec func(interf
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Backend_IsCrossPlugin_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Empty)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(BackendServer).IsCrossPlugin(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.Backend/IsCrossPlugin",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(BackendServer).IsCrossPlugin(ctx, req.(*Empty))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Backend_ServiceDesc is the grpc.ServiceDesc for Backend service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -374,12 +520,24 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Backend_HandleRequest_Handler,
 		},
 		{
+			MethodName: "HandleInternalRequest",
+			Handler:    _Backend_HandleInternalRequest_Handler,
+		},
+		{
 			MethodName: "SpecialPaths",
 			Handler:    _Backend_SpecialPaths_Handler,
 		},
 		{
+			MethodName: "InternalSpecialPaths",
+			Handler:    _Backend_InternalSpecialPaths_Handler,
+		},
+		{
 			MethodName: "HandleExistenceCheck",
 			Handler:    _Backend_HandleExistenceCheck_Handler,
+		},
+		{
+			MethodName: "HandleInternalExistenceCheck",
+			Handler:    _Backend_HandleInternalExistenceCheck_Handler,
 		},
 		{
 			MethodName: "Cleanup",
@@ -400,6 +558,10 @@ var Backend_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Type",
 			Handler:    _Backend_Type_Handler,
+		},
+		{
+			MethodName: "IsCrossPlugin",
+			Handler:    _Backend_IsCrossPlugin_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

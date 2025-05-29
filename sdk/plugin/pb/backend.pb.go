@@ -1924,6 +1924,52 @@ func (x *InvalidateKeyArgs) GetKey() string {
 	return ""
 }
 
+// BackendIsCrossPluginReply indicates whether a given wrapped Backend
+// implements the CrossPluginBackend extended interface definition.
+type BackendIsCrossPluginReply struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	CrossPlugin   bool                   `protobuf:"varint,1,opt,name=cross_plugin,json=crossPlugin,proto3" json:"cross_plugin,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *BackendIsCrossPluginReply) Reset() {
+	*x = BackendIsCrossPluginReply{}
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[23]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *BackendIsCrossPluginReply) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*BackendIsCrossPluginReply) ProtoMessage() {}
+
+func (x *BackendIsCrossPluginReply) ProtoReflect() protoreflect.Message {
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[23]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use BackendIsCrossPluginReply.ProtoReflect.Descriptor instead.
+func (*BackendIsCrossPluginReply) Descriptor() ([]byte, []int) {
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{23}
+}
+
+func (x *BackendIsCrossPluginReply) GetCrossPlugin() bool {
+	if x != nil {
+		return x.CrossPlugin
+	}
+	return false
+}
+
 type StorageEntry struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Key           string                 `protobuf:"bytes,1,opt,name=key,proto3" json:"key,omitempty"`
@@ -1935,7 +1981,7 @@ type StorageEntry struct {
 
 func (x *StorageEntry) Reset() {
 	*x = StorageEntry{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[23]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[24]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1947,7 +1993,7 @@ func (x *StorageEntry) String() string {
 func (*StorageEntry) ProtoMessage() {}
 
 func (x *StorageEntry) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[23]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[24]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1960,7 +2006,7 @@ func (x *StorageEntry) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageEntry.ProtoReflect.Descriptor instead.
 func (*StorageEntry) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{23}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{24}
 }
 
 func (x *StorageEntry) GetKey() string {
@@ -1994,7 +2040,7 @@ type StorageListArgs struct {
 
 func (x *StorageListArgs) Reset() {
 	*x = StorageListArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[24]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[25]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2006,7 +2052,7 @@ func (x *StorageListArgs) String() string {
 func (*StorageListArgs) ProtoMessage() {}
 
 func (x *StorageListArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[24]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[25]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2019,7 +2065,7 @@ func (x *StorageListArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageListArgs.ProtoReflect.Descriptor instead.
 func (*StorageListArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{24}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{25}
 }
 
 func (x *StorageListArgs) GetPrefix() string {
@@ -2048,7 +2094,7 @@ type StorageListPageArgs struct {
 
 func (x *StorageListPageArgs) Reset() {
 	*x = StorageListPageArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[25]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[26]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2060,7 +2106,7 @@ func (x *StorageListPageArgs) String() string {
 func (*StorageListPageArgs) ProtoMessage() {}
 
 func (x *StorageListPageArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[25]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[26]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2073,7 +2119,7 @@ func (x *StorageListPageArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageListPageArgs.ProtoReflect.Descriptor instead.
 func (*StorageListPageArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{25}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{26}
 }
 
 func (x *StorageListPageArgs) GetPrefix() string {
@@ -2114,7 +2160,7 @@ type StorageListReply struct {
 
 func (x *StorageListReply) Reset() {
 	*x = StorageListReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[26]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[27]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2126,7 +2172,7 @@ func (x *StorageListReply) String() string {
 func (*StorageListReply) ProtoMessage() {}
 
 func (x *StorageListReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[26]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[27]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2139,7 +2185,7 @@ func (x *StorageListReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageListReply.ProtoReflect.Descriptor instead.
 func (*StorageListReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{26}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{27}
 }
 
 func (x *StorageListReply) GetKeys() []string {
@@ -2166,7 +2212,7 @@ type StorageGetArgs struct {
 
 func (x *StorageGetArgs) Reset() {
 	*x = StorageGetArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[27]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[28]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2178,7 +2224,7 @@ func (x *StorageGetArgs) String() string {
 func (*StorageGetArgs) ProtoMessage() {}
 
 func (x *StorageGetArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[27]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[28]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2191,7 +2237,7 @@ func (x *StorageGetArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageGetArgs.ProtoReflect.Descriptor instead.
 func (*StorageGetArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{27}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{28}
 }
 
 func (x *StorageGetArgs) GetKey() string {
@@ -2218,7 +2264,7 @@ type StorageGetReply struct {
 
 func (x *StorageGetReply) Reset() {
 	*x = StorageGetReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[28]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[29]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2230,7 +2276,7 @@ func (x *StorageGetReply) String() string {
 func (*StorageGetReply) ProtoMessage() {}
 
 func (x *StorageGetReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[28]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[29]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2243,7 +2289,7 @@ func (x *StorageGetReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageGetReply.ProtoReflect.Descriptor instead.
 func (*StorageGetReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{28}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{29}
 }
 
 func (x *StorageGetReply) GetEntry() *StorageEntry {
@@ -2270,7 +2316,7 @@ type StoragePutArgs struct {
 
 func (x *StoragePutArgs) Reset() {
 	*x = StoragePutArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[29]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[30]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2282,7 +2328,7 @@ func (x *StoragePutArgs) String() string {
 func (*StoragePutArgs) ProtoMessage() {}
 
 func (x *StoragePutArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[29]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[30]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2295,7 +2341,7 @@ func (x *StoragePutArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoragePutArgs.ProtoReflect.Descriptor instead.
 func (*StoragePutArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{29}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{30}
 }
 
 func (x *StoragePutArgs) GetEntry() *StorageEntry {
@@ -2321,7 +2367,7 @@ type StoragePutReply struct {
 
 func (x *StoragePutReply) Reset() {
 	*x = StoragePutReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[30]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[31]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2333,7 +2379,7 @@ func (x *StoragePutReply) String() string {
 func (*StoragePutReply) ProtoMessage() {}
 
 func (x *StoragePutReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[30]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[31]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2346,7 +2392,7 @@ func (x *StoragePutReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StoragePutReply.ProtoReflect.Descriptor instead.
 func (*StoragePutReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{30}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{31}
 }
 
 func (x *StoragePutReply) GetErr() string {
@@ -2366,7 +2412,7 @@ type StorageDeleteArgs struct {
 
 func (x *StorageDeleteArgs) Reset() {
 	*x = StorageDeleteArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[31]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[32]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2378,7 +2424,7 @@ func (x *StorageDeleteArgs) String() string {
 func (*StorageDeleteArgs) ProtoMessage() {}
 
 func (x *StorageDeleteArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[31]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[32]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2391,7 +2437,7 @@ func (x *StorageDeleteArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageDeleteArgs.ProtoReflect.Descriptor instead.
 func (*StorageDeleteArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{31}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{32}
 }
 
 func (x *StorageDeleteArgs) GetKey() string {
@@ -2417,7 +2463,7 @@ type StorageDeleteReply struct {
 
 func (x *StorageDeleteReply) Reset() {
 	*x = StorageDeleteReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[32]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[33]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2429,7 +2475,7 @@ func (x *StorageDeleteReply) String() string {
 func (*StorageDeleteReply) ProtoMessage() {}
 
 func (x *StorageDeleteReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[32]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[33]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2442,7 +2488,7 @@ func (x *StorageDeleteReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageDeleteReply.ProtoReflect.Descriptor instead.
 func (*StorageDeleteReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{32}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{33}
 }
 
 func (x *StorageDeleteReply) GetErr() string {
@@ -2461,7 +2507,7 @@ type StorageIsTransactionalReply struct {
 
 func (x *StorageIsTransactionalReply) Reset() {
 	*x = StorageIsTransactionalReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[33]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[34]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2473,7 +2519,7 @@ func (x *StorageIsTransactionalReply) String() string {
 func (*StorageIsTransactionalReply) ProtoMessage() {}
 
 func (x *StorageIsTransactionalReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[33]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[34]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2486,7 +2532,7 @@ func (x *StorageIsTransactionalReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageIsTransactionalReply.ProtoReflect.Descriptor instead.
 func (*StorageIsTransactionalReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{33}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{34}
 }
 
 func (x *StorageIsTransactionalReply) GetTransactional() bool {
@@ -2506,7 +2552,7 @@ type StorageBeginTxReply struct {
 
 func (x *StorageBeginTxReply) Reset() {
 	*x = StorageBeginTxReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[34]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[35]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2518,7 +2564,7 @@ func (x *StorageBeginTxReply) String() string {
 func (*StorageBeginTxReply) ProtoMessage() {}
 
 func (x *StorageBeginTxReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[34]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[35]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2531,7 +2577,7 @@ func (x *StorageBeginTxReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageBeginTxReply.ProtoReflect.Descriptor instead.
 func (*StorageBeginTxReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{34}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{35}
 }
 
 func (x *StorageBeginTxReply) GetTxn() string {
@@ -2557,7 +2603,7 @@ type StorageCommitTxArgs struct {
 
 func (x *StorageCommitTxArgs) Reset() {
 	*x = StorageCommitTxArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[35]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[36]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2569,7 +2615,7 @@ func (x *StorageCommitTxArgs) String() string {
 func (*StorageCommitTxArgs) ProtoMessage() {}
 
 func (x *StorageCommitTxArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[35]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[36]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2582,7 +2628,7 @@ func (x *StorageCommitTxArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageCommitTxArgs.ProtoReflect.Descriptor instead.
 func (*StorageCommitTxArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{35}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{36}
 }
 
 func (x *StorageCommitTxArgs) GetTxn() string {
@@ -2601,7 +2647,7 @@ type StorageCommitTxReply struct {
 
 func (x *StorageCommitTxReply) Reset() {
 	*x = StorageCommitTxReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[36]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[37]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2613,7 +2659,7 @@ func (x *StorageCommitTxReply) String() string {
 func (*StorageCommitTxReply) ProtoMessage() {}
 
 func (x *StorageCommitTxReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[36]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[37]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2626,7 +2672,7 @@ func (x *StorageCommitTxReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageCommitTxReply.ProtoReflect.Descriptor instead.
 func (*StorageCommitTxReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{36}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{37}
 }
 
 func (x *StorageCommitTxReply) GetErr() string {
@@ -2645,7 +2691,7 @@ type StorageRollbackTxArgs struct {
 
 func (x *StorageRollbackTxArgs) Reset() {
 	*x = StorageRollbackTxArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[37]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[38]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2657,7 +2703,7 @@ func (x *StorageRollbackTxArgs) String() string {
 func (*StorageRollbackTxArgs) ProtoMessage() {}
 
 func (x *StorageRollbackTxArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[37]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[38]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2670,7 +2716,7 @@ func (x *StorageRollbackTxArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageRollbackTxArgs.ProtoReflect.Descriptor instead.
 func (*StorageRollbackTxArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{37}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{38}
 }
 
 func (x *StorageRollbackTxArgs) GetTxn() string {
@@ -2689,7 +2735,7 @@ type StorageRollbackTxReply struct {
 
 func (x *StorageRollbackTxReply) Reset() {
 	*x = StorageRollbackTxReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[38]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[39]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2701,7 +2747,7 @@ func (x *StorageRollbackTxReply) String() string {
 func (*StorageRollbackTxReply) ProtoMessage() {}
 
 func (x *StorageRollbackTxReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[38]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[39]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2714,7 +2760,7 @@ func (x *StorageRollbackTxReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StorageRollbackTxReply.ProtoReflect.Descriptor instead.
 func (*StorageRollbackTxReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{38}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{39}
 }
 
 func (x *StorageRollbackTxReply) GetErr() string {
@@ -2733,7 +2779,7 @@ type TTLReply struct {
 
 func (x *TTLReply) Reset() {
 	*x = TTLReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[39]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[40]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2745,7 +2791,7 @@ func (x *TTLReply) String() string {
 func (*TTLReply) ProtoMessage() {}
 
 func (x *TTLReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[39]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[40]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2758,7 +2804,7 @@ func (x *TTLReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TTLReply.ProtoReflect.Descriptor instead.
 func (*TTLReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{39}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{40}
 }
 
 func (x *TTLReply) GetTTL() int64 {
@@ -2777,7 +2823,7 @@ type TaintedReply struct {
 
 func (x *TaintedReply) Reset() {
 	*x = TaintedReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[40]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[41]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2789,7 +2835,7 @@ func (x *TaintedReply) String() string {
 func (*TaintedReply) ProtoMessage() {}
 
 func (x *TaintedReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[40]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[41]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2802,7 +2848,7 @@ func (x *TaintedReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TaintedReply.ProtoReflect.Descriptor instead.
 func (*TaintedReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{40}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{41}
 }
 
 func (x *TaintedReply) GetTainted() bool {
@@ -2821,7 +2867,7 @@ type CachingDisabledReply struct {
 
 func (x *CachingDisabledReply) Reset() {
 	*x = CachingDisabledReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[41]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[42]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2833,7 +2879,7 @@ func (x *CachingDisabledReply) String() string {
 func (*CachingDisabledReply) ProtoMessage() {}
 
 func (x *CachingDisabledReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[41]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[42]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2846,7 +2892,7 @@ func (x *CachingDisabledReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CachingDisabledReply.ProtoReflect.Descriptor instead.
 func (*CachingDisabledReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{41}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{42}
 }
 
 func (x *CachingDisabledReply) GetDisabled() bool {
@@ -2865,7 +2911,7 @@ type ReplicationStateReply struct {
 
 func (x *ReplicationStateReply) Reset() {
 	*x = ReplicationStateReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[42]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[43]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2877,7 +2923,7 @@ func (x *ReplicationStateReply) String() string {
 func (*ReplicationStateReply) ProtoMessage() {}
 
 func (x *ReplicationStateReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[42]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[43]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2890,7 +2936,7 @@ func (x *ReplicationStateReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ReplicationStateReply.ProtoReflect.Descriptor instead.
 func (*ReplicationStateReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{42}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{43}
 }
 
 func (x *ReplicationStateReply) GetState() int32 {
@@ -2911,7 +2957,7 @@ type ResponseWrapDataArgs struct {
 
 func (x *ResponseWrapDataArgs) Reset() {
 	*x = ResponseWrapDataArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[43]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[44]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2923,7 +2969,7 @@ func (x *ResponseWrapDataArgs) String() string {
 func (*ResponseWrapDataArgs) ProtoMessage() {}
 
 func (x *ResponseWrapDataArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[43]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[44]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2936,7 +2982,7 @@ func (x *ResponseWrapDataArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResponseWrapDataArgs.ProtoReflect.Descriptor instead.
 func (*ResponseWrapDataArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{43}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{44}
 }
 
 func (x *ResponseWrapDataArgs) GetData() string {
@@ -2970,7 +3016,7 @@ type ResponseWrapDataReply struct {
 
 func (x *ResponseWrapDataReply) Reset() {
 	*x = ResponseWrapDataReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[44]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[45]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -2982,7 +3028,7 @@ func (x *ResponseWrapDataReply) String() string {
 func (*ResponseWrapDataReply) ProtoMessage() {}
 
 func (x *ResponseWrapDataReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[44]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[45]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -2995,7 +3041,7 @@ func (x *ResponseWrapDataReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ResponseWrapDataReply.ProtoReflect.Descriptor instead.
 func (*ResponseWrapDataReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{44}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{45}
 }
 
 func (x *ResponseWrapDataReply) GetWrapInfo() *ResponseWrapInfo {
@@ -3021,7 +3067,7 @@ type MlockEnabledReply struct {
 
 func (x *MlockEnabledReply) Reset() {
 	*x = MlockEnabledReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[45]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[46]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3033,7 +3079,7 @@ func (x *MlockEnabledReply) String() string {
 func (*MlockEnabledReply) ProtoMessage() {}
 
 func (x *MlockEnabledReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[45]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[46]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3046,7 +3092,7 @@ func (x *MlockEnabledReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MlockEnabledReply.ProtoReflect.Descriptor instead.
 func (*MlockEnabledReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{45}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{46}
 }
 
 func (x *MlockEnabledReply) GetEnabled() bool {
@@ -3065,7 +3111,7 @@ type LocalMountReply struct {
 
 func (x *LocalMountReply) Reset() {
 	*x = LocalMountReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[46]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[47]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3077,7 +3123,7 @@ func (x *LocalMountReply) String() string {
 func (*LocalMountReply) ProtoMessage() {}
 
 func (x *LocalMountReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[46]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[47]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3090,7 +3136,7 @@ func (x *LocalMountReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use LocalMountReply.ProtoReflect.Descriptor instead.
 func (*LocalMountReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{46}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{47}
 }
 
 func (x *LocalMountReply) GetLocal() bool {
@@ -3109,7 +3155,7 @@ type EntityInfoArgs struct {
 
 func (x *EntityInfoArgs) Reset() {
 	*x = EntityInfoArgs{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[47]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[48]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3121,7 +3167,7 @@ func (x *EntityInfoArgs) String() string {
 func (*EntityInfoArgs) ProtoMessage() {}
 
 func (x *EntityInfoArgs) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[47]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[48]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3134,7 +3180,7 @@ func (x *EntityInfoArgs) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntityInfoArgs.ProtoReflect.Descriptor instead.
 func (*EntityInfoArgs) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{47}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{48}
 }
 
 func (x *EntityInfoArgs) GetEntityID() string {
@@ -3154,7 +3200,7 @@ type EntityInfoReply struct {
 
 func (x *EntityInfoReply) Reset() {
 	*x = EntityInfoReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[48]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[49]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3166,7 +3212,7 @@ func (x *EntityInfoReply) String() string {
 func (*EntityInfoReply) ProtoMessage() {}
 
 func (x *EntityInfoReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[48]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[49]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3179,7 +3225,7 @@ func (x *EntityInfoReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use EntityInfoReply.ProtoReflect.Descriptor instead.
 func (*EntityInfoReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{48}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{49}
 }
 
 func (x *EntityInfoReply) GetEntity() *logical.Entity {
@@ -3206,7 +3252,7 @@ type GroupsForEntityReply struct {
 
 func (x *GroupsForEntityReply) Reset() {
 	*x = GroupsForEntityReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[49]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[50]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3218,7 +3264,7 @@ func (x *GroupsForEntityReply) String() string {
 func (*GroupsForEntityReply) ProtoMessage() {}
 
 func (x *GroupsForEntityReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[49]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[50]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3231,7 +3277,7 @@ func (x *GroupsForEntityReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GroupsForEntityReply.ProtoReflect.Descriptor instead.
 func (*GroupsForEntityReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{49}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{50}
 }
 
 func (x *GroupsForEntityReply) GetGroups() []*logical.Group {
@@ -3258,7 +3304,7 @@ type PluginEnvReply struct {
 
 func (x *PluginEnvReply) Reset() {
 	*x = PluginEnvReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[50]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[51]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3270,7 +3316,7 @@ func (x *PluginEnvReply) String() string {
 func (*PluginEnvReply) ProtoMessage() {}
 
 func (x *PluginEnvReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[50]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[51]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3283,7 +3329,7 @@ func (x *PluginEnvReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PluginEnvReply.ProtoReflect.Descriptor instead.
 func (*PluginEnvReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{50}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{51}
 }
 
 func (x *PluginEnvReply) GetPluginEnvironment() *logical.PluginEnvironment {
@@ -3309,7 +3355,7 @@ type GeneratePasswordFromPolicyRequest struct {
 
 func (x *GeneratePasswordFromPolicyRequest) Reset() {
 	*x = GeneratePasswordFromPolicyRequest{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[51]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[52]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3321,7 +3367,7 @@ func (x *GeneratePasswordFromPolicyRequest) String() string {
 func (*GeneratePasswordFromPolicyRequest) ProtoMessage() {}
 
 func (x *GeneratePasswordFromPolicyRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[51]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[52]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3334,7 +3380,7 @@ func (x *GeneratePasswordFromPolicyRequest) ProtoReflect() protoreflect.Message 
 
 // Deprecated: Use GeneratePasswordFromPolicyRequest.ProtoReflect.Descriptor instead.
 func (*GeneratePasswordFromPolicyRequest) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{51}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{52}
 }
 
 func (x *GeneratePasswordFromPolicyRequest) GetPolicyName() string {
@@ -3353,7 +3399,7 @@ type GeneratePasswordFromPolicyReply struct {
 
 func (x *GeneratePasswordFromPolicyReply) Reset() {
 	*x = GeneratePasswordFromPolicyReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[52]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[53]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3365,7 +3411,7 @@ func (x *GeneratePasswordFromPolicyReply) String() string {
 func (*GeneratePasswordFromPolicyReply) ProtoMessage() {}
 
 func (x *GeneratePasswordFromPolicyReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[52]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[53]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3378,7 +3424,7 @@ func (x *GeneratePasswordFromPolicyReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GeneratePasswordFromPolicyReply.ProtoReflect.Descriptor instead.
 func (*GeneratePasswordFromPolicyReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{52}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{53}
 }
 
 func (x *GeneratePasswordFromPolicyReply) GetPassword() string {
@@ -3399,7 +3445,7 @@ type ClusterInfoReply struct {
 
 func (x *ClusterInfoReply) Reset() {
 	*x = ClusterInfoReply{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[53]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[54]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3411,7 +3457,7 @@ func (x *ClusterInfoReply) String() string {
 func (*ClusterInfoReply) ProtoMessage() {}
 
 func (x *ClusterInfoReply) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[53]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[54]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3424,7 +3470,7 @@ func (x *ClusterInfoReply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ClusterInfoReply.ProtoReflect.Descriptor instead.
 func (*ClusterInfoReply) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{53}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{54}
 }
 
 func (x *ClusterInfoReply) GetClusterName() string {
@@ -3463,7 +3509,7 @@ type Connection struct {
 
 func (x *Connection) Reset() {
 	*x = Connection{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[54]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[55]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3475,7 +3521,7 @@ func (x *Connection) String() string {
 func (*Connection) ProtoMessage() {}
 
 func (x *Connection) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[54]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[55]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3488,7 +3534,7 @@ func (x *Connection) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Connection.ProtoReflect.Descriptor instead.
 func (*Connection) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{54}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{55}
 }
 
 func (x *Connection) GetRemoteAddr() string {
@@ -3532,7 +3578,7 @@ type ConnectionState struct {
 
 func (x *ConnectionState) Reset() {
 	*x = ConnectionState{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[55]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[56]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3544,7 +3590,7 @@ func (x *ConnectionState) String() string {
 func (*ConnectionState) ProtoMessage() {}
 
 func (x *ConnectionState) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[55]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[56]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3557,7 +3603,7 @@ func (x *ConnectionState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ConnectionState.ProtoReflect.Descriptor instead.
 func (*ConnectionState) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{55}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{56}
 }
 
 func (x *ConnectionState) GetVersion() uint32 {
@@ -3653,7 +3699,7 @@ type Certificate struct {
 
 func (x *Certificate) Reset() {
 	*x = Certificate{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[56]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[57]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3665,7 +3711,7 @@ func (x *Certificate) String() string {
 func (*Certificate) ProtoMessage() {}
 
 func (x *Certificate) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[56]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[57]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3678,7 +3724,7 @@ func (x *Certificate) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Certificate.ProtoReflect.Descriptor instead.
 func (*Certificate) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{56}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{57}
 }
 
 func (x *Certificate) GetAsn1Data() []byte {
@@ -3697,7 +3743,7 @@ type CertificateChain struct {
 
 func (x *CertificateChain) Reset() {
 	*x = CertificateChain{}
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[57]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[58]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -3709,7 +3755,7 @@ func (x *CertificateChain) String() string {
 func (*CertificateChain) ProtoMessage() {}
 
 func (x *CertificateChain) ProtoReflect() protoreflect.Message {
-	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[57]
+	mi := &file_sdk_plugin_pb_backend_proto_msgTypes[58]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -3722,7 +3768,7 @@ func (x *CertificateChain) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CertificateChain.ProtoReflect.Descriptor instead.
 func (*CertificateChain) Descriptor() ([]byte, []int) {
-	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{57}
+	return file_sdk_plugin_pb_backend_proto_rawDescGZIP(), []int{58}
 }
 
 func (x *CertificateChain) GetCertificates() []*Certificate {
@@ -4033,7 +4079,11 @@ var file_sdk_plugin_pb_backend_proto_rawDesc = string([]byte{
 	0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x04, 0x74, 0x79, 0x70, 0x65, 0x22, 0x25, 0x0a, 0x11,
 	0x49, 0x6e, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4b, 0x65, 0x79, 0x41, 0x72, 0x67,
 	0x73, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
-	0x6b, 0x65, 0x79, 0x22, 0x53, 0x0a, 0x0c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x45, 0x6e,
+	0x6b, 0x65, 0x79, 0x22, 0x3e, 0x0a, 0x19, 0x42, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x49, 0x73,
+	0x43, 0x72, 0x6f, 0x73, 0x73, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x70, 0x6c, 0x79,
+	0x12, 0x21, 0x0a, 0x0c, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x5f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0b, 0x63, 0x72, 0x6f, 0x73, 0x73, 0x50, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x22, 0x53, 0x0a, 0x0c, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x45, 0x6e,
 	0x74, 0x72, 0x79, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09,
 	0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02,
 	0x20, 0x01, 0x28, 0x0c, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x12, 0x1b, 0x0a, 0x09, 0x73,
@@ -4206,119 +4256,136 @@ var file_sdk_plugin_pb_backend_proto_rawDesc = string([]byte{
 	0x65, 0x43, 0x68, 0x61, 0x69, 0x6e, 0x12, 0x33, 0x0a, 0x0c, 0x63, 0x65, 0x72, 0x74, 0x69, 0x66,
 	0x69, 0x63, 0x61, 0x74, 0x65, 0x73, 0x18, 0x01, 0x20, 0x03, 0x28, 0x0b, 0x32, 0x0f, 0x2e, 0x70,
 	0x62, 0x2e, 0x43, 0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65, 0x52, 0x0c, 0x63,
-	0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65, 0x73, 0x32, 0xa5, 0x03, 0x0a, 0x07,
+	0x65, 0x72, 0x74, 0x69, 0x66, 0x69, 0x63, 0x61, 0x74, 0x65, 0x73, 0x32, 0xbf, 0x05, 0x0a, 0x07,
 	0x42, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x12, 0x3e, 0x0a, 0x0d, 0x48, 0x61, 0x6e, 0x64, 0x6c,
 	0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61,
 	0x6e, 0x64, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x41, 0x72, 0x67, 0x73, 0x1a,
 	0x16, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65,
-	0x73, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x30, 0x0a, 0x0c, 0x53, 0x70, 0x65, 0x63, 0x69,
-	0x61, 0x6c, 0x50, 0x61, 0x74, 0x68, 0x73, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x1a, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x70, 0x65, 0x63, 0x69, 0x61, 0x6c, 0x50,
-	0x61, 0x74, 0x68, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x53, 0x0a, 0x14, 0x48, 0x61, 0x6e,
-	0x64, 0x6c, 0x65, 0x45, 0x78, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x68, 0x65, 0x63,
-	0x6b, 0x12, 0x1c, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x45, 0x78, 0x69,
-	0x73, 0x74, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x72, 0x67, 0x73, 0x1a,
-	0x1d, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x45, 0x78, 0x69, 0x73, 0x74,
-	0x65, 0x6e, 0x63, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x1f,
-	0x0a, 0x07, 0x43, 0x6c, 0x65, 0x61, 0x6e, 0x75, 0x70, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12,
-	0x31, 0x0a, 0x0d, 0x49, 0x6e, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4b, 0x65, 0x79,
-	0x12, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x49, 0x6e, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65,
-	0x4b, 0x65, 0x79, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x12, 0x26, 0x0a, 0x05, 0x53, 0x65, 0x74, 0x75, 0x70, 0x12, 0x0d, 0x2e, 0x70, 0x62,
-	0x2e, 0x53, 0x65, 0x74, 0x75, 0x70, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x0e, 0x2e, 0x70, 0x62, 0x2e,
-	0x53, 0x65, 0x74, 0x75, 0x70, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x35, 0x0a, 0x0a, 0x49, 0x6e,
-	0x69, 0x74, 0x69, 0x61, 0x6c, 0x69, 0x7a, 0x65, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x49, 0x6e,
-	0x69, 0x74, 0x69, 0x61, 0x6c, 0x69, 0x7a, 0x65, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x13, 0x2e, 0x70,
-	0x62, 0x2e, 0x49, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x6c, 0x69, 0x7a, 0x65, 0x52, 0x65, 0x70, 0x6c,
-	0x79, 0x12, 0x20, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x0d, 0x2e, 0x70, 0x62, 0x2e, 0x54, 0x79, 0x70, 0x65, 0x52, 0x65,
-	0x70, 0x6c, 0x79, 0x32, 0xb5, 0x04, 0x0a, 0x07, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x12,
-	0x31, 0x0a, 0x04, 0x4c, 0x69, 0x73, 0x74, 0x12, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f,
-	0x72, 0x61, 0x67, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x14, 0x2e, 0x70,
-	0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x70,
-	0x6c, 0x79, 0x12, 0x39, 0x0a, 0x08, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x61, 0x67, 0x65, 0x12, 0x17,
-	0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x50,
-	0x61, 0x67, 0x65, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x14, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f,
-	0x72, 0x61, 0x67, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2e, 0x0a,
-	0x03, 0x47, 0x65, 0x74, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x47, 0x65, 0x74, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74,
-	0x6f, 0x72, 0x61, 0x67, 0x65, 0x47, 0x65, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2e, 0x0a,
-	0x03, 0x50, 0x75, 0x74, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x50, 0x75, 0x74, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74,
-	0x6f, 0x72, 0x61, 0x67, 0x65, 0x50, 0x75, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x37, 0x0a,
-	0x06, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x12, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f,
-	0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x16,
-	0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x6c, 0x65, 0x74,
-	0x65, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x3d, 0x0a, 0x0f, 0x49, 0x73, 0x54, 0x72, 0x61, 0x6e,
-	0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1f, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x49, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c,
-	0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x35, 0x0a, 0x0f, 0x42, 0x65, 0x67, 0x69, 0x6e, 0x52, 0x65,
-	0x61, 0x64, 0x4f, 0x6e, 0x6c, 0x79, 0x54, 0x78, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d,
-	0x70, 0x74, 0x79, 0x1a, 0x17, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65,
-	0x42, 0x65, 0x67, 0x69, 0x6e, 0x54, 0x78, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2d, 0x0a, 0x07,
-	0x42, 0x65, 0x67, 0x69, 0x6e, 0x54, 0x78, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70,
-	0x74, 0x79, 0x1a, 0x17, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x42,
-	0x65, 0x67, 0x69, 0x6e, 0x54, 0x78, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x3b, 0x0a, 0x06, 0x43,
-	0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x12, 0x17, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61,
-	0x67, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x54, 0x78, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x18,
-	0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x69,
-	0x74, 0x54, 0x78, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x41, 0x0a, 0x08, 0x52, 0x6f, 0x6c, 0x6c,
-	0x62, 0x61, 0x63, 0x6b, 0x12, 0x19, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67,
-	0x65, 0x52, 0x6f, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x54, 0x78, 0x41, 0x72, 0x67, 0x73, 0x1a,
-	0x1a, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x52, 0x6f, 0x6c, 0x6c,
-	0x62, 0x61, 0x63, 0x6b, 0x54, 0x78, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x32, 0xe1, 0x05, 0x0a, 0x0a,
-	0x53, 0x79, 0x73, 0x74, 0x65, 0x6d, 0x56, 0x69, 0x65, 0x77, 0x12, 0x2a, 0x0a, 0x0f, 0x44, 0x65,
-	0x66, 0x61, 0x75, 0x6c, 0x74, 0x4c, 0x65, 0x61, 0x73, 0x65, 0x54, 0x54, 0x4c, 0x12, 0x09, 0x2e,
-	0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x0c, 0x2e, 0x70, 0x62, 0x2e, 0x54, 0x54,
-	0x4c, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x26, 0x0a, 0x0b, 0x4d, 0x61, 0x78, 0x4c, 0x65, 0x61,
-	0x73, 0x65, 0x54, 0x54, 0x4c, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
-	0x1a, 0x0c, 0x2e, 0x70, 0x62, 0x2e, 0x54, 0x54, 0x4c, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x26,
-	0x0a, 0x07, 0x54, 0x61, 0x69, 0x6e, 0x74, 0x65, 0x64, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x10, 0x2e, 0x70, 0x62, 0x2e, 0x54, 0x61, 0x69, 0x6e, 0x74, 0x65,
-	0x64, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x36, 0x0a, 0x0f, 0x43, 0x61, 0x63, 0x68, 0x69, 0x6e,
-	0x67, 0x44, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45,
-	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x18, 0x2e, 0x70, 0x62, 0x2e, 0x43, 0x61, 0x63, 0x68, 0x69, 0x6e,
-	0x67, 0x44, 0x69, 0x73, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x38,
-	0x0a, 0x10, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61,
-	0x74, 0x65, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x19, 0x2e,
-	0x70, 0x62, 0x2e, 0x52, 0x65, 0x70, 0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74,
-	0x61, 0x74, 0x65, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x47, 0x0a, 0x10, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x57, 0x72, 0x61, 0x70, 0x44, 0x61, 0x74, 0x61, 0x12, 0x18, 0x2e, 0x70,
-	0x62, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x57, 0x72, 0x61, 0x70, 0x44, 0x61,
-	0x74, 0x61, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x19, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x73, 0x70,
-	0x6f, 0x6e, 0x73, 0x65, 0x57, 0x72, 0x61, 0x70, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x70, 0x6c,
-	0x79, 0x12, 0x30, 0x0a, 0x0c, 0x4d, 0x6c, 0x6f, 0x63, 0x6b, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65,
-	0x64, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x15, 0x2e, 0x70,
-	0x62, 0x2e, 0x4d, 0x6c, 0x6f, 0x63, 0x6b, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x52, 0x65,
-	0x70, 0x6c, 0x79, 0x12, 0x2c, 0x0a, 0x0a, 0x4c, 0x6f, 0x63, 0x61, 0x6c, 0x4d, 0x6f, 0x75, 0x6e,
-	0x74, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x13, 0x2e, 0x70,
-	0x62, 0x2e, 0x4c, 0x6f, 0x63, 0x61, 0x6c, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x70, 0x6c,
-	0x79, 0x12, 0x35, 0x0a, 0x0a, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x12,
-	0x12, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x41,
-	0x72, 0x67, 0x73, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x49,
-	0x6e, 0x66, 0x6f, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2a, 0x0a, 0x09, 0x50, 0x6c, 0x75, 0x67,
-	0x69, 0x6e, 0x45, 0x6e, 0x76, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79,
-	0x1a, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x45, 0x6e, 0x76, 0x52,
-	0x65, 0x70, 0x6c, 0x79, 0x12, 0x3f, 0x0a, 0x0f, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x46, 0x6f,
-	0x72, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6e, 0x74,
-	0x69, 0x74, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x18, 0x2e, 0x70, 0x62,
-	0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x46, 0x6f, 0x72, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79,
-	0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x68, 0x0a, 0x1a, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74,
-	0x65, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x46, 0x72, 0x6f, 0x6d, 0x50, 0x6f, 0x6c,
-	0x69, 0x63, 0x79, 0x12, 0x25, 0x2e, 0x70, 0x62, 0x2e, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74,
-	0x65, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x46, 0x72, 0x6f, 0x6d, 0x50, 0x6f, 0x6c,
-	0x69, 0x63, 0x79, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x70, 0x62, 0x2e,
-	0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64,
-	0x46, 0x72, 0x6f, 0x6d, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12,
-	0x2e, 0x0a, 0x0b, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x09,
-	0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x14, 0x2e, 0x70, 0x62, 0x2e, 0x43,
-	0x6c, 0x75, 0x73, 0x74, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x42,
-	0x2d, 0x5a, 0x2b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6f, 0x70,
-	0x65, 0x6e, 0x62, 0x61, 0x6f, 0x2f, 0x6f, 0x70, 0x65, 0x6e, 0x62, 0x61, 0x6f, 0x2f, 0x73, 0x64,
-	0x6b, 0x2f, 0x76, 0x32, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x70, 0x62, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x73, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x46, 0x0a, 0x15, 0x48, 0x61, 0x6e, 0x64, 0x6c,
+	0x65, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x16, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e,
+	0x64, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12,
+	0x30, 0x0a, 0x0c, 0x53, 0x70, 0x65, 0x63, 0x69, 0x61, 0x6c, 0x50, 0x61, 0x74, 0x68, 0x73, 0x12,
+	0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x15, 0x2e, 0x70, 0x62, 0x2e,
+	0x53, 0x70, 0x65, 0x63, 0x69, 0x61, 0x6c, 0x50, 0x61, 0x74, 0x68, 0x73, 0x52, 0x65, 0x70, 0x6c,
+	0x79, 0x12, 0x38, 0x0a, 0x14, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x53, 0x70, 0x65,
+	0x63, 0x69, 0x61, 0x6c, 0x50, 0x61, 0x74, 0x68, 0x73, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45,
+	0x6d, 0x70, 0x74, 0x79, 0x1a, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x70, 0x65, 0x63, 0x69, 0x61,
+	0x6c, 0x50, 0x61, 0x74, 0x68, 0x73, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x53, 0x0a, 0x14, 0x48,
+	0x61, 0x6e, 0x64, 0x6c, 0x65, 0x45, 0x78, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x68,
+	0x65, 0x63, 0x6b, 0x12, 0x1c, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x45,
+	0x78, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x72, 0x67,
+	0x73, 0x1a, 0x1d, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x45, 0x78, 0x69,
+	0x73, 0x74, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x70, 0x6c, 0x79,
+	0x12, 0x5b, 0x0a, 0x1c, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e,
+	0x61, 0x6c, 0x45, 0x78, 0x69, 0x73, 0x74, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b,
+	0x12, 0x1c, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x45, 0x78, 0x69, 0x73,
+	0x74, 0x65, 0x6e, 0x63, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x1d,
+	0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x45, 0x78, 0x69, 0x73, 0x74, 0x65,
+	0x6e, 0x63, 0x65, 0x43, 0x68, 0x65, 0x63, 0x6b, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x1f, 0x0a,
+	0x07, 0x43, 0x6c, 0x65, 0x61, 0x6e, 0x75, 0x70, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x1a, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x12, 0x31,
+	0x0a, 0x0d, 0x49, 0x6e, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4b, 0x65, 0x79, 0x12,
+	0x15, 0x2e, 0x70, 0x62, 0x2e, 0x49, 0x6e, 0x76, 0x61, 0x6c, 0x69, 0x64, 0x61, 0x74, 0x65, 0x4b,
+	0x65, 0x79, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74,
+	0x79, 0x12, 0x26, 0x0a, 0x05, 0x53, 0x65, 0x74, 0x75, 0x70, 0x12, 0x0d, 0x2e, 0x70, 0x62, 0x2e,
+	0x53, 0x65, 0x74, 0x75, 0x70, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x0e, 0x2e, 0x70, 0x62, 0x2e, 0x53,
+	0x65, 0x74, 0x75, 0x70, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x35, 0x0a, 0x0a, 0x49, 0x6e, 0x69,
+	0x74, 0x69, 0x61, 0x6c, 0x69, 0x7a, 0x65, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x49, 0x6e, 0x69,
+	0x74, 0x69, 0x61, 0x6c, 0x69, 0x7a, 0x65, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x13, 0x2e, 0x70, 0x62,
+	0x2e, 0x49, 0x6e, 0x69, 0x74, 0x69, 0x61, 0x6c, 0x69, 0x7a, 0x65, 0x52, 0x65, 0x70, 0x6c, 0x79,
+	0x12, 0x20, 0x0a, 0x04, 0x54, 0x79, 0x70, 0x65, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x1a, 0x0d, 0x2e, 0x70, 0x62, 0x2e, 0x54, 0x79, 0x70, 0x65, 0x52, 0x65, 0x70,
+	0x6c, 0x79, 0x12, 0x39, 0x0a, 0x0d, 0x49, 0x73, 0x43, 0x72, 0x6f, 0x73, 0x73, 0x50, 0x6c, 0x75,
+	0x67, 0x69, 0x6e, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1d,
+	0x2e, 0x70, 0x62, 0x2e, 0x42, 0x61, 0x63, 0x6b, 0x65, 0x6e, 0x64, 0x49, 0x73, 0x43, 0x72, 0x6f,
+	0x73, 0x73, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x32, 0xb5, 0x04,
+	0x0a, 0x07, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x12, 0x31, 0x0a, 0x04, 0x4c, 0x69, 0x73,
+	0x74, 0x12, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4c, 0x69,
+	0x73, 0x74, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x14, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72,
+	0x61, 0x67, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x39, 0x0a, 0x08,
+	0x4c, 0x69, 0x73, 0x74, 0x50, 0x61, 0x67, 0x65, 0x12, 0x17, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x4c, 0x69, 0x73, 0x74, 0x50, 0x61, 0x67, 0x65, 0x41, 0x72, 0x67,
+	0x73, 0x1a, 0x14, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x4c, 0x69,
+	0x73, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2e, 0x0a, 0x03, 0x47, 0x65, 0x74, 0x12, 0x12,
+	0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x47, 0x65, 0x74, 0x41, 0x72,
+	0x67, 0x73, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x47,
+	0x65, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2e, 0x0a, 0x03, 0x50, 0x75, 0x74, 0x12, 0x12,
+	0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x50, 0x75, 0x74, 0x41, 0x72,
+	0x67, 0x73, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x50,
+	0x75, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x37, 0x0a, 0x06, 0x44, 0x65, 0x6c, 0x65, 0x74,
+	0x65, 0x12, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65,
+	0x6c, 0x65, 0x74, 0x65, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x16, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x44, 0x65, 0x6c, 0x65, 0x74, 0x65, 0x52, 0x65, 0x70, 0x6c, 0x79,
+	0x12, 0x3d, 0x0a, 0x0f, 0x49, 0x73, 0x54, 0x72, 0x61, 0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f,
+	0x6e, 0x61, 0x6c, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x1f,
+	0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x49, 0x73, 0x54, 0x72, 0x61,
+	0x6e, 0x73, 0x61, 0x63, 0x74, 0x69, 0x6f, 0x6e, 0x61, 0x6c, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12,
+	0x35, 0x0a, 0x0f, 0x42, 0x65, 0x67, 0x69, 0x6e, 0x52, 0x65, 0x61, 0x64, 0x4f, 0x6e, 0x6c, 0x79,
+	0x54, 0x78, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x17, 0x2e,
+	0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x42, 0x65, 0x67, 0x69, 0x6e, 0x54,
+	0x78, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2d, 0x0a, 0x07, 0x42, 0x65, 0x67, 0x69, 0x6e, 0x54,
+	0x78, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x17, 0x2e, 0x70,
+	0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x42, 0x65, 0x67, 0x69, 0x6e, 0x54, 0x78,
+	0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x3b, 0x0a, 0x06, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x12,
+	0x17, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6d, 0x6d,
+	0x69, 0x74, 0x54, 0x78, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x18, 0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74,
+	0x6f, 0x72, 0x61, 0x67, 0x65, 0x43, 0x6f, 0x6d, 0x6d, 0x69, 0x74, 0x54, 0x78, 0x52, 0x65, 0x70,
+	0x6c, 0x79, 0x12, 0x41, 0x0a, 0x08, 0x52, 0x6f, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x12, 0x19,
+	0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x52, 0x6f, 0x6c, 0x6c, 0x62,
+	0x61, 0x63, 0x6b, 0x54, 0x78, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x1a, 0x2e, 0x70, 0x62, 0x2e, 0x53,
+	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x52, 0x6f, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x54, 0x78,
+	0x52, 0x65, 0x70, 0x6c, 0x79, 0x32, 0xe1, 0x05, 0x0a, 0x0a, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d,
+	0x56, 0x69, 0x65, 0x77, 0x12, 0x2a, 0x0a, 0x0f, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x4c,
+	0x65, 0x61, 0x73, 0x65, 0x54, 0x54, 0x4c, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70,
+	0x74, 0x79, 0x1a, 0x0c, 0x2e, 0x70, 0x62, 0x2e, 0x54, 0x54, 0x4c, 0x52, 0x65, 0x70, 0x6c, 0x79,
+	0x12, 0x26, 0x0a, 0x0b, 0x4d, 0x61, 0x78, 0x4c, 0x65, 0x61, 0x73, 0x65, 0x54, 0x54, 0x4c, 0x12,
+	0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x0c, 0x2e, 0x70, 0x62, 0x2e,
+	0x54, 0x54, 0x4c, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x26, 0x0a, 0x07, 0x54, 0x61, 0x69, 0x6e,
+	0x74, 0x65, 0x64, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x10,
+	0x2e, 0x70, 0x62, 0x2e, 0x54, 0x61, 0x69, 0x6e, 0x74, 0x65, 0x64, 0x52, 0x65, 0x70, 0x6c, 0x79,
+	0x12, 0x36, 0x0a, 0x0f, 0x43, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x44, 0x69, 0x73, 0x61, 0x62,
+	0x6c, 0x65, 0x64, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x18,
+	0x2e, 0x70, 0x62, 0x2e, 0x43, 0x61, 0x63, 0x68, 0x69, 0x6e, 0x67, 0x44, 0x69, 0x73, 0x61, 0x62,
+	0x6c, 0x65, 0x64, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x38, 0x0a, 0x10, 0x52, 0x65, 0x70, 0x6c,
+	0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x74, 0x65, 0x12, 0x09, 0x2e, 0x70,
+	0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x19, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x70,
+	0x6c, 0x69, 0x63, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x53, 0x74, 0x61, 0x74, 0x65, 0x52, 0x65, 0x70,
+	0x6c, 0x79, 0x12, 0x47, 0x0a, 0x10, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x57, 0x72,
+	0x61, 0x70, 0x44, 0x61, 0x74, 0x61, 0x12, 0x18, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x73, 0x70,
+	0x6f, 0x6e, 0x73, 0x65, 0x57, 0x72, 0x61, 0x70, 0x44, 0x61, 0x74, 0x61, 0x41, 0x72, 0x67, 0x73,
+	0x1a, 0x19, 0x2e, 0x70, 0x62, 0x2e, 0x52, 0x65, 0x73, 0x70, 0x6f, 0x6e, 0x73, 0x65, 0x57, 0x72,
+	0x61, 0x70, 0x44, 0x61, 0x74, 0x61, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x30, 0x0a, 0x0c, 0x4d,
+	0x6c, 0x6f, 0x63, 0x6b, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x12, 0x09, 0x2e, 0x70, 0x62,
+	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x4d, 0x6c, 0x6f, 0x63,
+	0x6b, 0x45, 0x6e, 0x61, 0x62, 0x6c, 0x65, 0x64, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2c, 0x0a,
+	0x0a, 0x4c, 0x6f, 0x63, 0x61, 0x6c, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x12, 0x09, 0x2e, 0x70, 0x62,
+	0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x13, 0x2e, 0x70, 0x62, 0x2e, 0x4c, 0x6f, 0x63, 0x61,
+	0x6c, 0x4d, 0x6f, 0x75, 0x6e, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x35, 0x0a, 0x0a, 0x45,
+	0x6e, 0x74, 0x69, 0x74, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x45,
+	0x6e, 0x74, 0x69, 0x74, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x13, 0x2e,
+	0x70, 0x62, 0x2e, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x70,
+	0x6c, 0x79, 0x12, 0x2a, 0x0a, 0x09, 0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x45, 0x6e, 0x76, 0x12,
+	0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70, 0x74, 0x79, 0x1a, 0x12, 0x2e, 0x70, 0x62, 0x2e,
+	0x50, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x45, 0x6e, 0x76, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x3f,
+	0x0a, 0x0f, 0x47, 0x72, 0x6f, 0x75, 0x70, 0x73, 0x46, 0x6f, 0x72, 0x45, 0x6e, 0x74, 0x69, 0x74,
+	0x79, 0x12, 0x12, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x49, 0x6e, 0x66,
+	0x6f, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x18, 0x2e, 0x70, 0x62, 0x2e, 0x47, 0x72, 0x6f, 0x75, 0x70,
+	0x73, 0x46, 0x6f, 0x72, 0x45, 0x6e, 0x74, 0x69, 0x74, 0x79, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12,
+	0x68, 0x0a, 0x1a, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x50, 0x61, 0x73, 0x73, 0x77,
+	0x6f, 0x72, 0x64, 0x46, 0x72, 0x6f, 0x6d, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x12, 0x25, 0x2e,
+	0x70, 0x62, 0x2e, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61, 0x74, 0x65, 0x50, 0x61, 0x73, 0x73, 0x77,
+	0x6f, 0x72, 0x64, 0x46, 0x72, 0x6f, 0x6d, 0x50, 0x6f, 0x6c, 0x69, 0x63, 0x79, 0x52, 0x65, 0x71,
+	0x75, 0x65, 0x73, 0x74, 0x1a, 0x23, 0x2e, 0x70, 0x62, 0x2e, 0x47, 0x65, 0x6e, 0x65, 0x72, 0x61,
+	0x74, 0x65, 0x50, 0x61, 0x73, 0x73, 0x77, 0x6f, 0x72, 0x64, 0x46, 0x72, 0x6f, 0x6d, 0x50, 0x6f,
+	0x6c, 0x69, 0x63, 0x79, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2e, 0x0a, 0x0b, 0x43, 0x6c, 0x75,
+	0x73, 0x74, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d,
+	0x70, 0x74, 0x79, 0x1a, 0x14, 0x2e, 0x70, 0x62, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72,
+	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x42, 0x2d, 0x5a, 0x2b, 0x67, 0x69, 0x74,
+	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6f, 0x70, 0x65, 0x6e, 0x62, 0x61, 0x6f, 0x2f,
+	0x6f, 0x70, 0x65, 0x6e, 0x62, 0x61, 0x6f, 0x2f, 0x73, 0x64, 0x6b, 0x2f, 0x76, 0x32, 0x2f, 0x70,
+	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -4333,7 +4400,7 @@ func file_sdk_plugin_pb_backend_proto_rawDescGZIP() []byte {
 	return file_sdk_plugin_pb_backend_proto_rawDescData
 }
 
-var file_sdk_plugin_pb_backend_proto_msgTypes = make([]protoimpl.MessageInfo, 64)
+var file_sdk_plugin_pb_backend_proto_msgTypes = make([]protoimpl.MessageInfo, 65)
 var file_sdk_plugin_pb_backend_proto_goTypes = []any{
 	(*Empty)(nil),                             // 0: pb.Empty
 	(*Header)(nil),                            // 1: pb.Header
@@ -4358,72 +4425,73 @@ var file_sdk_plugin_pb_backend_proto_goTypes = []any{
 	(*SetupReply)(nil),                        // 20: pb.SetupReply
 	(*TypeReply)(nil),                         // 21: pb.TypeReply
 	(*InvalidateKeyArgs)(nil),                 // 22: pb.InvalidateKeyArgs
-	(*StorageEntry)(nil),                      // 23: pb.StorageEntry
-	(*StorageListArgs)(nil),                   // 24: pb.StorageListArgs
-	(*StorageListPageArgs)(nil),               // 25: pb.StorageListPageArgs
-	(*StorageListReply)(nil),                  // 26: pb.StorageListReply
-	(*StorageGetArgs)(nil),                    // 27: pb.StorageGetArgs
-	(*StorageGetReply)(nil),                   // 28: pb.StorageGetReply
-	(*StoragePutArgs)(nil),                    // 29: pb.StoragePutArgs
-	(*StoragePutReply)(nil),                   // 30: pb.StoragePutReply
-	(*StorageDeleteArgs)(nil),                 // 31: pb.StorageDeleteArgs
-	(*StorageDeleteReply)(nil),                // 32: pb.StorageDeleteReply
-	(*StorageIsTransactionalReply)(nil),       // 33: pb.StorageIsTransactionalReply
-	(*StorageBeginTxReply)(nil),               // 34: pb.StorageBeginTxReply
-	(*StorageCommitTxArgs)(nil),               // 35: pb.StorageCommitTxArgs
-	(*StorageCommitTxReply)(nil),              // 36: pb.StorageCommitTxReply
-	(*StorageRollbackTxArgs)(nil),             // 37: pb.StorageRollbackTxArgs
-	(*StorageRollbackTxReply)(nil),            // 38: pb.StorageRollbackTxReply
-	(*TTLReply)(nil),                          // 39: pb.TTLReply
-	(*TaintedReply)(nil),                      // 40: pb.TaintedReply
-	(*CachingDisabledReply)(nil),              // 41: pb.CachingDisabledReply
-	(*ReplicationStateReply)(nil),             // 42: pb.ReplicationStateReply
-	(*ResponseWrapDataArgs)(nil),              // 43: pb.ResponseWrapDataArgs
-	(*ResponseWrapDataReply)(nil),             // 44: pb.ResponseWrapDataReply
-	(*MlockEnabledReply)(nil),                 // 45: pb.MlockEnabledReply
-	(*LocalMountReply)(nil),                   // 46: pb.LocalMountReply
-	(*EntityInfoArgs)(nil),                    // 47: pb.EntityInfoArgs
-	(*EntityInfoReply)(nil),                   // 48: pb.EntityInfoReply
-	(*GroupsForEntityReply)(nil),              // 49: pb.GroupsForEntityReply
-	(*PluginEnvReply)(nil),                    // 50: pb.PluginEnvReply
-	(*GeneratePasswordFromPolicyRequest)(nil), // 51: pb.GeneratePasswordFromPolicyRequest
-	(*GeneratePasswordFromPolicyReply)(nil),   // 52: pb.GeneratePasswordFromPolicyReply
-	(*ClusterInfoReply)(nil),                  // 53: pb.ClusterInfoReply
-	(*Connection)(nil),                        // 54: pb.Connection
-	(*ConnectionState)(nil),                   // 55: pb.ConnectionState
-	(*Certificate)(nil),                       // 56: pb.Certificate
-	(*CertificateChain)(nil),                  // 57: pb.CertificateChain
-	nil,                                       // 58: pb.Request.HeadersEntry
-	nil,                                       // 59: pb.Auth.MetadataEntry
-	nil,                                       // 60: pb.TokenEntry.MetaEntry
-	nil,                                       // 61: pb.TokenEntry.InternalMetaEntry
-	nil,                                       // 62: pb.Response.HeadersEntry
-	nil,                                       // 63: pb.SetupArgs.ConfigEntry
-	(*logical.Alias)(nil),                     // 64: logical.Alias
-	(*timestamppb.Timestamp)(nil),             // 65: google.protobuf.Timestamp
-	(*logical.Entity)(nil),                    // 66: logical.Entity
-	(*logical.Group)(nil),                     // 67: logical.Group
-	(*logical.PluginEnvironment)(nil),         // 68: logical.PluginEnvironment
+	(*BackendIsCrossPluginReply)(nil),         // 23: pb.BackendIsCrossPluginReply
+	(*StorageEntry)(nil),                      // 24: pb.StorageEntry
+	(*StorageListArgs)(nil),                   // 25: pb.StorageListArgs
+	(*StorageListPageArgs)(nil),               // 26: pb.StorageListPageArgs
+	(*StorageListReply)(nil),                  // 27: pb.StorageListReply
+	(*StorageGetArgs)(nil),                    // 28: pb.StorageGetArgs
+	(*StorageGetReply)(nil),                   // 29: pb.StorageGetReply
+	(*StoragePutArgs)(nil),                    // 30: pb.StoragePutArgs
+	(*StoragePutReply)(nil),                   // 31: pb.StoragePutReply
+	(*StorageDeleteArgs)(nil),                 // 32: pb.StorageDeleteArgs
+	(*StorageDeleteReply)(nil),                // 33: pb.StorageDeleteReply
+	(*StorageIsTransactionalReply)(nil),       // 34: pb.StorageIsTransactionalReply
+	(*StorageBeginTxReply)(nil),               // 35: pb.StorageBeginTxReply
+	(*StorageCommitTxArgs)(nil),               // 36: pb.StorageCommitTxArgs
+	(*StorageCommitTxReply)(nil),              // 37: pb.StorageCommitTxReply
+	(*StorageRollbackTxArgs)(nil),             // 38: pb.StorageRollbackTxArgs
+	(*StorageRollbackTxReply)(nil),            // 39: pb.StorageRollbackTxReply
+	(*TTLReply)(nil),                          // 40: pb.TTLReply
+	(*TaintedReply)(nil),                      // 41: pb.TaintedReply
+	(*CachingDisabledReply)(nil),              // 42: pb.CachingDisabledReply
+	(*ReplicationStateReply)(nil),             // 43: pb.ReplicationStateReply
+	(*ResponseWrapDataArgs)(nil),              // 44: pb.ResponseWrapDataArgs
+	(*ResponseWrapDataReply)(nil),             // 45: pb.ResponseWrapDataReply
+	(*MlockEnabledReply)(nil),                 // 46: pb.MlockEnabledReply
+	(*LocalMountReply)(nil),                   // 47: pb.LocalMountReply
+	(*EntityInfoArgs)(nil),                    // 48: pb.EntityInfoArgs
+	(*EntityInfoReply)(nil),                   // 49: pb.EntityInfoReply
+	(*GroupsForEntityReply)(nil),              // 50: pb.GroupsForEntityReply
+	(*PluginEnvReply)(nil),                    // 51: pb.PluginEnvReply
+	(*GeneratePasswordFromPolicyRequest)(nil), // 52: pb.GeneratePasswordFromPolicyRequest
+	(*GeneratePasswordFromPolicyReply)(nil),   // 53: pb.GeneratePasswordFromPolicyReply
+	(*ClusterInfoReply)(nil),                  // 54: pb.ClusterInfoReply
+	(*Connection)(nil),                        // 55: pb.Connection
+	(*ConnectionState)(nil),                   // 56: pb.ConnectionState
+	(*Certificate)(nil),                       // 57: pb.Certificate
+	(*CertificateChain)(nil),                  // 58: pb.CertificateChain
+	nil,                                       // 59: pb.Request.HeadersEntry
+	nil,                                       // 60: pb.Auth.MetadataEntry
+	nil,                                       // 61: pb.TokenEntry.MetaEntry
+	nil,                                       // 62: pb.TokenEntry.InternalMetaEntry
+	nil,                                       // 63: pb.Response.HeadersEntry
+	nil,                                       // 64: pb.SetupArgs.ConfigEntry
+	(*logical.Alias)(nil),                     // 65: logical.Alias
+	(*timestamppb.Timestamp)(nil),             // 66: google.protobuf.Timestamp
+	(*logical.Entity)(nil),                    // 67: logical.Entity
+	(*logical.Group)(nil),                     // 68: logical.Group
+	(*logical.PluginEnvironment)(nil),         // 69: logical.PluginEnvironment
 }
 var file_sdk_plugin_pb_backend_proto_depIDxs = []int32{
 	8,  // 0: pb.Request.secret:type_name -> pb.Secret
 	5,  // 1: pb.Request.auth:type_name -> pb.Auth
-	58, // 2: pb.Request.headers:type_name -> pb.Request.HeadersEntry
+	59, // 2: pb.Request.headers:type_name -> pb.Request.HeadersEntry
 	11, // 3: pb.Request.wrap_info:type_name -> pb.RequestWrapInfo
-	54, // 4: pb.Request.connection:type_name -> pb.Connection
+	55, // 4: pb.Request.connection:type_name -> pb.Connection
 	7,  // 5: pb.Auth.lease_options:type_name -> pb.LeaseOptions
-	59, // 6: pb.Auth.metadata:type_name -> pb.Auth.MetadataEntry
-	64, // 7: pb.Auth.alias:type_name -> logical.Alias
-	64, // 8: pb.Auth.group_aliases:type_name -> logical.Alias
-	60, // 9: pb.TokenEntry.meta:type_name -> pb.TokenEntry.MetaEntry
-	61, // 10: pb.TokenEntry.internal_meta:type_name -> pb.TokenEntry.InternalMetaEntry
-	65, // 11: pb.LeaseOptions.issue_time:type_name -> google.protobuf.Timestamp
+	60, // 6: pb.Auth.metadata:type_name -> pb.Auth.MetadataEntry
+	65, // 7: pb.Auth.alias:type_name -> logical.Alias
+	65, // 8: pb.Auth.group_aliases:type_name -> logical.Alias
+	61, // 9: pb.TokenEntry.meta:type_name -> pb.TokenEntry.MetaEntry
+	62, // 10: pb.TokenEntry.internal_meta:type_name -> pb.TokenEntry.InternalMetaEntry
+	66, // 11: pb.LeaseOptions.issue_time:type_name -> google.protobuf.Timestamp
 	7,  // 12: pb.Secret.lease_options:type_name -> pb.LeaseOptions
 	8,  // 13: pb.Response.secret:type_name -> pb.Secret
 	5,  // 14: pb.Response.auth:type_name -> pb.Auth
 	10, // 15: pb.Response.wrap_info:type_name -> pb.ResponseWrapInfo
-	62, // 16: pb.Response.headers:type_name -> pb.Response.HeadersEntry
-	65, // 17: pb.ResponseWrapInfo.creation_time:type_name -> google.protobuf.Timestamp
+	63, // 16: pb.Response.headers:type_name -> pb.Response.HeadersEntry
+	66, // 17: pb.ResponseWrapInfo.creation_time:type_name -> google.protobuf.Timestamp
 	4,  // 18: pb.HandleRequestArgs.request:type_name -> pb.Request
 	9,  // 19: pb.HandleRequestReply.response:type_name -> pb.Response
 	2,  // 20: pb.HandleRequestReply.err:type_name -> pb.ProtoError
@@ -4431,83 +4499,91 @@ var file_sdk_plugin_pb_backend_proto_depIDxs = []int32{
 	3,  // 22: pb.SpecialPathsReply.paths:type_name -> pb.Paths
 	4,  // 23: pb.HandleExistenceCheckArgs.request:type_name -> pb.Request
 	2,  // 24: pb.HandleExistenceCheckReply.err:type_name -> pb.ProtoError
-	63, // 25: pb.SetupArgs.Config:type_name -> pb.SetupArgs.ConfigEntry
-	23, // 26: pb.StorageGetReply.entry:type_name -> pb.StorageEntry
-	23, // 27: pb.StoragePutArgs.entry:type_name -> pb.StorageEntry
+	64, // 25: pb.SetupArgs.Config:type_name -> pb.SetupArgs.ConfigEntry
+	24, // 26: pb.StorageGetReply.entry:type_name -> pb.StorageEntry
+	24, // 27: pb.StoragePutArgs.entry:type_name -> pb.StorageEntry
 	10, // 28: pb.ResponseWrapDataReply.wrap_info:type_name -> pb.ResponseWrapInfo
-	66, // 29: pb.EntityInfoReply.entity:type_name -> logical.Entity
-	67, // 30: pb.GroupsForEntityReply.groups:type_name -> logical.Group
-	68, // 31: pb.PluginEnvReply.plugin_environment:type_name -> logical.PluginEnvironment
-	55, // 32: pb.Connection.connection_state:type_name -> pb.ConnectionState
-	57, // 33: pb.ConnectionState.peer_certificates:type_name -> pb.CertificateChain
-	57, // 34: pb.ConnectionState.verified_chains:type_name -> pb.CertificateChain
-	56, // 35: pb.CertificateChain.certificates:type_name -> pb.Certificate
+	67, // 29: pb.EntityInfoReply.entity:type_name -> logical.Entity
+	68, // 30: pb.GroupsForEntityReply.groups:type_name -> logical.Group
+	69, // 31: pb.PluginEnvReply.plugin_environment:type_name -> logical.PluginEnvironment
+	56, // 32: pb.Connection.connection_state:type_name -> pb.ConnectionState
+	58, // 33: pb.ConnectionState.peer_certificates:type_name -> pb.CertificateChain
+	58, // 34: pb.ConnectionState.verified_chains:type_name -> pb.CertificateChain
+	57, // 35: pb.CertificateChain.certificates:type_name -> pb.Certificate
 	1,  // 36: pb.Request.HeadersEntry.value:type_name -> pb.Header
 	1,  // 37: pb.Response.HeadersEntry.value:type_name -> pb.Header
 	12, // 38: pb.Backend.HandleRequest:input_type -> pb.HandleRequestArgs
-	0,  // 39: pb.Backend.SpecialPaths:input_type -> pb.Empty
-	17, // 40: pb.Backend.HandleExistenceCheck:input_type -> pb.HandleExistenceCheckArgs
-	0,  // 41: pb.Backend.Cleanup:input_type -> pb.Empty
-	22, // 42: pb.Backend.InvalidateKey:input_type -> pb.InvalidateKeyArgs
-	19, // 43: pb.Backend.Setup:input_type -> pb.SetupArgs
-	14, // 44: pb.Backend.Initialize:input_type -> pb.InitializeArgs
-	0,  // 45: pb.Backend.Type:input_type -> pb.Empty
-	24, // 46: pb.Storage.List:input_type -> pb.StorageListArgs
-	25, // 47: pb.Storage.ListPage:input_type -> pb.StorageListPageArgs
-	27, // 48: pb.Storage.Get:input_type -> pb.StorageGetArgs
-	29, // 49: pb.Storage.Put:input_type -> pb.StoragePutArgs
-	31, // 50: pb.Storage.Delete:input_type -> pb.StorageDeleteArgs
-	0,  // 51: pb.Storage.IsTransactional:input_type -> pb.Empty
-	0,  // 52: pb.Storage.BeginReadOnlyTx:input_type -> pb.Empty
-	0,  // 53: pb.Storage.BeginTx:input_type -> pb.Empty
-	35, // 54: pb.Storage.Commit:input_type -> pb.StorageCommitTxArgs
-	37, // 55: pb.Storage.Rollback:input_type -> pb.StorageRollbackTxArgs
-	0,  // 56: pb.SystemView.DefaultLeaseTTL:input_type -> pb.Empty
-	0,  // 57: pb.SystemView.MaxLeaseTTL:input_type -> pb.Empty
-	0,  // 58: pb.SystemView.Tainted:input_type -> pb.Empty
-	0,  // 59: pb.SystemView.CachingDisabled:input_type -> pb.Empty
-	0,  // 60: pb.SystemView.ReplicationState:input_type -> pb.Empty
-	43, // 61: pb.SystemView.ResponseWrapData:input_type -> pb.ResponseWrapDataArgs
-	0,  // 62: pb.SystemView.MlockEnabled:input_type -> pb.Empty
-	0,  // 63: pb.SystemView.LocalMount:input_type -> pb.Empty
-	47, // 64: pb.SystemView.EntityInfo:input_type -> pb.EntityInfoArgs
-	0,  // 65: pb.SystemView.PluginEnv:input_type -> pb.Empty
-	47, // 66: pb.SystemView.GroupsForEntity:input_type -> pb.EntityInfoArgs
-	51, // 67: pb.SystemView.GeneratePasswordFromPolicy:input_type -> pb.GeneratePasswordFromPolicyRequest
-	0,  // 68: pb.SystemView.ClusterInfo:input_type -> pb.Empty
-	13, // 69: pb.Backend.HandleRequest:output_type -> pb.HandleRequestReply
-	16, // 70: pb.Backend.SpecialPaths:output_type -> pb.SpecialPathsReply
-	18, // 71: pb.Backend.HandleExistenceCheck:output_type -> pb.HandleExistenceCheckReply
-	0,  // 72: pb.Backend.Cleanup:output_type -> pb.Empty
-	0,  // 73: pb.Backend.InvalidateKey:output_type -> pb.Empty
-	20, // 74: pb.Backend.Setup:output_type -> pb.SetupReply
-	15, // 75: pb.Backend.Initialize:output_type -> pb.InitializeReply
-	21, // 76: pb.Backend.Type:output_type -> pb.TypeReply
-	26, // 77: pb.Storage.List:output_type -> pb.StorageListReply
-	26, // 78: pb.Storage.ListPage:output_type -> pb.StorageListReply
-	28, // 79: pb.Storage.Get:output_type -> pb.StorageGetReply
-	30, // 80: pb.Storage.Put:output_type -> pb.StoragePutReply
-	32, // 81: pb.Storage.Delete:output_type -> pb.StorageDeleteReply
-	33, // 82: pb.Storage.IsTransactional:output_type -> pb.StorageIsTransactionalReply
-	34, // 83: pb.Storage.BeginReadOnlyTx:output_type -> pb.StorageBeginTxReply
-	34, // 84: pb.Storage.BeginTx:output_type -> pb.StorageBeginTxReply
-	36, // 85: pb.Storage.Commit:output_type -> pb.StorageCommitTxReply
-	38, // 86: pb.Storage.Rollback:output_type -> pb.StorageRollbackTxReply
-	39, // 87: pb.SystemView.DefaultLeaseTTL:output_type -> pb.TTLReply
-	39, // 88: pb.SystemView.MaxLeaseTTL:output_type -> pb.TTLReply
-	40, // 89: pb.SystemView.Tainted:output_type -> pb.TaintedReply
-	41, // 90: pb.SystemView.CachingDisabled:output_type -> pb.CachingDisabledReply
-	42, // 91: pb.SystemView.ReplicationState:output_type -> pb.ReplicationStateReply
-	44, // 92: pb.SystemView.ResponseWrapData:output_type -> pb.ResponseWrapDataReply
-	45, // 93: pb.SystemView.MlockEnabled:output_type -> pb.MlockEnabledReply
-	46, // 94: pb.SystemView.LocalMount:output_type -> pb.LocalMountReply
-	48, // 95: pb.SystemView.EntityInfo:output_type -> pb.EntityInfoReply
-	50, // 96: pb.SystemView.PluginEnv:output_type -> pb.PluginEnvReply
-	49, // 97: pb.SystemView.GroupsForEntity:output_type -> pb.GroupsForEntityReply
-	52, // 98: pb.SystemView.GeneratePasswordFromPolicy:output_type -> pb.GeneratePasswordFromPolicyReply
-	53, // 99: pb.SystemView.ClusterInfo:output_type -> pb.ClusterInfoReply
-	69, // [69:100] is the sub-list for method output_type
-	38, // [38:69] is the sub-list for method input_type
+	12, // 39: pb.Backend.HandleInternalRequest:input_type -> pb.HandleRequestArgs
+	0,  // 40: pb.Backend.SpecialPaths:input_type -> pb.Empty
+	0,  // 41: pb.Backend.InternalSpecialPaths:input_type -> pb.Empty
+	17, // 42: pb.Backend.HandleExistenceCheck:input_type -> pb.HandleExistenceCheckArgs
+	17, // 43: pb.Backend.HandleInternalExistenceCheck:input_type -> pb.HandleExistenceCheckArgs
+	0,  // 44: pb.Backend.Cleanup:input_type -> pb.Empty
+	22, // 45: pb.Backend.InvalidateKey:input_type -> pb.InvalidateKeyArgs
+	19, // 46: pb.Backend.Setup:input_type -> pb.SetupArgs
+	14, // 47: pb.Backend.Initialize:input_type -> pb.InitializeArgs
+	0,  // 48: pb.Backend.Type:input_type -> pb.Empty
+	0,  // 49: pb.Backend.IsCrossPlugin:input_type -> pb.Empty
+	25, // 50: pb.Storage.List:input_type -> pb.StorageListArgs
+	26, // 51: pb.Storage.ListPage:input_type -> pb.StorageListPageArgs
+	28, // 52: pb.Storage.Get:input_type -> pb.StorageGetArgs
+	30, // 53: pb.Storage.Put:input_type -> pb.StoragePutArgs
+	32, // 54: pb.Storage.Delete:input_type -> pb.StorageDeleteArgs
+	0,  // 55: pb.Storage.IsTransactional:input_type -> pb.Empty
+	0,  // 56: pb.Storage.BeginReadOnlyTx:input_type -> pb.Empty
+	0,  // 57: pb.Storage.BeginTx:input_type -> pb.Empty
+	36, // 58: pb.Storage.Commit:input_type -> pb.StorageCommitTxArgs
+	38, // 59: pb.Storage.Rollback:input_type -> pb.StorageRollbackTxArgs
+	0,  // 60: pb.SystemView.DefaultLeaseTTL:input_type -> pb.Empty
+	0,  // 61: pb.SystemView.MaxLeaseTTL:input_type -> pb.Empty
+	0,  // 62: pb.SystemView.Tainted:input_type -> pb.Empty
+	0,  // 63: pb.SystemView.CachingDisabled:input_type -> pb.Empty
+	0,  // 64: pb.SystemView.ReplicationState:input_type -> pb.Empty
+	44, // 65: pb.SystemView.ResponseWrapData:input_type -> pb.ResponseWrapDataArgs
+	0,  // 66: pb.SystemView.MlockEnabled:input_type -> pb.Empty
+	0,  // 67: pb.SystemView.LocalMount:input_type -> pb.Empty
+	48, // 68: pb.SystemView.EntityInfo:input_type -> pb.EntityInfoArgs
+	0,  // 69: pb.SystemView.PluginEnv:input_type -> pb.Empty
+	48, // 70: pb.SystemView.GroupsForEntity:input_type -> pb.EntityInfoArgs
+	52, // 71: pb.SystemView.GeneratePasswordFromPolicy:input_type -> pb.GeneratePasswordFromPolicyRequest
+	0,  // 72: pb.SystemView.ClusterInfo:input_type -> pb.Empty
+	13, // 73: pb.Backend.HandleRequest:output_type -> pb.HandleRequestReply
+	13, // 74: pb.Backend.HandleInternalRequest:output_type -> pb.HandleRequestReply
+	16, // 75: pb.Backend.SpecialPaths:output_type -> pb.SpecialPathsReply
+	16, // 76: pb.Backend.InternalSpecialPaths:output_type -> pb.SpecialPathsReply
+	18, // 77: pb.Backend.HandleExistenceCheck:output_type -> pb.HandleExistenceCheckReply
+	18, // 78: pb.Backend.HandleInternalExistenceCheck:output_type -> pb.HandleExistenceCheckReply
+	0,  // 79: pb.Backend.Cleanup:output_type -> pb.Empty
+	0,  // 80: pb.Backend.InvalidateKey:output_type -> pb.Empty
+	20, // 81: pb.Backend.Setup:output_type -> pb.SetupReply
+	15, // 82: pb.Backend.Initialize:output_type -> pb.InitializeReply
+	21, // 83: pb.Backend.Type:output_type -> pb.TypeReply
+	23, // 84: pb.Backend.IsCrossPlugin:output_type -> pb.BackendIsCrossPluginReply
+	27, // 85: pb.Storage.List:output_type -> pb.StorageListReply
+	27, // 86: pb.Storage.ListPage:output_type -> pb.StorageListReply
+	29, // 87: pb.Storage.Get:output_type -> pb.StorageGetReply
+	31, // 88: pb.Storage.Put:output_type -> pb.StoragePutReply
+	33, // 89: pb.Storage.Delete:output_type -> pb.StorageDeleteReply
+	34, // 90: pb.Storage.IsTransactional:output_type -> pb.StorageIsTransactionalReply
+	35, // 91: pb.Storage.BeginReadOnlyTx:output_type -> pb.StorageBeginTxReply
+	35, // 92: pb.Storage.BeginTx:output_type -> pb.StorageBeginTxReply
+	37, // 93: pb.Storage.Commit:output_type -> pb.StorageCommitTxReply
+	39, // 94: pb.Storage.Rollback:output_type -> pb.StorageRollbackTxReply
+	40, // 95: pb.SystemView.DefaultLeaseTTL:output_type -> pb.TTLReply
+	40, // 96: pb.SystemView.MaxLeaseTTL:output_type -> pb.TTLReply
+	41, // 97: pb.SystemView.Tainted:output_type -> pb.TaintedReply
+	42, // 98: pb.SystemView.CachingDisabled:output_type -> pb.CachingDisabledReply
+	43, // 99: pb.SystemView.ReplicationState:output_type -> pb.ReplicationStateReply
+	45, // 100: pb.SystemView.ResponseWrapData:output_type -> pb.ResponseWrapDataReply
+	46, // 101: pb.SystemView.MlockEnabled:output_type -> pb.MlockEnabledReply
+	47, // 102: pb.SystemView.LocalMount:output_type -> pb.LocalMountReply
+	49, // 103: pb.SystemView.EntityInfo:output_type -> pb.EntityInfoReply
+	51, // 104: pb.SystemView.PluginEnv:output_type -> pb.PluginEnvReply
+	50, // 105: pb.SystemView.GroupsForEntity:output_type -> pb.GroupsForEntityReply
+	53, // 106: pb.SystemView.GeneratePasswordFromPolicy:output_type -> pb.GeneratePasswordFromPolicyReply
+	54, // 107: pb.SystemView.ClusterInfo:output_type -> pb.ClusterInfoReply
+	73, // [73:108] is the sub-list for method output_type
+	38, // [38:73] is the sub-list for method input_type
 	38, // [38:38] is the sub-list for extension type_name
 	38, // [38:38] is the sub-list for extension extendee
 	0,  // [0:38] is the sub-list for field type_name
@@ -4524,7 +4600,7 @@ func file_sdk_plugin_pb_backend_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_sdk_plugin_pb_backend_proto_rawDesc), len(file_sdk_plugin_pb_backend_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   64,
+			NumMessages:   65,
 			NumExtensions: 0,
 			NumServices:   3,
 		},

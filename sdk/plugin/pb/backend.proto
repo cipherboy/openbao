@@ -418,6 +418,12 @@ message InvalidateKeyArgs {
 	string key = 1;
 }
 
+// BackendIsCrossPluginReply indicates whether a given wrapped Backend
+// implements the CrossPluginBackend extended interface definition.
+message BackendIsCrossPluginReply {
+    bool cross_plugin = 1;
+}
+
 // Backend is the interface that plugins must satisfy. The plugin should
 // implement the server for this service. Requests will first run the
 // HandleExistenceCheck rpc then run the HandleRequests rpc.
@@ -425,6 +431,10 @@ service Backend {
 	// HandleRequest is used to handle a request and generate a response.
 	// The plugins must check the operation type and handle appropriately.
 	rpc HandleRequest(HandleRequestArgs) returns (HandleRequestReply);
+
+    // HandleInternalRequest is used to handle an internal, cross-plugin
+    // request. See HandleRequest for more information.
+	rpc HandleInternalRequest(HandleRequestArgs) returns (HandleRequestReply);
 
 	// SpecialPaths is a list of paths that are special in some way.
 	// See PathType for the types of special paths. The key is the type
@@ -434,6 +444,10 @@ service Backend {
 	// at the end.
 	rpc SpecialPaths(Empty) returns (SpecialPathsReply);
 
+    // InternalSpecialPaths is a list of internal, cross-plugin paths that are
+    // special. See SpecialPaths for more information.
+	rpc InternalSpecialPaths(Empty) returns (SpecialPathsReply);
+
 	// HandleExistenceCheck is used to handle a request and generate a response
 	// indicating whether the given path exists or not; this is used to
 	// understand whether the request must have a Create or Update capability
@@ -441,6 +455,11 @@ service Backend {
 	// function was found for the backend; the second indicates whether, if an
 	// existence check function was found, the item exists or not.
 	rpc HandleExistenceCheck(HandleExistenceCheckArgs) returns (HandleExistenceCheckReply);
+
+    // HandleInternalExistenceCheck is used to handle an internal,
+    // cross-plugin existence check. See HandleExistenceCheck for more
+    // information.
+	rpc HandleInternalExistenceCheck(HandleExistenceCheckArgs) returns (HandleExistenceCheckReply);
 
 	// Cleanup is invoked during an unmount of a backend to allow it to
 	// handle any cleanup like connection closing or releasing of file handles.
@@ -464,6 +483,10 @@ service Backend {
 
    	// Type returns the BackendType for the particular backend
 	rpc Type(Empty) returns (TypeReply);
+
+    // IsCrossPlugin returns whether the Backend implements the extended
+    // CrossPluginBackend interface.
+    rpc IsCrossPlugin(Empty) returns (BackendIsCrossPluginReply);
 }
 
 message StorageEntry {
