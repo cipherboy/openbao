@@ -212,6 +212,11 @@ type Request struct {
 
 	// When a request has been forwarded, contains information of the host the request was forwarded 'from'
 	ForwardedFrom string `json:"forwarded_from,omitempty"`
+
+	// When a request came from another plugin, details of the remote plugin.
+	IsCrossPlugin         bool   `json:"is_cross_plugin,omitempty"`
+	OriginatingPluginPath string `json:"originating_plugin_path,omitempty"`
+	OriginatingPluginType string `json:"originating_plugin_type,omitempty"`
 }
 
 // Clone returns a deep copy of the request by using copystructure
