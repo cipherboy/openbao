@@ -381,8 +381,13 @@ func (c *Core) fetchACLTokenEntryAndEntity(ctx context.Context, req *logical.Req
 	return acl, te, entity, identityPolicies, nil
 }
 
-func (c *Core) CheckToken(ctx context.Context, req *logical.Request, unauth bool) (*logical.Auth, *logical.TokenEntry, error) {
+func (c *Core) CheckToken(ctx context.Context, req *logical.Request, unauth bool, internal bool) (*logical.Auth, *logical.TokenEntry, error) {
 	defer metrics.MeasureSince([]string{"core", "check_token"}, time.Now())
+
+	if internal {
+		// TODO(ascheel): Handle this properly for internal authentication.
+		return nil, nil, nil
+	}
 
 	var acl *ACL
 	var te *logical.TokenEntry
@@ -413,7 +418,7 @@ func (c *Core) CheckToken(ctx context.Context, req *logical.Request, unauth bool
 	}
 
 	// Check if this is a root protected path
-	rootPath := c.router.RootPath(ctx, req.Path)
+	rootPath := c.router.RootPath(ctx, req.Path, internal)
 
 	if rootPath && unauth {
 		return nil, nil, errors.New("cannot access root path in unauthenticated request")
@@ -443,7 +448,11 @@ func (c *Core) CheckToken(ctx context.Context, req *logical.Request, unauth bool
 	// whether a particular resource exists. Then we can mark it as an update
 	// or creation as appropriate.
 	if req.Operation == logical.CreateOperation || req.Operation == logical.UpdateOperation {
-		existsResp, checkExists, resourceExists, err := c.router.RouteExistenceCheck(ctx, req)
+		existFunc := c.router.RouteExistenceCheck
+		if internal {
+			existFunc = c.router.RouteInternalExistenceCheck
+		}
+		existsResp, checkExists, resourceExists, err := existFunc(ctx, req)
 		switch err {
 		case logical.ErrUnsupportedPath:
 			// fail later via bad path to avoid confusing items in the log
@@ -537,10 +546,16 @@ func (c *Core) CheckToken(ctx context.Context, req *logical.Request, unauth bool
 
 // HandleRequest is used to handle a new incoming request
 func (c *Core) HandleRequest(httpCtx context.Context, req *logical.Request) (resp *logical.Response, err error) {
-	return c.switchedLockHandleRequest(httpCtx, req, true)
+	return c.switchedLockHandleRequest(httpCtx, req, true, false /* external */)
 }
 
-func (c *Core) switchedLockHandleRequest(httpCtx context.Context, req *logical.Request, doLocking bool) (resp *logical.Response, err error) {
+// HandleInternalRequest is used to handle a new internal, cross-plugin
+// request.
+func (c *Core) HandleInternalRequest(httpCtx context.Context, req *logical.Request) (resp *logical.Response, err error) {
+	return c.switchedLockHandleRequest(httpCtx, req, true, true /* internal */)
+}
+
+func (c *Core) switchedLockHandleRequest(httpCtx context.Context, req *logical.Request, doLocking bool, internal bool) (resp *logical.Response, err error) {
 	if doLocking {
 		c.stateLock.RLock()
 		defer c.stateLock.RUnlock()
@@ -608,13 +623,13 @@ func (c *Core) switchedLockHandleRequest(httpCtx context.Context, req *logical.R
 	if ok {
 		ctx = logical.CreateContextOriginalBody(ctx, body)
 	}
-	resp, err = c.handleCancelableRequest(ctx, req)
+	resp, err = c.handleCancelableRequest(ctx, req, internal)
 	req.SetTokenEntry(nil)
 	cancel()
 	return resp, err
 }
 
-func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request) (resp *logical.Response, err error) {
+func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request, internal bool) (resp *logical.Response, err error) {
 	// Allowing writing to a path ending in / makes it extremely difficult to
 	// understand user intent for the filesystem-like backends (kv,
 	// cubbyhole) -- did they want a key named foo/ or did they want to write
@@ -632,9 +647,18 @@ func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request
 	// as it is depended on by some functionality (e.g. quotas)
 	req.MountPoint = c.router.MatchingMount(ctx, req.Path)
 
-	err = c.PopulateTokenEntry(ctx, req)
-	if err != nil {
-		return nil, err
+	if !internal {
+		err = c.PopulateTokenEntry(ctx, req, internal)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// TODO(ascheel) - Token was already resolved on the original
+		// request, but we need to see if we have policies which apply to
+		// this request to grant access.
+		//
+		// This will require correlating the salted ClientToken to the
+		// existing in-flight request value.
 	}
 
 	var requestBodyToken string
@@ -702,7 +726,7 @@ func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request
 			// to be returning it for these paths instead of the short token stored in vault.
 			requestBodyToken = token.(string)
 			if IsSSCToken(token.(string)) {
-				token, err = c.CheckSSCToken(ctx, token.(string), c.isLoginRequest(ctx, req))
+				token, err = c.CheckSSCToken(ctx, token.(string), c.isLoginRequest(ctx, req, internal))
 				// If we receive an error from CheckSSCToken, we can assume the token is bad somehow, and the client
 				// should receive a 403 bad token error like they do for all other invalid tokens, unless the error
 				// specifies that we should forward the request or retry the request.
@@ -760,10 +784,12 @@ func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request
 	}
 
 	var auth *logical.Auth
-	if c.isLoginRequest(ctx, req) {
-		resp, auth, err = c.handleLoginRequest(ctx, req)
+	if c.isLoginRequest(ctx, req, internal) {
+		c.logger.Debug("LOGIN", "internal", internal, "path", req.Path, "req", req)
+		resp, auth, err = c.handleLoginRequest(ctx, req, internal)
 	} else {
-		resp, auth, err = c.handleRequest(ctx, req)
+		c.logger.Debug("NOT LOGIN", "internal", internal, "path", req.Path, "req", req)
+		resp, auth, err = c.handleRequest(ctx, req, internal)
 	}
 
 	if err == nil && c.requestResponseCallback != nil {
@@ -887,16 +913,20 @@ func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request
 	return
 }
 
-func (c *Core) doRouting(ctx context.Context, req *logical.Request) (*logical.Response, error) {
+func (c *Core) doRouting(ctx context.Context, req *logical.Request, internal bool) (*logical.Response, error) {
 	// If we're replicating and we get a read-only error from a backend, need to forward to primary
+	if internal {
+		return c.router.RouteInternal(ctx, req)
+	}
+
 	return c.router.Route(ctx, req)
 }
 
-func (c *Core) isLoginRequest(ctx context.Context, req *logical.Request) bool {
-	return c.router.LoginPath(ctx, req.Path)
+func (c *Core) isLoginRequest(ctx context.Context, req *logical.Request, internal bool) bool {
+	return c.router.LoginPath(ctx, req.Path, internal)
 }
 
-func (c *Core) handleRequest(ctx context.Context, req *logical.Request) (retResp *logical.Response, retAuth *logical.Auth, retErr error) {
+func (c *Core) handleRequest(ctx context.Context, req *logical.Request, internal bool) (retResp *logical.Response, retAuth *logical.Auth, retErr error) {
 	defer metrics.MeasureSince([]string{"core", "handle_request"}, time.Now())
 
 	var nonHMACReqDataKeys []string
@@ -923,7 +953,7 @@ func (c *Core) handleRequest(ctx context.Context, req *logical.Request) (retResp
 	}
 
 	// Validate the token
-	auth, te, ctErr := c.CheckToken(ctx, req, false)
+	auth, te, ctErr := c.CheckToken(ctx, req, false, internal)
 	if ctErr == logical.ErrRelativePath {
 		return logical.ErrorResponse(ctErr.Error()), nil, ctErr
 	}
@@ -940,7 +970,11 @@ func (c *Core) handleRequest(ctx context.Context, req *logical.Request) (retResp
 	// We run this logic first because we want to decrement the use count even
 	// in the case of an error (assuming we can successfully look up; if we
 	// need to forward, we exit before now)
-	if te != nil {
+	//
+	// Internal requests do not count towards token uses; the end-user has
+	// not directly initiated this request and it is more a form of layered or
+	// proxied authorization.
+	if te != nil && !internal {
 		// Attempt to use the token (decrement NumUses)
 		var err error
 		te, err = c.tokenStore.UseToken(ctx, te)
@@ -1030,7 +1064,7 @@ func (c *Core) handleRequest(ctx context.Context, req *logical.Request) (retResp
 	}
 
 	// Route the request
-	resp, routeErr := c.doRouting(ctx, req)
+	resp, routeErr := c.doRouting(ctx, req, internal)
 	if resp != nil {
 
 		// If wrapping is used, use the shortest between the request and response
@@ -1260,7 +1294,7 @@ func (c *Core) handleRequest(ctx context.Context, req *logical.Request) (retResp
 
 // handleLoginRequest is used to handle a login request, which is an
 // unauthenticated request to the backend.
-func (c *Core) handleLoginRequest(ctx context.Context, req *logical.Request) (retResp *logical.Response, retAuth *logical.Auth, retErr error) {
+func (c *Core) handleLoginRequest(ctx context.Context, req *logical.Request, internal bool) (retResp *logical.Response, retAuth *logical.Auth, retErr error) {
 	defer metrics.MeasureSince([]string{"core", "handle_login_request"}, time.Now())
 
 	req.Unauthenticated = true
@@ -1284,7 +1318,7 @@ func (c *Core) handleLoginRequest(ctx context.Context, req *logical.Request) (re
 	// Do an unauth check. This will cause EGP policies to be checked
 	var auth *logical.Auth
 	var ctErr error
-	auth, _, ctErr = c.CheckToken(ctx, req, true)
+	auth, _, ctErr = c.CheckToken(ctx, req, true, internal)
 	if ctErr == logical.ErrPerfStandbyPleaseForward {
 		return nil, nil, ctErr
 	}
@@ -1366,7 +1400,7 @@ func (c *Core) handleLoginRequest(ctx context.Context, req *logical.Request) (re
 	}
 
 	// Route the request
-	resp, routeErr := c.doRouting(ctx, req)
+	resp, routeErr := c.doRouting(ctx, req, internal)
 
 	// if routeErr has invalid credentials error, update the userFailedLoginMap
 	if routeErr != nil && routeErr == logical.ErrInvalidCredentials {
@@ -2139,7 +2173,7 @@ func (c *Core) LocalUpdateUserFailedLoginInfo(ctx context.Context, userKey Faile
 // it to set other fields in req.  Does nothing if ClientToken is empty
 // or a JWT token, or for service tokens that don't exist in the token store.
 // Should be called with read stateLock held.
-func (c *Core) PopulateTokenEntry(ctx context.Context, req *logical.Request) error {
+func (c *Core) PopulateTokenEntry(ctx context.Context, req *logical.Request, internal bool) error {
 	if req.ClientToken == "" {
 		return nil
 	}
@@ -2173,7 +2207,7 @@ func (c *Core) PopulateTokenEntry(ctx context.Context, req *logical.Request) err
 		// much sense, as they would fail with 412 required index not present
 		// as perf standbys aren't guaranteed to have the WAL state
 		// for new tokens.
-		unauth := c.isLoginRequest(ctx, req)
+		unauth := c.isLoginRequest(ctx, req, internal)
 		decodedToken, err = c.CheckSSCToken(ctx, token, unauth)
 		// If we receive an error from CheckSSCToken, we can assume the token is bad somehow, and the client
 		// should receive a 403 bad token error like they do for all other invalid tokens, unless the error
