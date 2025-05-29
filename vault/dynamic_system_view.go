@@ -428,3 +428,10 @@ func (d dynamicSystemView) ClusterID(ctx context.Context) (string, error) {
 
 	return clusterInfo.ID, nil
 }
+
+func (d dynamicSystemView) MakeInternalRequest(ctx context.Context, req *logical.Request) (*logical.Response, error) {
+	req.IsCrossPlugin = true
+	req.OriginatingPluginPath = d.mountEntry.APIPath()
+	req.OriginatingPluginType = d.mountEntry.Type
+	return d.core.HandleInternalRequest(ctx, req)
+}
