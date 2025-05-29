@@ -304,3 +304,116 @@ func (b *backendGRPCPluginServer) Version(ctx context.Context, _ *logical.Empty)
 		PluginVersion: "",
 	}, nil
 }
+
+func (b *backendGRPCPluginServer) IsCrossPlugin(ctx context.Context, args *pb.Empty) (*pb.BackendIsCrossPluginReply, error) {
+	backend, _, err := b.getBackendAndBrokeredClient(ctx)
+	if err != nil {
+		return &pb.BackendIsCrossPluginReply{}, err
+	}
+
+	_, crossPlugin := backend.(logical.CrossPluginBackend)
+
+	return &pb.BackendIsCrossPluginReply{
+		CrossPlugin: crossPlugin,
+	}, nil
+}
+
+func (b *backendGRPCPluginServer) HandleInternalRequest(ctx context.Context, args *pb.HandleRequestArgs) (*pb.HandleRequestReply, error) {
+	backend, brokeredClient, err := b.getBackendAndBrokeredClient(ctx)
+	if err != nil {
+		return &pb.HandleRequestReply{}, err
+	}
+
+	crossPluginBackend, ok := backend.(logical.CrossPluginBackend)
+	if !ok {
+		return &pb.HandleRequestReply{}, ErrIsNotCrossPlugin
+	}
+
+	if pluginutil.InMetadataMode() {
+		return &pb.HandleRequestReply{}, ErrServerInMetadataMode
+	}
+
+	logicalReq, err := pb.ProtoRequestToLogicalRequest(args.Request)
+	if err != nil {
+		return &pb.HandleRequestReply{}, err
+	}
+
+	logicalReq.Storage, err = newGRPCStorageClient(ctx, brokeredClient)
+	if err != nil {
+		return &pb.HandleRequestReply{}, err
+	}
+
+	resp, respErr := crossPluginBackend.HandleInternalRequest(ctx, logicalReq)
+
+	pbResp, err := pb.LogicalResponseToProtoResponse(resp)
+	if err != nil {
+		return &pb.HandleRequestReply{}, err
+	}
+
+	return &pb.HandleRequestReply{
+		Response: pbResp,
+		Err:      pb.ErrToProtoErr(respErr),
+	}, nil
+}
+
+func (b *backendGRPCPluginServer) InternalSpecialPaths(ctx context.Context, args *pb.Empty) (*pb.SpecialPathsReply, error) {
+	backend, _, err := b.getBackendAndBrokeredClient(ctx)
+	if err != nil {
+		return &pb.SpecialPathsReply{}, err
+	}
+
+	crossPluginBackend, ok := backend.(logical.CrossPluginBackend)
+	if !ok {
+		return &pb.SpecialPathsReply{}, ErrIsNotCrossPlugin
+	}
+
+	paths := crossPluginBackend.InternalSpecialPaths()
+	if paths == nil {
+		return &pb.SpecialPathsReply{
+			Paths: nil,
+		}, nil
+	}
+
+	return &pb.SpecialPathsReply{
+		Paths: &pb.Paths{
+			Root:                  paths.Root,
+			Unauthenticated:       paths.Unauthenticated,
+			LocalStorage:          paths.LocalStorage,
+			SealWrapStorage:       paths.SealWrapStorage,
+			WriteForwardedStorage: paths.WriteForwardedStorage,
+		},
+	}, nil
+}
+
+func (b *backendGRPCPluginServer) HandleInternalExistenceCheck(ctx context.Context, args *pb.HandleExistenceCheckArgs) (*pb.HandleExistenceCheckReply, error) {
+	backend, brokeredClient, err := b.getBackendAndBrokeredClient(ctx)
+	if err != nil {
+		return &pb.HandleExistenceCheckReply{}, err
+	}
+
+	crossPluginBackend, ok := backend.(logical.CrossPluginBackend)
+	if !ok {
+		return &pb.HandleExistenceCheckReply{}, ErrIsNotCrossPlugin
+	}
+
+	if pluginutil.InMetadataMode() {
+		return &pb.HandleExistenceCheckReply{}, ErrServerInMetadataMode
+	}
+
+	logicalReq, err := pb.ProtoRequestToLogicalRequest(args.Request)
+	if err != nil {
+		return &pb.HandleExistenceCheckReply{}, err
+	}
+
+	logicalReq.Storage, err = newGRPCStorageClient(ctx, brokeredClient)
+	if err != nil {
+		return &pb.HandleExistenceCheckReply{}, err
+	}
+
+	checkFound, exists, err := crossPluginBackend.HandleInternalExistenceCheck(ctx, logicalReq)
+	return &pb.HandleExistenceCheckReply{
+		CheckFound: checkFound,
+		Exists:     exists,
+		Err:        pb.ErrToProtoErr(err),
+	}, nil
+}
