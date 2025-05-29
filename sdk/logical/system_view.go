@@ -96,6 +96,10 @@ type SystemView interface {
 	// write forwarding (WriteForwardedPaths). This value will be templated
 	// in for the {{cluterId}} sentinel.
 	ClusterID(ctx context.Context) (string, error)
+
+	// MakeInternalRequest allows plugins to make a cross-plugin request by
+	// calling back into the internal routing system.
+	MakeInternalRequest(context.Context, *Request) (*Response, error)
 }
 
 type PasswordPolicy interface {
@@ -260,4 +264,8 @@ func (d StaticSystemView) ClusterID(ctx context.Context) (string, error) {
 
 func (d StaticSystemView) APILockShouldBlockRequest() (bool, error) {
 	return d.APILockShouldBlockRequestVal, nil
+}
+
+func (d StaticSystemView) MakeInternalRequest(ctx context.Context, req *Request) (*Response, error) {
+	return nil, errors.New("MakeInternalRequest is not implemented in StaticSystemView")
 }
