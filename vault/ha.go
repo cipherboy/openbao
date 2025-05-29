@@ -293,7 +293,7 @@ func (c *Core) StepDown(httpCtx context.Context, req *logical.Request) (retErr e
 		}
 	}()
 
-	err := c.PopulateTokenEntry(ctx, req)
+	err := c.PopulateTokenEntry(ctx, req, false /* internal */)
 	if err != nil {
 		if errwrap.Contains(err, logical.ErrPermissionDenied.Error()) {
 			return logical.ErrPermissionDenied
