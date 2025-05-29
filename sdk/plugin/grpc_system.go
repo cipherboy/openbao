@@ -210,6 +210,28 @@ func (s gRPCSystemViewClient) ClusterID(ctx context.Context) (string, error) {
 	return reply.ClusterID, nil
 }
 
+func (s *gRPCSystemViewClient) MakeInternalRequest(ctx context.Context, logicalReq *logical.Request) (*logical.Response, error) {
+	pbReq, err := pb.LogicalRequestToProtoRequest(logicalReq)
+	if err != nil {
+		return nil, err
+	}
+
+	grpcReq := &pb.HandleRequestArgs{
+		Request: pbReq,
+	}
+
+	resp, err := s.client.MakeInternalRequest(ctx, grpcReq)
+	if err != nil {
+		return nil, err
+	}
+
+	if resp.Err != nil {
+		return nil, pb.ProtoErrToErr(resp.Err)
+	}
+
+	return pb.ProtoResponseToLogicalResponse(resp.Response)
+}
+
 type gRPCSystemViewServer struct {
 	pb.UnimplementedSystemViewServer
 
@@ -391,5 +413,32 @@ func (s *gRPCSystemViewServer) ClusterInfo(ctx context.Context, _ *pb.Empty) (*p
 
 	return &pb.ClusterInfoReply{
 		ClusterID: clusterId,
+	}, nil
+}
+
+func (s *gRPCSystemViewServer) MakeInternalRequest(ctx context.Context, args *pb.HandleRequestArgs) (*pb.HandleRequestReply, error) {
+	if s.impl == nil {
+		return nil, errMissingSystemView
+	}
+
+	logicalReq, err := pb.ProtoRequestToLogicalRequest(args.Request)
+	if err != nil {
+		return &pb.HandleRequestReply{}, err
+	}
+
+	logicalResp, err := s.impl.MakeInternalRequest(ctx, logicalReq)
+	if err != nil {
+		return &pb.HandleRequestReply{
+			Err: pb.ErrToProtoErr(err),
+		}, nil
+	}
+
+	pbResp, err := pb.LogicalResponseToProtoResponse(logicalResp)
+	if err != nil {
+		return &pb.HandleRequestReply{}, err
+	}
+
+	return &pb.HandleRequestReply{
+		Response: pbResp,
 	}, nil
 }
