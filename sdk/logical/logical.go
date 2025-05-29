@@ -90,6 +90,30 @@ type Backend interface {
 	Type() BackendType
 }
 
+// A backend which is capable of responding to cross-plugin requests
+// implements the additional methods described in this interface.
+type CrossPluginBackendCore interface {
+	// HandleInternalRequest is used to handle an internal, cross-plugin
+	// request. See HandleRequest for more information.
+	HandleInternalRequest(context.Context, *Request) (*Response, error)
+
+	// InteralSpecialPaths is a list of internal, cross-plugin paths that are
+	// special in some way. See SpecialPaths for more information.
+	InternalSpecialPaths() *Paths
+
+	// HandleInternalExistenceCheck is used to handle an internal,
+	// cross-plugin existence check request. See HandleExistenceCheck for more
+	// information.
+	HandleInternalExistenceCheck(context.Context, *Request) (bool, bool, error)
+}
+
+// CrossPluginBackend is a Backend which supports internal, cross-plugin
+// request handling.
+type CrossPluginBackend interface {
+	Backend
+	CrossPluginBackendCore
+}
+
 // BackendConfig is provided to the factory to initialize the backend
 type BackendConfig struct {
 	// View should not be stored, and should only be used for initialization
