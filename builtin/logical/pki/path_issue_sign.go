@@ -380,6 +380,24 @@ func (b *backend) pathIssue(ctx context.Context, req *logical.Request, data *fra
 	if addWarning && resp != nil {
 		resp.AddWarning("parameters key_type and key_bits ignored as role had specific values")
 	}
+
+	hookReq, err := req.Clone()
+	if err != nil {
+		return nil, fmt.Errorf("failed to clone request: %w", err)
+	}
+	hookReq.Path = "secret/data/my-cert"
+	hookReq.Data = map[string]interface{}{
+		"data": resp.Data,
+	}
+
+	hookResp, err := b.System().MakeInternalRequest(ctx, hookReq)
+	if err != nil {
+		return nil, fmt.Errorf("failed to make internal request: %w", err)
+	}
+	for _, hookWarning := range hookResp.Warnings {
+		resp.AddWarning(fmt.Sprintf("on internal call to %v: %v", hookReq.Path, hookWarning))
+	}
+
 	return resp, err
 }
 
