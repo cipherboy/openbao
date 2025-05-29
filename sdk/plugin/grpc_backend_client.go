@@ -22,10 +22,11 @@ import (
 var (
 	ErrPluginShutdown       = errors.New("plugin is shut down")
 	ErrClientInMetadataMode = errors.New("plugin client can not perform action while in metadata mode")
+	ErrIsNotCrossPlugin     = errors.New("plugin is not capable of handling cross-plugin requests")
 )
 
 // Validate backendGRPCPluginClient satisfies the logical.Backend interface
-var _ logical.Backend = &backendGRPCPluginClient{}
+var _ logical.CrossPluginBackend = &backendGRPCPluginClient{}
 
 // backendPluginClient implements logical.Backend and is the
 // go-plugin client.
@@ -46,6 +47,9 @@ type backendGRPCPluginClient struct {
 	server *atomic.Value
 
 	doneCtx context.Context
+
+	// Whether the underlying backend plugin supports cross-plugin requests.
+	crossPlugin bool
 }
 
 func (b *backendGRPCPluginClient) Initialize(ctx context.Context, _ *logical.InitializationRequest) error {
@@ -76,6 +80,16 @@ func (b *backendGRPCPluginClient) Initialize(ctx context.Context, _ *logical.Ini
 	if reply.Err != nil {
 		return pb.ProtoErrToErr(reply.Err)
 	}
+
+	crossReply, err := b.client.IsCrossPlugin(ctx, &pb.Empty{})
+	if err != nil {
+		if b.doneCtx.Err() != nil {
+			return ErrPluginShutdown
+		}
+
+		return err
+	}
+	b.crossPlugin = crossReply.CrossPlugin
 
 	return nil
 }
@@ -299,4 +313,105 @@ func (b *backendGRPCPluginClient) PluginVersion() logical.PluginVersion {
 
 func (b *backendGRPCPluginClient) IsExternal() bool {
 	return true
+}
+
+func (b *backendGRPCPluginClient) IsCrossPlugin() bool {
+	return b.crossPlugin
+}
+
+func (b *backendGRPCPluginClient) HandleInternalRequest(ctx context.Context, req *logical.Request) (*logical.Response, error) {
+	if b.metadataMode {
+		return nil, ErrClientInMetadataMode
+	}
+
+	if !b.crossPlugin {
+		return nil, ErrIsNotCrossPlugin
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	quitCh := pluginutil.CtxCancelIfCanceled(cancel, b.doneCtx)
+	defer close(quitCh)
+	defer cancel()
+
+	protoReq, err := pb.LogicalRequestToProtoRequest(req)
+	if err != nil {
+		return nil, err
+	}
+
+	reply, err := b.client.HandleInternalRequest(ctx, &pb.HandleRequestArgs{
+		Request: protoReq,
+	}, largeMsgGRPCCallOpts...)
+	if err != nil {
+		if b.doneCtx.Err() != nil {
+			return nil, ErrPluginShutdown
+		}
+
+		return nil, err
+	}
+	resp, err := pb.ProtoResponseToLogicalResponse(reply.Response)
+	if err != nil {
+		return nil, err
+	}
+	if reply.Err != nil {
+		return resp, pb.ProtoErrToErr(reply.Err)
+	}
+
+	return resp, nil
+}
+
+func (b *backendGRPCPluginClient) InternalSpecialPaths() *logical.Paths {
+	if !b.crossPlugin {
+		return nil
+	}
+
+	reply, err := b.client.InternalSpecialPaths(b.doneCtx, &pb.Empty{})
+	if err != nil {
+		return nil
+	}
+
+	if reply.Paths == nil {
+		return nil
+	}
+
+	return &logical.Paths{
+		Root:                  reply.Paths.Root,
+		Unauthenticated:       reply.Paths.Unauthenticated,
+		LocalStorage:          reply.Paths.LocalStorage,
+		SealWrapStorage:       reply.Paths.SealWrapStorage,
+		WriteForwardedStorage: reply.Paths.WriteForwardedStorage,
+	}
+}
+
+func (b *backendGRPCPluginClient) HandleInternalExistenceCheck(ctx context.Context, req *logical.Request) (bool, bool, error) {
+	if b.metadataMode {
+		return false, false, ErrClientInMetadataMode
+	}
+
+	if !b.crossPlugin {
+		return false, false, ErrIsNotCrossPlugin
+	}
+
+	protoReq, err := pb.LogicalRequestToProtoRequest(req)
+	if err != nil {
+		return false, false, err
+	}
+
+	ctx, cancel := context.WithCancel(ctx)
+	quitCh := pluginutil.CtxCancelIfCanceled(cancel, b.doneCtx)
+	defer close(quitCh)
+	defer cancel()
+	reply, err := b.client.HandleInternalExistenceCheck(ctx, &pb.HandleExistenceCheckArgs{
+		Request: protoReq,
+	}, largeMsgGRPCCallOpts...)
+	if err != nil {
+		if b.doneCtx.Err() != nil {
+			return false, false, ErrPluginShutdown
+		}
+		return false, false, err
+	}
+	if reply.Err != nil {
+		return false, false, pb.ProtoErrToErr(reply.Err)
+	}
+
+	return reply.CheckFound, reply.Exists, nil
 }
