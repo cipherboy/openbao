@@ -142,7 +142,17 @@ func VersionedKVFactory(ctx context.Context, conf *logical.BackendConfig) (logic
 			// processed first.
 			pathInvalid(b),
 		),
+
+		InternalPathsSpecial: &logical.Paths{
+			Unauthenticated: []string{
+				"data/+",
+				"metadata/+",
+				"*",
+			},
+		},
 	}
+
+	b.InternalPaths = b.Paths
 
 	b.locks = locksutil.CreateLocks()
 
