@@ -433,5 +433,8 @@ func (d dynamicSystemView) MakeInternalRequest(ctx context.Context, req *logical
 	req.IsCrossPlugin = true
 	req.OriginatingPluginPath = d.mountEntry.APIPath()
 	req.OriginatingPluginType = d.mountEntry.Type
-	return d.core.HandleInternalRequest(ctx, req)
+
+	nsCtx := namespace.ContextWithNamespace(ctx, d.mountEntry.namespace.Clone(false))
+
+	return d.core.HandleInternalRequest(nsCtx, req)
 }
