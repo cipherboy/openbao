@@ -1030,6 +1030,9 @@ type SystemViewClient interface {
 	GeneratePasswordFromPolicy(ctx context.Context, in *GeneratePasswordFromPolicyRequest, opts ...grpc.CallOption) (*GeneratePasswordFromPolicyReply, error)
 	// ClusterInfo returns the ClusterID information; may be reused if ClusterName is also exposed.
 	ClusterInfo(ctx context.Context, in *Empty, opts ...grpc.CallOption) (*ClusterInfoReply, error)
+	// MakeInternalRequest performs a cross-plugin request by calling into
+	// the internal routing system.
+	MakeInternalRequest(ctx context.Context, in *HandleRequestArgs, opts ...grpc.CallOption) (*HandleRequestReply, error)
 }
 
 type systemViewClient struct {
@@ -1157,6 +1160,15 @@ func (c *systemViewClient) ClusterInfo(ctx context.Context, in *Empty, opts ...g
 	return out, nil
 }
 
+func (c *systemViewClient) MakeInternalRequest(ctx context.Context, in *HandleRequestArgs, opts ...grpc.CallOption) (*HandleRequestReply, error) {
+	out := new(HandleRequestReply)
+	err := c.cc.Invoke(ctx, "/pb.SystemView/MakeInternalRequest", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // SystemViewServer is the server API for SystemView service.
 // All implementations must embed UnimplementedSystemViewServer
 // for forward compatibility
@@ -1201,6 +1213,9 @@ type SystemViewServer interface {
 	GeneratePasswordFromPolicy(context.Context, *GeneratePasswordFromPolicyRequest) (*GeneratePasswordFromPolicyReply, error)
 	// ClusterInfo returns the ClusterID information; may be reused if ClusterName is also exposed.
 	ClusterInfo(context.Context, *Empty) (*ClusterInfoReply, error)
+	// MakeInternalRequest performs a cross-plugin request by calling into
+	// the internal routing system.
+	MakeInternalRequest(context.Context, *HandleRequestArgs) (*HandleRequestReply, error)
 	mustEmbedUnimplementedSystemViewServer()
 }
 
@@ -1246,6 +1261,9 @@ func (UnimplementedSystemViewServer) GeneratePasswordFromPolicy(context.Context,
 }
 func (UnimplementedSystemViewServer) ClusterInfo(context.Context, *Empty) (*ClusterInfoReply, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ClusterInfo not implemented")
+}
+func (UnimplementedSystemViewServer) MakeInternalRequest(context.Context, *HandleRequestArgs) (*HandleRequestReply, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method MakeInternalRequest not implemented")
 }
 func (UnimplementedSystemViewServer) mustEmbedUnimplementedSystemViewServer() {}
 
@@ -1494,6 +1512,24 @@ func _SystemView_ClusterInfo_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _SystemView_MakeInternalRequest_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(HandleRequestArgs)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SystemViewServer).MakeInternalRequest(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.SystemView/MakeInternalRequest",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SystemViewServer).MakeInternalRequest(ctx, req.(*HandleRequestArgs))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // SystemView_ServiceDesc is the grpc.ServiceDesc for SystemView service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1552,6 +1588,10 @@ var SystemView_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ClusterInfo",
 			Handler:    _SystemView_ClusterInfo_Handler,
+		},
+		{
+			MethodName: "MakeInternalRequest",
+			Handler:    _SystemView_MakeInternalRequest_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

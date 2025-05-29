@@ -4336,7 +4336,7 @@ var file_sdk_plugin_pb_backend_proto_rawDesc = string([]byte{
 	0x2e, 0x70, 0x62, 0x2e, 0x53, 0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x52, 0x6f, 0x6c, 0x6c, 0x62,
 	0x61, 0x63, 0x6b, 0x54, 0x78, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x1a, 0x2e, 0x70, 0x62, 0x2e, 0x53,
 	0x74, 0x6f, 0x72, 0x61, 0x67, 0x65, 0x52, 0x6f, 0x6c, 0x6c, 0x62, 0x61, 0x63, 0x6b, 0x54, 0x78,
-	0x52, 0x65, 0x70, 0x6c, 0x79, 0x32, 0xe1, 0x05, 0x0a, 0x0a, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d,
+	0x52, 0x65, 0x70, 0x6c, 0x79, 0x32, 0xa7, 0x06, 0x0a, 0x0a, 0x53, 0x79, 0x73, 0x74, 0x65, 0x6d,
 	0x56, 0x69, 0x65, 0x77, 0x12, 0x2a, 0x0a, 0x0f, 0x44, 0x65, 0x66, 0x61, 0x75, 0x6c, 0x74, 0x4c,
 	0x65, 0x61, 0x73, 0x65, 0x54, 0x54, 0x4c, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d, 0x70,
 	0x74, 0x79, 0x1a, 0x0c, 0x2e, 0x70, 0x62, 0x2e, 0x54, 0x54, 0x4c, 0x52, 0x65, 0x70, 0x6c, 0x79,
@@ -4382,10 +4382,15 @@ var file_sdk_plugin_pb_backend_proto_rawDesc = string([]byte{
 	0x6c, 0x69, 0x63, 0x79, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x2e, 0x0a, 0x0b, 0x43, 0x6c, 0x75,
 	0x73, 0x74, 0x65, 0x72, 0x49, 0x6e, 0x66, 0x6f, 0x12, 0x09, 0x2e, 0x70, 0x62, 0x2e, 0x45, 0x6d,
 	0x70, 0x74, 0x79, 0x1a, 0x14, 0x2e, 0x70, 0x62, 0x2e, 0x43, 0x6c, 0x75, 0x73, 0x74, 0x65, 0x72,
-	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x42, 0x2d, 0x5a, 0x2b, 0x67, 0x69, 0x74,
-	0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6f, 0x70, 0x65, 0x6e, 0x62, 0x61, 0x6f, 0x2f,
-	0x6f, 0x70, 0x65, 0x6e, 0x62, 0x61, 0x6f, 0x2f, 0x73, 0x64, 0x6b, 0x2f, 0x76, 0x32, 0x2f, 0x70,
-	0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x49, 0x6e, 0x66, 0x6f, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x12, 0x44, 0x0a, 0x13, 0x4d, 0x61, 0x6b,
+	0x65, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x61, 0x6c, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74,
+	0x12, 0x15, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e, 0x64, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75,
+	0x65, 0x73, 0x74, 0x41, 0x72, 0x67, 0x73, 0x1a, 0x16, 0x2e, 0x70, 0x62, 0x2e, 0x48, 0x61, 0x6e,
+	0x64, 0x6c, 0x65, 0x52, 0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x52, 0x65, 0x70, 0x6c, 0x79, 0x42,
+	0x2d, 0x5a, 0x2b, 0x67, 0x69, 0x74, 0x68, 0x75, 0x62, 0x2e, 0x63, 0x6f, 0x6d, 0x2f, 0x6f, 0x70,
+	0x65, 0x6e, 0x62, 0x61, 0x6f, 0x2f, 0x6f, 0x70, 0x65, 0x6e, 0x62, 0x61, 0x6f, 0x2f, 0x73, 0x64,
+	0x6b, 0x2f, 0x76, 0x32, 0x2f, 0x70, 0x6c, 0x75, 0x67, 0x69, 0x6e, 0x2f, 0x70, 0x62, 0x62, 0x06,
+	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 })
 
 var (
@@ -4547,43 +4552,45 @@ var file_sdk_plugin_pb_backend_proto_depIDxs = []int32{
 	48, // 70: pb.SystemView.GroupsForEntity:input_type -> pb.EntityInfoArgs
 	52, // 71: pb.SystemView.GeneratePasswordFromPolicy:input_type -> pb.GeneratePasswordFromPolicyRequest
 	0,  // 72: pb.SystemView.ClusterInfo:input_type -> pb.Empty
-	13, // 73: pb.Backend.HandleRequest:output_type -> pb.HandleRequestReply
-	13, // 74: pb.Backend.HandleInternalRequest:output_type -> pb.HandleRequestReply
-	16, // 75: pb.Backend.SpecialPaths:output_type -> pb.SpecialPathsReply
-	16, // 76: pb.Backend.InternalSpecialPaths:output_type -> pb.SpecialPathsReply
-	18, // 77: pb.Backend.HandleExistenceCheck:output_type -> pb.HandleExistenceCheckReply
-	18, // 78: pb.Backend.HandleInternalExistenceCheck:output_type -> pb.HandleExistenceCheckReply
-	0,  // 79: pb.Backend.Cleanup:output_type -> pb.Empty
-	0,  // 80: pb.Backend.InvalidateKey:output_type -> pb.Empty
-	20, // 81: pb.Backend.Setup:output_type -> pb.SetupReply
-	15, // 82: pb.Backend.Initialize:output_type -> pb.InitializeReply
-	21, // 83: pb.Backend.Type:output_type -> pb.TypeReply
-	23, // 84: pb.Backend.IsCrossPlugin:output_type -> pb.BackendIsCrossPluginReply
-	27, // 85: pb.Storage.List:output_type -> pb.StorageListReply
-	27, // 86: pb.Storage.ListPage:output_type -> pb.StorageListReply
-	29, // 87: pb.Storage.Get:output_type -> pb.StorageGetReply
-	31, // 88: pb.Storage.Put:output_type -> pb.StoragePutReply
-	33, // 89: pb.Storage.Delete:output_type -> pb.StorageDeleteReply
-	34, // 90: pb.Storage.IsTransactional:output_type -> pb.StorageIsTransactionalReply
-	35, // 91: pb.Storage.BeginReadOnlyTx:output_type -> pb.StorageBeginTxReply
-	35, // 92: pb.Storage.BeginTx:output_type -> pb.StorageBeginTxReply
-	37, // 93: pb.Storage.Commit:output_type -> pb.StorageCommitTxReply
-	39, // 94: pb.Storage.Rollback:output_type -> pb.StorageRollbackTxReply
-	40, // 95: pb.SystemView.DefaultLeaseTTL:output_type -> pb.TTLReply
-	40, // 96: pb.SystemView.MaxLeaseTTL:output_type -> pb.TTLReply
-	41, // 97: pb.SystemView.Tainted:output_type -> pb.TaintedReply
-	42, // 98: pb.SystemView.CachingDisabled:output_type -> pb.CachingDisabledReply
-	43, // 99: pb.SystemView.ReplicationState:output_type -> pb.ReplicationStateReply
-	45, // 100: pb.SystemView.ResponseWrapData:output_type -> pb.ResponseWrapDataReply
-	46, // 101: pb.SystemView.MlockEnabled:output_type -> pb.MlockEnabledReply
-	47, // 102: pb.SystemView.LocalMount:output_type -> pb.LocalMountReply
-	49, // 103: pb.SystemView.EntityInfo:output_type -> pb.EntityInfoReply
-	51, // 104: pb.SystemView.PluginEnv:output_type -> pb.PluginEnvReply
-	50, // 105: pb.SystemView.GroupsForEntity:output_type -> pb.GroupsForEntityReply
-	53, // 106: pb.SystemView.GeneratePasswordFromPolicy:output_type -> pb.GeneratePasswordFromPolicyReply
-	54, // 107: pb.SystemView.ClusterInfo:output_type -> pb.ClusterInfoReply
-	73, // [73:108] is the sub-list for method output_type
-	38, // [38:73] is the sub-list for method input_type
+	12, // 73: pb.SystemView.MakeInternalRequest:input_type -> pb.HandleRequestArgs
+	13, // 74: pb.Backend.HandleRequest:output_type -> pb.HandleRequestReply
+	13, // 75: pb.Backend.HandleInternalRequest:output_type -> pb.HandleRequestReply
+	16, // 76: pb.Backend.SpecialPaths:output_type -> pb.SpecialPathsReply
+	16, // 77: pb.Backend.InternalSpecialPaths:output_type -> pb.SpecialPathsReply
+	18, // 78: pb.Backend.HandleExistenceCheck:output_type -> pb.HandleExistenceCheckReply
+	18, // 79: pb.Backend.HandleInternalExistenceCheck:output_type -> pb.HandleExistenceCheckReply
+	0,  // 80: pb.Backend.Cleanup:output_type -> pb.Empty
+	0,  // 81: pb.Backend.InvalidateKey:output_type -> pb.Empty
+	20, // 82: pb.Backend.Setup:output_type -> pb.SetupReply
+	15, // 83: pb.Backend.Initialize:output_type -> pb.InitializeReply
+	21, // 84: pb.Backend.Type:output_type -> pb.TypeReply
+	23, // 85: pb.Backend.IsCrossPlugin:output_type -> pb.BackendIsCrossPluginReply
+	27, // 86: pb.Storage.List:output_type -> pb.StorageListReply
+	27, // 87: pb.Storage.ListPage:output_type -> pb.StorageListReply
+	29, // 88: pb.Storage.Get:output_type -> pb.StorageGetReply
+	31, // 89: pb.Storage.Put:output_type -> pb.StoragePutReply
+	33, // 90: pb.Storage.Delete:output_type -> pb.StorageDeleteReply
+	34, // 91: pb.Storage.IsTransactional:output_type -> pb.StorageIsTransactionalReply
+	35, // 92: pb.Storage.BeginReadOnlyTx:output_type -> pb.StorageBeginTxReply
+	35, // 93: pb.Storage.BeginTx:output_type -> pb.StorageBeginTxReply
+	37, // 94: pb.Storage.Commit:output_type -> pb.StorageCommitTxReply
+	39, // 95: pb.Storage.Rollback:output_type -> pb.StorageRollbackTxReply
+	40, // 96: pb.SystemView.DefaultLeaseTTL:output_type -> pb.TTLReply
+	40, // 97: pb.SystemView.MaxLeaseTTL:output_type -> pb.TTLReply
+	41, // 98: pb.SystemView.Tainted:output_type -> pb.TaintedReply
+	42, // 99: pb.SystemView.CachingDisabled:output_type -> pb.CachingDisabledReply
+	43, // 100: pb.SystemView.ReplicationState:output_type -> pb.ReplicationStateReply
+	45, // 101: pb.SystemView.ResponseWrapData:output_type -> pb.ResponseWrapDataReply
+	46, // 102: pb.SystemView.MlockEnabled:output_type -> pb.MlockEnabledReply
+	47, // 103: pb.SystemView.LocalMount:output_type -> pb.LocalMountReply
+	49, // 104: pb.SystemView.EntityInfo:output_type -> pb.EntityInfoReply
+	51, // 105: pb.SystemView.PluginEnv:output_type -> pb.PluginEnvReply
+	50, // 106: pb.SystemView.GroupsForEntity:output_type -> pb.GroupsForEntityReply
+	53, // 107: pb.SystemView.GeneratePasswordFromPolicy:output_type -> pb.GeneratePasswordFromPolicyReply
+	54, // 108: pb.SystemView.ClusterInfo:output_type -> pb.ClusterInfoReply
+	13, // 109: pb.SystemView.MakeInternalRequest:output_type -> pb.HandleRequestReply
+	74, // [74:110] is the sub-list for method output_type
+	38, // [38:74] is the sub-list for method input_type
 	38, // [38:38] is the sub-list for extension type_name
 	38, // [38:38] is the sub-list for extension extendee
 	0,  // [0:38] is the sub-list for field type_name

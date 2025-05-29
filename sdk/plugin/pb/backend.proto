@@ -716,6 +716,10 @@ service SystemView {
 
 	// ClusterInfo returns the ClusterID information; may be reused if ClusterName is also exposed.
 	rpc ClusterInfo(Empty) returns (ClusterInfoReply);
+
+    // MakeInternalRequest performs a cross-plugin request by calling into
+    // the internal routing system.
+    rpc MakeInternalRequest(HandleRequestArgs) returns (HandleRequestReply);
 }
 
 message Connection {
