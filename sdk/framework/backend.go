@@ -52,6 +52,20 @@ type Backend struct {
 	Paths        []*Path
 	PathsSpecial *logical.Paths
 
+	// InternalPaths are the various routes that the backend responds to
+	// when contacted by other plugins; these are not responded to by the
+	// service's listener and can only be queried from within the system
+	// via special API calls.
+	//
+	// This cannot be modified after construction (i.e. dynamically changing
+	// paths, including adding or removing, is not allowed once the
+	// backend is in use).
+	//
+	// InternalPathsSpecial is the list of path patterns that denote the
+	// paths above that require special privileges.
+	InternalPaths        []*Path
+	InternalPathsSpecial *logical.Paths
+
 	// Secrets is the list of secret types that this backend can
 	// return. It is used to automatically generate proper responses,
 	// and ease specifying callbacks for revocation, renewal, etc.
@@ -98,11 +112,17 @@ type Backend struct {
 	// RunningVersion is the optional version that will be self-reported
 	RunningVersion string
 
-	logger  log.Logger
-	system  logical.SystemView
-	once    sync.Once
-	pathsRe []*regexp.Regexp
+	logger          log.Logger
+	system          logical.SystemView
+	once            sync.Once
+	pathsRe         []*regexp.Regexp
+	internalPathsRe []*regexp.Regexp
 }
+
+var (
+	_ logical.Backend            = &Backend{}
+	_ logical.CrossPluginBackend = &Backend{}
+)
 
 // periodicFunc is the callback called when the RollbackManager's timer ticks.
 // This can be utilized by the backends to do anything it wants.
@@ -141,6 +161,14 @@ func (b *Backend) Initialize(ctx context.Context, req *logical.InitializationReq
 
 // HandleExistenceCheck is the logical.Backend implementation.
 func (b *Backend) HandleExistenceCheck(ctx context.Context, req *logical.Request) (checkFound bool, exists bool, err error) {
+	return b.handleExistenceCheck(ctx, req, false /* external */)
+}
+
+func (b *Backend) HandleInternalExistenceCheck(ctx context.Context, req *logical.Request) (checkFound bool, exists bool, err error) {
+	return b.handleExistenceCheck(ctx, req, true /* internal */)
+}
+
+func (b *Backend) handleExistenceCheck(ctx context.Context, req *logical.Request, internal bool) (checkFound bool, exists bool, err error) {
 	b.once.Do(b.init)
 
 	// Ensure we are only doing this when one of the correct operations is in play
@@ -152,7 +180,7 @@ func (b *Backend) HandleExistenceCheck(ctx context.Context, req *logical.Request
 	}
 
 	// Find the matching route
-	path, captures := b.route(req.Path)
+	path, captures := b.route(req.Path, internal)
 	if path == nil {
 		return false, false, logical.ErrUnsupportedPath
 	}
@@ -190,6 +218,16 @@ func (b *Backend) HandleExistenceCheck(ctx context.Context, req *logical.Request
 
 // HandleRequest is the logical.Backend implementation.
 func (b *Backend) HandleRequest(ctx context.Context, req *logical.Request) (*logical.Response, error) {
+	return b.handleRequest(ctx, req, false /* external */)
+}
+
+// HandleInternalRequest is the logical.Backend implementation.
+func (b *Backend) HandleInternalRequest(ctx context.Context, req *logical.Request) (*logical.Response, error) {
+	return b.handleRequest(ctx, req, true /* internal */)
+}
+
+// handleRequest handles requests regardless of operation type.
+func (b *Backend) handleRequest(ctx context.Context, req *logical.Request, internal bool) (*logical.Response, error) {
 	b.once.Do(b.init)
 
 	// Check for special cased global operations. These don't route
@@ -205,11 +243,15 @@ func (b *Backend) HandleRequest(ctx context.Context, req *logical.Request) (*log
 
 	// If the path is empty and it is a help operation, handle that.
 	if req.Path == "" && req.Operation == logical.HelpOperation {
+		if internal {
+			return nil, errors.New("cannot perform help operation on internal paths")
+		}
+
 		return b.handleRootHelp(req)
 	}
 
 	// Find the matching route
-	path, captures := b.route(req.Path)
+	path, captures := b.route(req.Path, internal)
 	if path == nil {
 		return nil, logical.ErrUnsupportedPath
 	}
@@ -383,6 +425,12 @@ func (b *Backend) SpecialPaths() *logical.Paths {
 	return b.PathsSpecial
 }
 
+// InternalSpecialPaths is the logical.CrossPluginBackendCore
+// implementation.
+func (b *Backend) InternalSpecialPaths() *logical.Paths {
+	return b.InternalPathsSpecial
+}
+
 // Cleanup is used to release resources and prepare to stop the backend
 func (b *Backend) Cleanup(ctx context.Context) {
 	if b.Clean != nil {
@@ -444,7 +492,14 @@ func (b *Backend) PluginVersion() logical.PluginVersion {
 
 // Route looks up the path that would be used for a given path string.
 func (b *Backend) Route(path string) *Path {
-	result, _ := b.route(path)
+	result, _ := b.route(path, false)
+	return result
+}
+
+// RouteInternal looks up the path that would be used for a given path
+// string for internal requests.
+func (b *Backend) RouteInternal(path string) *Path {
+	result, _ := b.route(path, true)
 	return result
 }
 
@@ -474,12 +529,32 @@ func (b *Backend) init() {
 		}
 		b.pathsRe[i] = regexp.MustCompile(p.Pattern)
 	}
+
+	b.internalPathsRe = make([]*regexp.Regexp, len(b.InternalPaths))
+	for i, p := range b.InternalPaths {
+		if len(p.Pattern) == 0 {
+			panic(fmt.Sprintf("Internal routing pattern cannot be blank"))
+		}
+		// Automatically anchor the pattern
+		if p.Pattern[0] != '^' {
+			p.Pattern = "^" + p.Pattern
+		}
+		if p.Pattern[len(p.Pattern)-1] != '$' {
+			p.Pattern = p.Pattern + "$"
+		}
+		b.internalPathsRe[i] = regexp.MustCompile(p.Pattern)
+	}
 }
 
-func (b *Backend) route(path string) (*Path, map[string]string) {
+func (b *Backend) route(path string, internal bool) (*Path, map[string]string) {
 	b.once.Do(b.init)
 
-	for i, re := range b.pathsRe {
+	set := b.pathsRe
+	if internal {
+		set = b.internalPathsRe
+	}
+
+	for i, re := range set {
 		matches := re.FindStringSubmatch(path)
 		if matches == nil {
 			continue
