@@ -2002,7 +2002,7 @@ func (c *Core) sealInitCommon(ctx context.Context, req *logical.Request) (retErr
 		return errors.New("vault cannot seal when in standby mode; please restart instead")
 	}
 
-	err := c.PopulateTokenEntry(ctx, req)
+	err := c.PopulateTokenEntry(ctx, req, false /* internal */)
 	if err != nil {
 		if errwrap.Contains(err, logical.ErrPermissionDenied.Error()) {
 			return logical.ErrPermissionDenied
