@@ -652,6 +652,11 @@ type Core struct {
 	// Whether we use a single global memdb instance for identity; see
 	// commentary below.
 	unsafeCrossNamespaceIdentity bool
+
+	// Whether unauthenticated profiles are allowed by this OpenBao
+	// instance.
+	allowUnauthedProfiles bool
+	profileStore          *ProfileStore
 }
 
 // c.stateLock needs to be held in read mode before calling this function.
@@ -2364,6 +2369,8 @@ func (s standardUnsealStrategy) unseal(ctx context.Context, logger log.Logger, c
 	if err := c.setupAuditedHeadersConfig(ctx); err != nil {
 		return err
 	}
+
+	c.setupProfileStore(ctx)
 
 	if c.getClusterListener() != nil {
 		if err := c.setupRaftActiveNode(ctx); err != nil {
