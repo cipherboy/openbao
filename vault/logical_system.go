@@ -170,6 +170,7 @@ func NewSystemBackend(core *Core, logger log.Logger) *SystemBackend {
 	b.Paths = append(b.Paths, b.quotasPaths()...)
 	b.Paths = append(b.Paths, b.loginMFAPaths()...)
 	b.Paths = append(b.Paths, b.introspectionPaths()...)
+	b.Paths = append(b.Paths, b.profilePaths()...)
 
 	if core.rawEnabled {
 		b.Paths = append(b.Paths, b.rawPaths()...)
@@ -5911,6 +5912,36 @@ This path responds to the following HTTP methods.
 
 	PUT /<path>
 		Unlock the API for a namespace.
+		`,
+	},
+	"list-profiles": {
+		"List profiles.",
+		`
+This path responds to the following HTTP methods.
+
+	LIST /
+		List profiles.
+
+	SCAN /
+		Scan (recursively list) profiles.
+		`,
+	},
+	"profiles": {
+		"Create, read, update and delete namespaces.",
+		`
+This path responds to the following HTTP methods.
+
+	GET /<path>
+		Retrieve a profile.
+
+	PUT /<path>
+		Create or update a profile.
+
+	PATCH /<path>
+		Update a profile.
+
+	DELETE /<path>
+		Delete a profile.
 		`,
 	},
 }

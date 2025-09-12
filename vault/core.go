@@ -657,6 +657,11 @@ type Core struct {
 	// Core invalidation tracker handles dispatching invalidations and
 	// refreshing the Core-adjacent caches afterwards.
 	invalidations *invalidationManager
+
+	// Whether unauthenticated profiles are allowed by this OpenBao
+	// instance.
+	allowUnauthedProfiles bool
+	profileStore          *ProfileStore
 }
 
 // c.stateLock needs to be held in read mode before calling this function.
@@ -2438,6 +2443,8 @@ func (readonlyUnsealStrategy) unsealShared(ctx context.Context, logger log.Logge
 	if err := c.setupAuditedHeadersConfig(ctx); err != nil {
 		return err
 	}
+
+	c.setupProfileStore(ctx)
 
 	// Finally, start processing invalidations. We'll have cleared the queue
 	// when we started this, but any invalidations that occurred during
