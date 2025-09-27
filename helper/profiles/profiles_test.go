@@ -438,6 +438,24 @@ func TestEvaluateField_EvalSourceSuccess(t *testing.T) {
 	}
 }
 
+func TestEvaluateField_EvalSourceNested(t *testing.T) {
+	engine := &ProfileEngine{
+		sourceBuilders: map[string]SourceBuilder{"sum": testBuilderNotEmpty("hello+world", nil), "left": testBuilderNotEmpty("hello", nil), "right": testBuilderNotEmpty("world", nil)},
+		requestHandler: testHandler,
+	}
+	hist := &EvaluationHistory{Requests: map[string]map[string]map[string]interface{}{}, Responses: map[string]map[string]map[string]interface{}{"": {}}}
+
+	field := map[string]interface{}{"eval_source": "b", "eval_type": "string"}
+	var dest string
+	err := engine.evaluateField(context.Background(), hist, field, &dest)
+	if err != nil {
+		t.Fatalf("expected no error, got %v", err)
+	}
+	if dest != "hello" {
+		t.Errorf("dest = %q; want \"hello\"", dest)
+	}
+}
+
 func TestEvaluateField_EvalSourceError(t *testing.T) {
 	engine := &ProfileEngine{
 		sourceBuilders: map[string]SourceBuilder{"b": testBuilderNotEmpty(nil, errors.New("fail"))},
