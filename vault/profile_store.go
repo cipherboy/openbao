@@ -267,6 +267,7 @@ func (ps *ProfileStore) Execute(ctx context.Context, path string, unauthed bool,
 		profiles.WithRequestSource(),
 		profiles.WithResponseSource(),
 		profiles.WithTemplateSource(),
+		profiles.WithCELSource(),
 		profiles.WithInputSource(input, req, data),
 		profiles.WithOutput(output),
 
