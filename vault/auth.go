@@ -197,7 +197,7 @@ func (c *Core) enableCredentialInternal(ctx context.Context, entry *MountEntry, 
 
 	c.auth = newTable
 
-	if err := c.router.Mount(backend, credentialRoutePrefix+entry.Path, entry, view); err != nil {
+	if err := c.router.Mount(backend, sysView, credentialRoutePrefix+entry.Path, entry, view); err != nil {
 		return err
 	}
 
@@ -258,7 +258,7 @@ func (c *Core) disableCredentialInternal(ctx context.Context, path string, updat
 
 	// Get the backend/mount entry for this path, used to remove ignored
 	// replication prefixes
-	backend := c.router.MatchingBackend(ctx, path)
+	backend, _ := c.router.MatchingBackend(ctx, path)
 
 	// Mark the entry as tainted
 	if err := c.taintCredEntry(ctx, ns.ID, path, updateStorage); err != nil {
@@ -1089,7 +1089,7 @@ func (c *Core) setupCredentials(ctx context.Context) error {
 	ROUTER_MOUNT:
 		// Mount the backend
 		path := credentialRoutePrefix + entry.Path
-		err = c.router.Mount(backend, path, entry, view)
+		err = c.router.Mount(backend, sysView, path, entry, view)
 		if err != nil {
 			c.logger.Error("failed to mount auth entry", "path", entry.Path, "namespace", entry.Namespace(), "error", err)
 			return errLoadAuthFailed
@@ -1118,7 +1118,8 @@ func (c *Core) setupCredentials(ctx context.Context) error {
 
 			// this is loaded *after* the normal mounts, including cubbyhole
 			c.router.tokenStoreSaltFunc = c.tokenStore.Salt
-			c.tokenStore.cubbyholeBackend = c.router.MatchingBackend(ctx, mountPathCubbyhole).(*CubbyholeBackend)
+			backend, _ := c.router.MatchingBackend(ctx, mountPathCubbyhole)
+			c.tokenStore.cubbyholeBackend = backend.(*CubbyholeBackend)
 		}
 
 		// Initialize
@@ -1153,7 +1154,7 @@ func (c *Core) teardownCredentials(ctx context.Context) error {
 	if c.auth != nil {
 		authTable := c.auth.shallowClone()
 		for _, e := range authTable.Entries {
-			backend := c.router.MatchingBackend(namespace.ContextWithNamespace(ctx, e.namespace), credentialRoutePrefix+e.Path)
+			backend, _ := c.router.MatchingBackend(namespace.ContextWithNamespace(ctx, e.namespace), credentialRoutePrefix+e.Path)
 			if backend != nil {
 				backend.Cleanup(ctx)
 			}

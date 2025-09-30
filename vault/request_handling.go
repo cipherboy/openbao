@@ -953,7 +953,12 @@ func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request
 	}
 
 	if err == nil && c.requestResponseCallback != nil {
-		c.requestResponseCallback(c.router.MatchingBackend(ctx, req.Path), req, resp)
+		backend, err := c.router.MatchingBackend(ctx, req.Path)
+		if err != nil || backend == nil {
+			// This should not occur and is only valid in test cases
+			return nil, fmt.Errorf("request routed fine but subsequently failed to find matching backend: %w", err)
+		}
+		c.requestResponseCallback(backend, req, resp)
 	}
 
 	// If we saved the token in the request, we should return it in the response
@@ -1285,9 +1290,9 @@ func (c *Core) handleRequest(ctx context.Context, req *logical.Request) (retResp
 		case "kv", "generic":
 			// If we are kv type, first see if we are an older passthrough
 			// backend, and otherwise check the mount entry options.
-			matchingBackend := c.router.MatchingBackend(ctx, req.Path)
+			matchingBackend, err := c.router.MatchingBackend(ctx, req.Path)
 			if matchingBackend == nil {
-				c.logger.Error("unable to retrieve kv backend from router")
+				c.logger.Error("unable to retrieve kv backend from router", "err", err)
 				retErr = multierror.Append(retErr, ErrInternalError)
 				return nil, auth, retErr
 			}

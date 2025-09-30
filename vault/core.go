@@ -922,7 +922,7 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		customListenerHeader: new(atomic.Value),
 		seal:                 conf.Seal,
 		stateLock:            stateLock,
-		router:               NewRouter(),
+		router:               nil,
 		sealed:               new(uint32),
 		sealMigrationDone:    new(uint32),
 		standby:              true,
@@ -980,6 +980,8 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		detectDeadlocks:                detectDeadlocks,
 		unsafeCrossNamespaceIdentity:   conf.UnsafeCrossNamespaceIdentity,
 	}
+
+	c.router = NewRouter(c)
 
 	c.standbyStopCh.Store(make(chan struct{}))
 	atomic.StoreUint32(c.sealed, 1)
@@ -3723,7 +3725,7 @@ func (c *Core) LoadNodeID() (string, error) {
 func (c *Core) DetermineRoleFromLoginRequest(ctx context.Context, mountPoint string, data map[string]interface{}) string {
 	c.authLock.RLock()
 	defer c.authLock.RUnlock()
-	matchingBackend := c.router.MatchingBackend(ctx, mountPoint)
+	matchingBackend, _ := c.router.MatchingBackend(ctx, mountPoint)
 	if matchingBackend == nil || matchingBackend.Type() != logical.TypeCredential {
 		// Role based quotas do not apply to this request
 		return ""
@@ -3738,7 +3740,7 @@ func (c *Core) DetermineRoleFromLoginRequest(ctx context.Context, mountPoint str
 func (c *Core) DetermineRoleFromLoginRequestFromReader(ctx context.Context, mountPoint string, reader io.Reader) string {
 	c.authLock.RLock()
 	defer c.authLock.RUnlock()
-	matchingBackend := c.router.MatchingBackend(ctx, mountPoint)
+	matchingBackend, _ := c.router.MatchingBackend(ctx, mountPoint)
 	if matchingBackend == nil || matchingBackend.Type() != logical.TypeCredential {
 		// Role based quotas do not apply to this request
 		return ""
@@ -3790,7 +3792,7 @@ func (c *Core) aliasNameFromLoginRequest(ctx context.Context, req *logical.Reque
 	// ns path is added while checking matching backend
 	mountPath := strings.TrimPrefix(req.MountPoint, ns.Path)
 
-	matchingBackend := c.router.MatchingBackend(ctx, mountPath)
+	matchingBackend, _ := c.router.MatchingBackend(ctx, mountPath)
 	if matchingBackend == nil || matchingBackend.Type() != logical.TypeCredential {
 		// pathLoginAliasLookAhead operation does not apply to this request
 		return "", nil

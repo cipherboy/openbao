@@ -330,7 +330,7 @@ func (b *SystemBackend) handleRateLimitQuotasUpdate() framework.OperationFunc {
 			if pathSuffix != "" {
 				return logical.ErrorResponse("Quotas cannot contain both a path suffix and a role. If a role is provided, path must be a valid auth mount with a concept of roles"), nil
 			}
-			authBackend := b.Core.router.MatchingBackend(namespace.ContextWithNamespace(ctx, ns), mountPath)
+			authBackend, _ := b.Core.router.MatchingBackend(namespace.ContextWithNamespace(ctx, ns), mountPath)
 			if authBackend == nil || authBackend.Type() != logical.TypeCredential {
 				return logical.ErrorResponse("Mount path %q is not a valid auth method and therefore unsuitable for use with role-based quotas", mountPath), nil
 			}

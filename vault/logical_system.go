@@ -4363,9 +4363,11 @@ func (b *SystemBackend) pathInternalOpenAPI(ctx context.Context, req *logical.Re
 				pluginType = t.(string)
 			}
 
-			backend := b.Core.router.MatchingBackend(ctx, mountPrefix+mount)
-
-			if backend == nil {
+			backend, err := b.Core.router.MatchingBackend(ctx, mountPrefix+mount)
+			if err != nil {
+				b.logger.Error("failed fetching backend for mount: %v", err)
+			}
+			if err != nil || backend == nil {
 				continue
 			}
 

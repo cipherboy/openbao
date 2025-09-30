@@ -8,6 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
+	"runtime"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -33,6 +34,7 @@ var wcAdjacentNonSlashRegEx = regexp.MustCompile(`\+[^/]|[^/]\+`).MatchString
 // Router is used to do prefix based routing of a request to a logical backend
 type Router struct {
 	l                  sync.RWMutex
+	core               *Core
 	root               *radix.Tree
 	mountUUIDCache     *radix.Tree
 	mountAccessorCache *radix.Tree
@@ -42,18 +44,25 @@ type Router struct {
 	// For example, logical/uuid1/foobar -> secrets/ (kv backend) + foobar
 	storagePrefix *radix.Tree
 	logger        hclog.Logger
+	expiration    time.Duration
 }
 
 // NewRouter returns a new router
-func NewRouter() *Router {
+func NewRouter(core *Core) *Router {
 	r := &Router{
+		core:               core,
 		root:               radix.New(),
 		storagePrefix:      radix.New(),
 		mountUUIDCache:     radix.New(),
 		mountAccessorCache: radix.New(),
 		// this will get replaced in production with a real logger but it's useful to have a default in place for tests
 		logger: hclog.NewNullLogger(),
+		// expiration is the value of how long the mount should be valid for.
+		expiration: 15 * time.Second,
 	}
+
+	go r.UnmountTask()
+
 	return r
 }
 
@@ -63,10 +72,68 @@ type routeEntry struct {
 	backend       logical.Backend
 	mountEntry    *MountEntry
 	storageView   logical.Storage
+	systemView    logical.SystemView
 	storagePrefix string
 	rootPaths     atomic.Value
 	loginPaths    atomic.Value
+	expiry        time.Time
 	l             sync.RWMutex
+}
+
+// Backend must be called while holding a read lock. If the backend is not
+// loaded, will be read unlocked, a write lock acquired, and the read lock
+// re-acquired.
+func (re *routeEntry) Backend(core *Core, expiration time.Duration) (logical.Backend, error) {
+	if re.mountEntry.Table != mountTableType {
+		return re.backend, nil
+	}
+
+	if re.backend != nil {
+		return re.backend, nil
+	}
+
+	// Here we assume that if we held a lock, we should release it, re-acquire a
+	// read-write lock, and defer unlocking and re-locking.
+	core.logger.Trace("acquiring backend")
+	defer core.logger.Trace("done acquiring backend")
+
+	re.l.RUnlock()
+	re.l.Lock()
+	defer func() {
+		re.l.Unlock()
+		re.l.RLock()
+	}()
+
+	// Assume we have state lock.
+	nsCtx := namespace.ContextWithNamespace(core.activeContext, re.mountEntry.namespace)
+	backend, sha256, err := core.newLogicalBackend(nsCtx, re.mountEntry, re.systemView, re.storageView)
+	if err != nil {
+		return nil, err
+	}
+
+	if sha256 != re.mountEntry.RunningSha256 {
+		return nil, fmt.Errorf("when reloading backend: plugin sha256 changed expected=%v / this load=%v", re.mountEntry.RunningSha256, sha256)
+	}
+
+	view, ok := re.storageView.(BarrierView)
+	if !ok {
+		return nil, fmt.Errorf("storage view is not barrier view: %T", re.storageView)
+	}
+
+	// See notes in mount.go
+	origReadOnlyErr := view.GetReadOnlyErr()
+	view.SetReadOnlyErr(logical.ErrSetupReadOnly)
+	defer view.SetReadOnlyErr(origReadOnlyErr)
+
+	err = backend.Initialize(nsCtx, &logical.InitializationRequest{Storage: view})
+	if err != nil {
+		return nil, fmt.Errorf("error initializing backend: %w", err)
+	}
+
+	core.logger.Trace("set up new backend", "backend", fmt.Sprintf("%p", backend), "path", re.mountEntry.Path)
+
+	re.backend = backend
+	return backend, nil
 }
 
 type wildcardPath struct {
@@ -167,7 +234,7 @@ func (re *routeEntry) SaltID(id string) string {
 
 // Mount is used to expose a logical backend at a given prefix, using a unique salt,
 // and the barrier view for that path.
-func (r *Router) Mount(backend logical.Backend, prefix string, mountEntry *MountEntry, storageView BarrierView) error {
+func (r *Router) Mount(backend logical.Backend, sysView logical.SystemView, prefix string, mountEntry *MountEntry, storageView BarrierView) error {
 	r.l.Lock()
 	defer r.l.Unlock()
 
@@ -195,6 +262,8 @@ func (r *Router) Mount(backend logical.Backend, prefix string, mountEntry *Mount
 		mountEntry:    mountEntry,
 		storagePrefix: storageView.Prefix(),
 		storageView:   storageView,
+		systemView:    sysView,
+		expiry:        time.Now().Add(r.expiration),
 	}
 	re.rootPaths.Store(pathsToRadix(paths.Root))
 	loginPathsEntry, err := parseUnauthenticatedPaths(paths.Unauthenticated)
@@ -496,10 +565,10 @@ func (r *Router) MatchingMountEntry(ctx context.Context, path string) *MountEntr
 }
 
 // MatchingBackend returns the backend used for a path
-func (r *Router) MatchingBackend(ctx context.Context, path string) logical.Backend {
+func (r *Router) MatchingBackend(ctx context.Context, path string) (logical.Backend, error) {
 	ns, err := namespace.FromContext(ctx)
 	if err != nil {
-		return nil
+		return nil, nil
 	}
 	path = ns.Path + path
 
@@ -507,14 +576,14 @@ func (r *Router) MatchingBackend(ctx context.Context, path string) logical.Backe
 	_, raw, ok := r.root.LongestPrefix(path)
 	r.l.RUnlock()
 	if !ok {
-		return nil
+		return nil, nil
 	}
 
 	re := raw.(*routeEntry)
 	re.l.RLock()
 	defer re.l.RUnlock()
 
-	return re.backend
+	return re.Backend(r.core, r.expiration)
 }
 
 // MatchingSystemView returns the SystemView used for a path
@@ -528,10 +597,12 @@ func (r *Router) MatchingSystemView(ctx context.Context, path string) logical.Sy
 	r.l.RLock()
 	_, raw, ok := r.root.LongestPrefix(path)
 	r.l.RUnlock()
-	if !ok || raw.(*routeEntry).backend == nil {
+
+	if !ok {
 		return nil
 	}
-	return raw.(*routeEntry).backend.System()
+
+	return raw.(*routeEntry).systemView
 }
 
 func (r *Router) MatchingMountByAPIPath(ctx context.Context, path string) string {
@@ -632,6 +703,10 @@ func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenc
 	}
 	re := raw.(*routeEntry)
 
+	var updatedExpiration *time.Time
+	hadExpired := false
+	hadBackend := true
+
 	// Grab a read lock on the route entry, this protects against the backend
 	// being reloaded during a request. The exception is a renew request on the
 	// token store; such a request will have already been routed through the
@@ -639,11 +714,40 @@ func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenc
 	// or we'll be recursively grabbing it.
 	if !(req.Operation == logical.RenewOperation && strings.HasPrefix(req.Path, "auth/token/")) {
 		re.l.RLock()
-		defer re.l.RUnlock()
+		hadExpired = re.expiry.Before(time.Now())
+		hadBackend = re.backend != nil
+		defer func() {
+			createdBackend := re.backend != nil
+			re.l.RUnlock()
+
+			// If we need to update our expiration, grab a separate write lock.
+			if updatedExpiration != nil {
+				re.l.Lock()
+				if re.expiry.Before(*updatedExpiration) {
+					re.expiry = *updatedExpiration
+				}
+				re.l.Unlock()
+			} else if hadExpired && !hadBackend && createdBackend && req.Operation == logical.RollbackOperation {
+				re.l.Lock()
+				stillExpired := re.expiry.Before(time.Now())
+				if re.backend != nil && stillExpired {
+					r.logger.Trace("cleaning up backend created during rollback operation")
+					re.backend.Cleanup(ctx)
+					re.backend = nil
+				}
+				re.l.Unlock()
+			}
+		}()
+	}
+
+	backend, err := re.Backend(r.core, r.expiration)
+	if err != nil {
+		r.logger.Error("failed to load backend", "err", err)
+		return nil, false, false, fmt.Errorf("failed to get backend")
 	}
 
 	// Filtered mounts will have a nil backend
-	if re.backend == nil {
+	if backend == nil {
 		return logical.ErrorResponse("no handler for route %q. route entry found, but backend is nil.", req.Path), false, false, logical.ErrUnsupportedPath
 	}
 
@@ -813,10 +917,17 @@ func (r *Router) routeCommon(ctx context.Context, req *logical.Request, existenc
 
 	// Invoke the backend
 	if existenceCheck {
-		ok, exists, err := re.backend.HandleExistenceCheck(ctx, req)
+		ok, exists, err := backend.HandleExistenceCheck(ctx, req)
 		return nil, ok, exists, err
 	} else {
-		resp, err := re.backend.HandleRequest(ctx, req)
+		// Update expiration if it isn't an ignored operation.
+		if req.Operation != logical.RollbackOperation {
+			when := time.Now().Add(r.expiration)
+			r.logger.Trace("updating expiration on mount", "when", when, "path", re.mountEntry.Path, "operation", req.Operation)
+			updatedExpiration = &when
+		}
+
+		resp, err := backend.HandleRequest(ctx, req)
 		if resp != nil {
 			if len(allowedResponseHeaders) > 0 {
 				resp.Headers = filteredHeaders(resp.Headers, allowedResponseHeaders, nil)
@@ -1098,4 +1209,91 @@ func filteredHeaders(origHeaders map[string][]string, candidateHeaders, deniedHe
 	}
 
 	return retHeaders
+}
+
+func (r *Router) UnmountTask() {
+	for {
+		time.Sleep(10 * time.Second)
+
+		r.core.stateLock.RLock()
+		ctx := r.core.activeContext
+		r.core.stateLock.RUnlock()
+
+		if ctx != nil {
+			if err := r.UnmountTaskOnce(ctx); err != nil {
+				r.logger.Error("failed to handle periodic unmount task", "err", err)
+			}
+		}
+	}
+}
+
+// UnmountTaskOnce is a single-shot helper that walks the tree and checks if a
+// mount should be unmounted because it hasn't been accessed recently enough.
+func (r *Router) UnmountTaskOnce(ctx context.Context) error {
+	// Acquire a read-only lock: while we modify individual entries, we do
+	// not mutate the router itself. Expiration is static so we do not have
+	// to worry about holding a lock while reading it.
+	now := time.Now()
+
+	func() {
+		r.l.RLock()
+		defer r.l.RUnlock()
+
+		r.logger.Trace("starting unmount task")
+		defer r.logger.Trace("finished unmount task")
+
+		allMounts := 0
+		withBackends := 0
+		withoutBackends := 0
+
+		// All currently visible mounts should expire after our expiration
+		// window.
+		r.root.Walk(func(s string, v interface{}) bool {
+			if ctx.Err() != nil {
+				return true
+			}
+
+			entry := v.(*routeEntry)
+
+			entry.l.RLock()
+			hasExpired := entry.expiry.Before(now)
+			isMountType := entry.mountEntry.Table == mountTableType
+			entry.l.RUnlock()
+
+			allMounts += 1
+			if entry.backend == nil {
+				withoutBackends += 1
+			} else {
+				withBackends += 1
+			}
+
+			if !hasExpired || !isMountType {
+				return false
+			}
+
+			entry.l.Lock()
+			defer entry.l.Unlock()
+
+			if entry.expiry.After(now) {
+				return false
+			}
+
+			if entry.backend == nil {
+				return false
+			}
+
+			// Clear this mount since it was not used recently.
+			r.core.logger.Trace("unloading mount", "path", s, "backend", fmt.Sprintf("%p", entry.backend))
+			nsCtx := namespace.ContextWithNamespace(ctx, entry.mountEntry.namespace)
+			entry.backend.Cleanup(nsCtx)
+			entry.backend = nil
+
+			return false
+		})
+
+		r.logger.Info("route entry cleanup", "allMounts", allMounts, "withBackends", withBackends, "withoutBackends", withoutBackends)
+		runtime.GC()
+	}()
+
+	return nil
 }

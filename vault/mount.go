@@ -762,7 +762,7 @@ func (c *Core) mountInternal(ctx context.Context, entry *MountEntry, updateStora
 	}
 	c.mounts = newTable
 
-	if err := c.router.Mount(backend, entry.Path, entry, view); err != nil {
+	if err := c.router.Mount(backend, sysView, entry.Path, entry, view); err != nil {
 		return err
 	}
 
@@ -885,7 +885,7 @@ func (c *Core) unmountInternal(ctx context.Context, path string, updateStorage b
 
 	// Get the backend/mount entry for this path, used to remove ignored
 	// replication prefixes
-	backend := c.router.MatchingBackend(ctx, path)
+	backend, _ := c.router.MatchingBackend(ctx, path)
 
 	// Mark the entry as tainted
 	if err := c.taintMountEntry(ctx, ns.ID, path, updateStorage, true); err != nil {
@@ -1131,7 +1131,8 @@ func (c *Core) remountSecretsEngine(ctx context.Context, src, dst namespace.Moun
 	// periodic rollback manager logs these errors rather than failing
 	// replication like returning this error would do.
 	rCtx := namespace.ContextWithNamespace(c.activeContext, ns)
-	if c.rollback != nil && c.router.MatchingBackend(ctx, srcRelativePath) != nil {
+	backend, _ := c.router.MatchingBackend(ctx, srcRelativePath)
+	if c.rollback != nil && backend != nil {
 		if err := c.rollback.Rollback(rCtx, srcRelativePath); err != nil {
 			c.logger.Error("ignoring rollback error during remount", "error", err, "path", src.Namespace.Path+src.MountPath)
 			err = nil //nolint:ineffassign // we explicitly ignore the error
@@ -1938,7 +1939,7 @@ func (c *Core) setupMounts(ctx context.Context) error {
 
 	ROUTER_MOUNT:
 		// Mount the backend
-		err = c.router.Mount(backend, entry.Path, entry, view)
+		err = c.router.Mount(backend, sysView, entry.Path, entry, view)
 		if err != nil {
 			c.logger.Error("failed to mount entry", "path", entry.Path, "error", err)
 			return errLoadMountsFailed
@@ -1987,7 +1988,7 @@ func (c *Core) unloadMounts(ctx context.Context) error {
 	if c.mounts != nil {
 		mountTable := c.mounts.shallowClone()
 		for _, e := range mountTable.Entries {
-			backend := c.router.MatchingBackend(namespace.ContextWithNamespace(ctx, e.namespace), e.Path)
+			backend, _ := c.router.MatchingBackend(namespace.ContextWithNamespace(ctx, e.namespace), e.Path)
 			if backend != nil {
 				backend.Cleanup(ctx)
 			}

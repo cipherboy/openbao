@@ -177,15 +177,9 @@ func (m *RollbackManager) triggerRollbacks() {
 			path = credentialRoutePrefix + path
 		}
 
-		// When the mount is filtered, the backend will be nil
-		ctx := namespace.ContextWithNamespace(m.quitContext, e.namespace)
-		backend := m.router.MatchingBackend(ctx, path)
-		if backend == nil {
-			continue
-		}
-		fullPath := e.namespace.Path + path
-
 		// Start a rollback if necessary
+		ctx := namespace.ContextWithNamespace(m.quitContext, e.namespace)
+		fullPath := e.namespace.Path + path
 		m.startOrLookupRollback(ctx, fullPath, true)
 	}
 }
@@ -319,7 +313,7 @@ func (m *RollbackManager) attemptRollback(ctx context.Context, fullPath string, 
 	if err != nil {
 		m.logger.Error("error rolling back", "path", fullPath, "error", err)
 	}
-	return
+	return err
 }
 
 // Rollback is used to trigger an immediate rollback of the path,
