@@ -2338,14 +2338,17 @@ func (ts *TokenStore) lookupByAccessor(ctx context.Context, id string, salted, t
 			}
 			if accessorNS != nil {
 				if accessorNS.ID != ns.ID {
-					ns = accessorNS
-					ctx = namespace.ContextWithNamespace(ctx, accessorNS)
+					return nil, fmt.Errorf("cannot lookup token in different namespace")
 				}
 			}
 		} else {
 			// Any non-root-ns token should have an accessor and child
 			// namespaces cannot have custom IDs. If someone omits or tampers
 			// with it, the lookup in the root namespace simply won't work.
+			if ns.ID != namespace.RootNamespaceID {
+				return nil, fmt.Errorf("cannot lookup token in different namespace")
+			}
+
 			ns = namespace.RootNamespace
 			ctx = namespace.ContextWithNamespace(ctx, ns)
 		}
