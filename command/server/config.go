@@ -437,6 +437,10 @@ func parsePlugins(name string, list *ast.ObjectList) ([]*PluginConfig, error) {
 		}
 		i.RawConfig = m
 
+		if !configutil.ParseEitherNamedKey(item, &i.Type, &i.Name) {
+			return result, fmt.Errorf("%v.%d: plugin type and name must be specified either as keys or block parameters", name, index)
+		}
+
 		switch {
 		case i.Type != "":
 		case len(item.Keys) == 2:
@@ -1531,20 +1535,8 @@ func parseAuditDevices(name string, list *ast.ObjectList) ([]*AuditDevice, error
 		}
 		i.RawConfig = m
 
-		switch {
-		case i.Type != "":
-		case len(item.Keys) == 2:
-			i.Type = item.Keys[0].Token.Value().(string)
-		default:
-			return result, fmt.Errorf("%v.%d: %v type must be specified: %#v", name, index, name, item)
-		}
-
-		switch {
-		case i.Path != "":
-		case len(item.Keys) == 2:
-			i.Path = item.Keys[1].Token.Value().(string)
-		default:
-			return result, fmt.Errorf("%v.%d: %v path must be specified: %#v", name, index, name, item)
+		if !configutil.ParseEitherNamedKey(item, &i.Type, &i.Path) {
+			return result, fmt.Errorf("%v.%d: audit type and path must be specified either as keys or block parameters: %#v", name, index, name, item)
 		}
 
 		result = append(result, &i)

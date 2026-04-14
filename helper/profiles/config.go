@@ -223,16 +223,7 @@ func ParseFieldSchemaConfig(list *ast.ObjectList) ([]*FieldSchemaConfig, error) 
 		}
 		r.RawConfig = m
 
-		switch {
-		case r.TypeRaw != "" && r.Name != "":
-		case r.TypeRaw != "" && r.Name == "" && len(item.Keys) == 1:
-			r.Name = item.Keys[0].Token.Value().(string)
-		case r.TypeRaw == "" && r.Name != "" && len(item.Keys) == 1:
-			r.TypeRaw = item.Keys[0].Token.Value().(string)
-		case r.TypeRaw == "" && r.Name == "" && len(item.Keys) == 2:
-			r.TypeRaw = item.Keys[0].Token.Value().(string)
-			r.Name = item.Keys[1].Token.Value().(string)
-		default:
+		if !configutil.ParseEitherNamedKey(item, &r.TypeRaw, &r.Name) {
 			return result, fmt.Errorf("field.%d: field type and name must be specified either as keys or block parameters", i)
 		}
 
