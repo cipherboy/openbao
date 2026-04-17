@@ -97,7 +97,8 @@ const (
 	// rate limit resource quotas. Specifically, when this toggle is false, we can
 	// infer a Vault node is operating with an initial default set and on a subsequent
 	// update to that set, we should not overwrite it on Setup.
-	DefaultRateLimitExemptPathsToggle = StoragePrefix + "default_rate_limit_exempt_paths_toggle"
+	DefaultRateLimitExemptPathsToggle     = StoragePrefix + DefaultRateLimitExemptPathsToggleName
+	DefaultRateLimitExemptPathsToggleName = "default_rate_limit_exempt_paths_toggle"
 )
 
 var (
@@ -944,6 +945,11 @@ func dbSchema() *memdb.DBSchema {
 // updates the caches and data structures to reflect those updates.
 func (m *Manager) Invalidate(key string) error {
 	switch key {
+	case DefaultRateLimitExemptPathsToggleName:
+		// Ignore: wait until server restart to apply this value. This gives
+		// us inconsistent values across active/standby nodes but saves us
+		// having to exacerbate configuration reloading of it, preserving the
+		// existing behavior.
 	case "config":
 		config, err := LoadConfig(m.ctx, m.storage)
 		if err != nil {
