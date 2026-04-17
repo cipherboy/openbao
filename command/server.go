@@ -2759,6 +2759,7 @@ func createCoreConfig(c *ServerCommand, config *server.Config, backend physical.
 		EnableResponseHeaderRaftNodeID: config.EnableResponseHeaderRaftNodeID,
 		UnsafeCrossNamespaceIdentity:   config.UnsafeCrossNamespaceIdentity,
 		AllowUnauthenticatedWorkflows:  config.AllowUnauthenticatedWorkflows,
+		UnsafeRelativePaths:            config.UnsafeRelativePaths,
 	}
 
 	if config.DisableSSCTokens != nil {
