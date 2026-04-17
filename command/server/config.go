@@ -59,6 +59,9 @@ type Config struct {
 	DisablePrintableCheck    bool        `hcl:"-"`
 	DisablePrintableCheckRaw interface{} `hcl:"disable_printable_check"`
 
+	EnableTTLInvalidation bool `hcl:"enable_ttl_invalidation"`
+	InvalidationTTL       int  `hcl:"invalidation_ttl"`
+
 	EnableUI    bool        `hcl:"-"`
 	EnableUIRaw interface{} `hcl:"ui"`
 
@@ -512,6 +515,16 @@ func (c *Config) Merge(c2 *Config) *Config {
 	result.DisableCache = c.DisableCache
 	if c2.DisableCache {
 		result.DisableCache = c2.DisableCache
+	}
+
+	result.InvalidationTTL = c.InvalidationTTL
+	if c2.InvalidationTTL != 0 {
+		result.InvalidationTTL = c2.InvalidationTTL
+	}
+
+	result.EnableTTLInvalidation = c.EnableTTLInvalidation
+	if c2.EnableTTLInvalidation {
+		result.EnableTTLInvalidation = c2.EnableTTLInvalidation
 	}
 
 	result.DisableSentinelTrace = c.DisableSentinelTrace

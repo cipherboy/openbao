@@ -635,7 +635,9 @@ type Core struct {
 	allowUnauthedWorkflows bool
 	workflowStore          *WorkflowStore
 
-	unsafeRelativePaths bool
+	unsafeRelativePaths   bool
+	enableTTLInvalidation bool
+	invalidationTTL       int
 }
 
 // c.stateLock needs to be held in read mode before calling this function.
@@ -790,7 +792,9 @@ type CoreConfig struct {
 
 	AllowUnauthenticatedWorkflows bool
 
-	UnsafeRelativePaths bool
+	UnsafeRelativePaths   bool
+	EnableTTLInvalidation bool
+	InvalidationTTL       int
 }
 
 // GetServiceRegistration returns the config's ServiceRegistration, or nil if it does
@@ -947,6 +951,8 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		unsafeCrossNamespaceIdentity:   conf.UnsafeCrossNamespaceIdentity,
 		allowUnauthedWorkflows:         conf.AllowUnauthenticatedWorkflows,
 		unsafeRelativePaths:            conf.UnsafeRelativePaths,
+		enableTTLInvalidation:          conf.EnableTTLInvalidation,
+		invalidationTTL:                conf.InvalidationTTL,
 	}
 
 	c.standby.Store(true)
@@ -1026,19 +1032,34 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 
 func coreInit(c *Core, conf *CoreConfig) error {
 	phys := conf.Physical
+	hookLayer := c.underlyingPhysical
+
+	haEnabled := conf.HAPhysical != nil && conf.HAPhysical.HAEnabled()
+
 	// Wrap the physical backend in a cache layer if enabled
 	cacheLogger := c.baseLogger.Named("storage.cache")
 	c.allLoggers = append(c.allLoggers, cacheLogger)
 	c.physical = physical.NewCache(phys, conf.CacheSize, cacheLogger, c.MetricSink().Sink)
 	c.physicalCache = c.physical.(physical.ToggleablePurgemonster)
 
+	// Wrap physical for invalidation.
+	if _, ok := phys.(physical.CacheInvalidationBackend); !ok && c.enableTTLInvalidation && haEnabled {
+		c.logger.Debug("enabling ttl-based invalidation on HA backend")
+		ttlLogger := c.baseLogger.Named("storage.ttlinv")
+		c.allLoggers = append(c.allLoggers, ttlLogger)
+		c.physical = physical.NewTTLInvalidation(c.physical, time.Duration(c.invalidationTTL)*time.Second, ttlLogger, c.MetricSink().Sink)
+		hookLayer = c.physical
+	} else {
+		c.logger.Debug("skipping ttl-based invalidation", "ha-enabled", haEnabled, "ttl-invalidation", c.enableTTLInvalidation, "cache_invalidation", ok)
+	}
+
 	// Wrap in encoding checks
 	if !conf.DisableKeyEncodingChecks {
 		c.physical = physical.NewStorageEncoding(c.physical)
 	}
 
-	if c.StandbyReadsEnabled() {
-		c.underlyingPhysical.(physical.CacheInvalidationBackend).HookInvalidate(c.Invalidate)
+	if c.StandbyReadsEnabled() && haEnabled {
+		hookLayer.(physical.CacheInvalidationBackend).HookInvalidate(c.Invalidate)
 	}
 
 	return nil

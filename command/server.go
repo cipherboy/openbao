@@ -2760,6 +2760,8 @@ func createCoreConfig(c *ServerCommand, config *server.Config, backend physical.
 		UnsafeCrossNamespaceIdentity:   config.UnsafeCrossNamespaceIdentity,
 		AllowUnauthenticatedWorkflows:  config.AllowUnauthenticatedWorkflows,
 		UnsafeRelativePaths:            config.UnsafeRelativePaths,
+		EnableTTLInvalidation:          config.EnableTTLInvalidation,
+		InvalidationTTL:                config.InvalidationTTL,
 	}
 
 	if config.DisableSSCTokens != nil {
