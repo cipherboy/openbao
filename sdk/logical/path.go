@@ -20,30 +20,19 @@ func IsRelativePath(path string) bool {
 		return true
 	}
 
-	var index int
-	for index < len(path) {
-		switch path[index] {
-		case '/':
-			// Check for relative path portions at the end of the request path.
-			if (index+2 == len(path) && path[index:index+2] == "/.") ||
-				(index+3 == len(path) && path[index:index+3] == "/..") ||
-				(index+3 == len(path) && path[index:index+3] == "/./") ||
-				(index+4 == len(path) && path[index:index+4] == "/../") {
-				return true
-			}
+	// Check for relative path portions at the end of the request path.
+	if strings.HasSuffix(path, "/.") || strings.HasSuffix(path, "/..") {
+		return true
+	}
 
+	for index := range len(path) {
+		if path[index] == '/' {
 			// Check for relative path portions in the middle.
-			if (index+3 < len(path) && path[index:index+3] == "/./") ||
-				(index+4 < len(path) && path[index:index+4] == "/../") {
+			if (index+3 <= len(path) && path[index:index+3] == "/./") ||
+				(index+4 <= len(path) && path[index:index+4] == "/../") {
 				return true
 			}
-
-			// At minimum we can skip one additional character due to lookahead
-			// we performed.
-			index += 1
 		}
-
-		index += 1
 	}
 
 	return false
