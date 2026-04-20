@@ -42,10 +42,11 @@ func testConfigRaftRetryJoin(t *testing.T) {
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:8200",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:8200",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 		},
@@ -78,10 +79,11 @@ func testLoadConfigFile_topLevel(t *testing.T, entropy *configutil.Entropy) {
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:443",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:443",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 
@@ -189,16 +191,18 @@ func testLoadConfigFile_json2(t *testing.T, entropy *configutil.Entropy) {
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:443",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:443",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:444",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:444",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 
@@ -291,10 +295,11 @@ func testLoadConfigFileIntegerAndBooleanValuesCommon(t *testing.T, path string) 
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:8200",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:8200",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 		},
@@ -339,10 +344,11 @@ func testLoadConfigFile(t *testing.T) {
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:443",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:443",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 
@@ -551,10 +557,11 @@ func testLoadConfigFile_json(t *testing.T) {
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:443",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:443",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 
@@ -636,10 +643,11 @@ func testLoadConfigDir(t *testing.T) {
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:443",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:443",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 
@@ -869,8 +877,9 @@ listener "tcp" {
 					ProxyAPI: &configutil.ProxyAPI{
 						EnableQuit: true,
 					},
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 		},
@@ -968,12 +977,13 @@ EOF
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:443",
-					ClusterAddress:                "127.0.0.1:8201",
-					TLSDisable:                    true,
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:443",
+					ClusterAddress:                       "127.0.0.1:8201",
+					TLSDisable:                           true,
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 		},
@@ -1048,10 +1058,11 @@ func testParseSeals(t *testing.T) {
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:443",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:443",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 			Seals: []*configutil.KMS{
@@ -1107,10 +1118,11 @@ func testLoadConfigFileLeaseMetrics(t *testing.T) {
 		SharedConfig: &configutil.SharedConfig{
 			Listeners: []*configutil.Listener{
 				{
-					Type:                          "tcp",
-					Address:                       "127.0.0.1:443",
-					CustomResponseHeaders:         DefaultCustomHeaders,
-					DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(true),
+					Type:                                 "tcp",
+					Address:                              "127.0.0.1:443",
+					CustomResponseHeaders:                DefaultCustomHeaders,
+					DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(true),
+					DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(true),
 				},
 			},
 

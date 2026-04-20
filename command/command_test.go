@@ -175,6 +175,11 @@ func testVaultServerUnsealWithKVVersionWithSeal(tb testing.TB, kvVersion string,
 		HandlerFunc: vaulthttp.Handler,
 		NumCores:    1,
 		KVVersion:   kvVersion,
+		DefaultHandlerProperties: vault.HandlerProperties{
+			ListenerConfig: &configutil.Listener{
+				DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(false),
+			},
+		},
 	})
 }
 
@@ -219,7 +224,8 @@ func testVaultServerUnauthedEndpointsEnabledWithAutoseal(tb testing.TB) (*api.Cl
 		HandlerFunc: vaulthttp.Handler,
 		DefaultHandlerProperties: vault.HandlerProperties{
 			ListenerConfig: &configutil.Listener{
-				DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(false),
+				DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(false),
+				DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(false),
 			},
 		},
 		NumCores: 1,
@@ -236,7 +242,8 @@ func testVaultServerUnauthedEndpointsEnabled(tb testing.TB) (*api.Client, []stri
 		HandlerFunc: vaulthttp.Handler,
 		DefaultHandlerProperties: vault.HandlerProperties{
 			ListenerConfig: &configutil.Listener{
-				DisableUnauthedRekeyEndpoints: pointerutil.BoolPtr(false),
+				DisableUnauthedRekeyEndpoints:        pointerutil.BoolPtr(false),
+				DisableUnauthedGenerateRootEndpoints: pointerutil.BoolPtr(false),
 			},
 		},
 		NumCores: 1,
