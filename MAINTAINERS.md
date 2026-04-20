@@ -23,7 +23,7 @@ See the information about community membership roles to learn about the role of 
 | Pascal Reeb      | [@pree](https://github.com/pree)                       | [helm], [csi-provider], [k8s], [secrets-operator], and [openbao-plugins `secrets/consul/`]        |
 | Philipp Stehle   | [@phil9909](https://github.com/phil9909)               | [`vault/`], and [openbao-plugins]                                                                 |
 | Tom Gehrke       | [@phyrog](https://github.com/phyrog)                   | [`vault/`]                                                                                        |
-| Tomasz Madej     | [@tomek-securosys](https://github.com/tomek-securosys) | [`go-kms-wrapping/{kms,wrapper}/securosyshsm`][g-k-w]                                              |
+| Tomasz Madej     | [@tomek-securosys](https://github.com/tomek-securosys) | [`go-kms-wrapping/{kms,wrapper}/securosyshsm`][g-k-w]                                             |
 | Toni Tauro       | [@eyenx](https://github.com/eyenx)                     | [helm], [csi-provider], [k8s], [secrets-operator], and [openbao-plugins `secrets/consul/`]        |
 | Wojciech Slabosz | [@wslabosz-reply](https://github.com/wslabosz-reply)   | [`vault/`]                                                                                        |
 | Yannis           | [@Nerkho](https://github.com/Nerkho)                   | [helm], [csi-provider], [k8s], [secrets-operator], and [openbao-plugins `secrets/consul/`]        |
