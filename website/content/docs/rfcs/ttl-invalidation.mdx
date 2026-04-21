@@ -1,0 +1,259 @@
+---
+sidebar_label: TTL Invalidation
+description: |-
+  An OpenBao RFC for using TTL-based invalidation and eventual consistency
+  to achieve horizontal read scalability on non-WAL-hooked storage backends
+  like PostgreSQL.
+---
+
+# TTL-Based Cache Invalidation.
+
+## Summary
+
+By tracking reads with a TTL-based expiry for renewal, OpenBao can effectively
+add storage-agnostic support for read scalability without requiring an
+out-of-band WAL mechanism, whether native to the storage or GRPC based. While
+our initial [read scalability](standby-nodes-handle-read-requests.mdx) was
+built with Raft's WAL semantics, adopting it for general PostgreSQL deployments
+has been difficult. This proposal extends to any generic HA-capable storage
+backend with external synchronization, at the cost of getting delayed eventual
+consistency.
+
+## Problem statement
+
+The original [PostgreSQL operationalization RFC](postgresql.mdx) noted that
+OpenBao's requirements for PostgreSQL use may cause issues for read replication
+in the future. While [designing and implementing read
+replication](standby-nodes-handle-read-requests.mdx), we noted that
+cache invalidation was the core design challenge, and drafted a dedicated RFC
+[on invalidation](invalidation.mdx), noting some of the challenges with a
+backend-agnostic implementation at the time.
+
+Notably, we had a few restrictions on PostgreSQL use:
+
+1. While PostgreSQL has a WAL, this is only available on the primary node;
+   applications cannot listen to WAL events if they're connected to secondary
+   nodes and thus need to consume a replication slot on the primary.
+   - `LISTEN`/`NOTIFY` have the same challenge.
+2. It is up to the application to manage replication slots; if a replication
+   slot is not consumed (but reserved), it will continue to hold back WALs,
+   causing resource usage. As OpenBao with PostgreSQL-based HA is more
+   ephemeral than Raft and supports auto-scaling, it would be ideal if we can
+   avoid long-lived resource management.
+3. PostgreSQL's default WAL level, `replica`, is not sufficient to enable
+   the feature as discussed in the earlier RFC.
+
+This lead to our initial RFC proposing a table-based design, which has many
+of the same shortcomings, though allowing the active OpenBao node to track
+standbys and cleanup the WAL table.
+
+Ultimately though, as long as cache invalidation occurs somehow, we should
+be able to combine future header-based retry mechanisms with any form of
+eventual consistency to achieve read scalability. Additional mechanisms can
+be added in the future as well if necessary.
+
+Notably, because OpenBao's cache mechanism is already WAL-event based, for a
+given cache key, we have a storage-based routing mechanism to handle notifying
+the key's owner of the potential need to reload. Our current implementation,
+with few exceptions, is currently fairly efficient as well: because
+invalidation notification does not pass along a storage handle, plugins assume
+that invalidation occurs on their next request using the data (notify-only),
+rather than actively reloading data.
+
+## Technical description
+
+We can take advantage of the efficiency properties and the existing routing
+mechanism by injecting a new TTL-based cache invalidation layer in the middle
+of the storage stack, right on top of the cache. From our cross-testing layer
+hierarchy:
+
+1. `[disk]` A low-level backend, such as raft, postgresql, or inmem. Only the
+   former two are supported for production use, but inmem is frequently used
+   for dev mode and as a part of our test suite.
+2. A cache; this caches read operations, avoiding having to round-trip to
+   a potentially slow backend over a slow network for repeated reads to
+   the same entry.
+3. **`[new]`** TTL-based cache invalidation on PostgreSQL, using read-based
+   expiration triggers to handle cache invalidation notifications.
+4. An error validation layer (encoding); this prevents writes with invalid
+   keys (non-utf-8 or non-printable characters).
+5. Our barrier encryption; this handles all encryption of storage entries.
+   At this point, we convert a physical.Backend into a logical.Storage
+   interface.
+6. A storage view; this restricts the access of the above barrier
+   encryption layer to a prefix.
+7. `[plugin]` A barrier view; this is what is ultimately given to the plugin
+   backends; it has a limited interface.
+
+This invalidation layer can be implemented efficiently with
+[zcache](https://github.com/arp242/zcache) through hooking the `Get(...)`
+call. Hooking write calls (like `Put(...)`, `Delete(...)`) aren't necessary
+as they aren't effective on standby nodes (as writes will be forwarded to the
+active node which doesn't have the same storage invalidation problem) and
+list calls are not cached on standby nodes.
+
+In particular, we can use [`GetOrAdd`](https://pkg.go.dev/zgo.at/zcache/v2#Cache.GetOrAdd)
+to add read entries to be invalidated later. This will keep the existing
+expiration time when the entry already exists in storage. With transactions,
+we can record every read operation and queue them on commit or rollback.
+Hooking into [`OnEvicted`](https://pkg.go.dev/zgo.at/zcache/v2#Cache.OnEvicted)
+lets us then implement `physical.CacheInvalidationBackend`; on cache entry
+expiry, we can call the provided invalidation hook. Notably, semantics (lack
+of error handler) are the same and the invalidation hook is assumed to be fast
+as it uses a queue based system.
+
+### Configuration options
+
+- `enable_ttl_invalidation` `(bool: false)` - whether to enable this new
+  TTL-based cache invalidation mechanism. When storage is Raft or if the
+  underlying storage mechanism supports a better invalidation mechanism,
+  this will be ignored.
+- `invalidation_ttl` `(duration: 15 seconds)` - how long before items which
+  have been read are considered stale.
+
+## Rationale and alternatives
+
+See above past RFCs for alternatives.
+
+The rationale for this is simple: this change is the smallest, quickest way
+to deliver PostgreSQL-based read scalability without requiring an extensive
+GRPC-based change.
+
+## Downsides
+
+- On systems with high load, we'll want an enhancement to
+  [zcache](https://github.com/arp242/zcache/issues/12) in order to limit the
+  maximum size of the to-be-invalidated cache.
+- Certain storage entries (like the mount table &c) are immediately reloaded
+  on invalidation; we should attempt to limit that or provide alternative
+  invalidation timeouts for those paths as they cause continual background
+  churn on the system.
+  - A future enhancement may lead to proper diffing of the mount table storage
+    entry to see if it was actually modified or not, ignoring if it wasn't.
+
+## Security implications
+
+This should have no net-new security implications beyond those imposed
+by eventual consistency.
+
+## User/developer experience
+
+This further exacerbates issues with consistency seen in discussions like
+https://github.com/openbao/openbao/issues/1528 and others. To solve this
+is outside of the scope of this issue, though users can have as short of a
+consistency window (`invalidation_ttl`) as they'd like, though this still
+depends on their system capacity and storage replication speed.
+
+## Unresolved questions
+
+1. Should transaction rollback also record for future invalidation?
+
+## Related issues
+
+- https://github.com/arp242/zcache/issues/12 for improvements to cache
+  eviction.
+
+## Proof of concept
+
+See [proof of concept](https://github.com/openbao/openbao/compare/main...cipherboy:openbao:psql-invalidation?expand=1)
+branch.
+
+To run:
+
+<details>
+
+<summary> Configuration </summary>
+
+```hcl
+
+listener "tcp" {
+  address = "0.0.0.0:8200"
+  tls_disable = true
+}
+
+storage "postgresql" {
+  connection_url = "postgres://username:password@127.0.0.1:5432/postgres"
+  ha_enabled = true
+  max_connect_retries = 30
+  max_idle_connections = 2
+  max_parallel = 5
+}
+
+cluster_addr = "http://127.0.0.1:8201"
+api_addr = "http://127.0.0.1:8200"
+raw_storage_endpoint = true
+introspection_endpoint = true
+log_level = "trace"
+
+enable_ttl_invalidation = true
+invalidation_ttl = 5
+
+initialize "identity" {
+  request "mount-userpass" {
+    operation = "update"
+    path = "sys/auth/userpass"
+    data = {
+      type = "userpass"
+      path = "userpass/"
+      description = "admin"
+    }
+  }
+
+  request "userpass-add-admin" {
+    operation = "update"
+    path = "auth/userpass/users/admin"
+    data = {
+      "password" = "admin"
+      "token_policies" = ["superuser"]
+    }
+  }
+}
+
+initialize "policy" {
+  request "add-superuser-policy" {
+    operation = "update"
+    path = "sys/policies/acl/superuser"
+    data = {
+      policy = <<EOP
+path "*" {
+  capabilities = ["create", "update", "read", "delete", "list", "scan", "sudo"]
+}
+EOP
+    }
+  }
+}
+
+audit "file" "stdout" {
+  options = {
+    file_path = "stdout"
+    log_raw = "true"
+  }
+}
+
+seal "static" {
+  current_key_id = "20250630"
+  current_key = "542a91c2aff86797e8dfa16adf86dcbea5706410791b319798936a1b08e4ef8b"
+}
+```
+
+</details>
+
+modifying for `config-2.hcl` to assign new ports. Execute PostgreSQL and two
+OpenBao instances:
+
+```
+$ podman run --replace --name postgres -e POSTGRES_USER=username -e POSTGRES_PASSWORD=password -p 5432:5432 --detach postgres:latest
+$ bao server -config config.hcl &
+$ bao server -config config-2.hcl &
+```
+
+You can then interact with the two instances as desired:
+
+```
+export BAO_ADDR=http://127.0.0.1:8200
+export BAO_TOKEN=$(bao write -field=token auth/userpass/login/admin password=admin)
+
+
+export BAO_ADDR=http://127.0.0.1:8300
+export BAO_TOKEN=$(bao write -field=token auth/userpass/login/admin password=admin)
+```
