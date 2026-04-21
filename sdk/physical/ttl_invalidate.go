@@ -8,6 +8,7 @@ package physical
 import (
 	"context"
 	"path"
+	"slices"
 	"sync"
 	"time"
 
@@ -29,7 +30,7 @@ type ttlInvalidate struct {
 	ttl        time.Duration
 	logger     log.Logger
 	cache      *zcache.Cache[string, struct{}]
-	listCache  *zcache.Cache[ttlInvalidateListArgs, struct{}]
+	listCache  *zcache.Cache[ttlInvalidateListArgs, []string]
 	hookLock   sync.RWMutex
 	hook       InvalidateFunc
 	metricSink metrics.MetricSink
@@ -44,7 +45,7 @@ type ttlInvalidateTransaction struct {
 	txn         Transaction
 	readLock    sync.Mutex
 	readEntries map[string]struct{}
-	listEntries map[string][]*ttlInvalidateListArgs
+	listEntries map[string]map[ttlInvalidateListArgs][]string
 }
 
 func NewTTLInvalidation(b Backend, ttl time.Duration, logger log.Logger, metricSink metrics.MetricSink) Backend {
@@ -57,7 +58,7 @@ func NewTTLInvalidation(b Backend, ttl time.Duration, logger log.Logger, metricS
 	}
 
 	cache := zcache.New[string, struct{}](ttl, 50*time.Millisecond)
-	listCache := zcache.New[ttlInvalidateListArgs, struct{}](ttl*2, 100*time.Millisecond)
+	listCache := zcache.New[ttlInvalidateListArgs, []string](ttl*2, 100*time.Millisecond)
 
 	t := &ttlInvalidate{
 		backend:    b,
@@ -72,8 +73,8 @@ func NewTTLInvalidation(b Backend, ttl time.Duration, logger log.Logger, metricS
 		t.HandleEviction(path)
 	})
 
-	listCache.OnEvicted(func(call ttlInvalidateListArgs, value struct{}) {
-		t.HandleListEviction(call)
+	listCache.OnEvicted(func(call ttlInvalidateListArgs, results []string) {
+		t.HandleListEviction(call, results)
 	})
 
 	if _, ok := b.(TransactionalBackend); ok {
@@ -88,7 +89,6 @@ func NewTTLInvalidation(b Backend, ttl time.Duration, logger log.Logger, metricS
 func (t *ttlInvalidate) HookInvalidate(hook InvalidateFunc) {
 	t.hookLock.Lock()
 	defer t.hookLock.Unlock()
-	t.logger.Trace("hooking invalidation")
 	t.hook = hook
 }
 
@@ -96,18 +96,14 @@ func (t *ttlInvalidate) HandleEviction(path string) {
 	t.hookLock.RLock()
 	defer t.hookLock.RUnlock()
 
-	t.logger.Trace("handling triggering invalidation", "key", path, "hook", t.hook != nil)
 	if t.hook != nil {
-		t.logger.Trace("dispatching invalidation", "key", path)
 		t.hook(path)
 	}
 }
 
-func (t *ttlInvalidate) HandleListEviction(call ttlInvalidateListArgs) {
+func (t *ttlInvalidate) HandleListEviction(call ttlInvalidateListArgs, callResults []string) {
 	ctx, cancel := context.WithTimeout(context.Background(), t.ttl)
 	defer cancel()
-
-	t.logger.Trace("handling invalidation of list", "prefix", call.prefix, "after", call.after, "limit", call.limit)
 
 	results, err := t.backend.ListPage(ctx, call.prefix, call.after, call.limit)
 	if err != nil {
@@ -117,24 +113,36 @@ func (t *ttlInvalidate) HandleListEviction(call ttlInvalidateListArgs) {
 
 	if t.hook != nil {
 		for _, suffix := range results {
-			fullpath := path.Join(call.prefix, suffix)
-			t.trackRead(fullpath)
+			if !slices.Contains(callResults, suffix) {
+				t.logger.Trace("handling invalidation of list: got new path", "prefix", call.prefix, "after", call.after, "limit", call.limit, "new", suffix, "previously", len(callResults), "now", len(results))
+
+				fullpath := path.Join(call.prefix, suffix)
+				t.trackRead(fullpath)
+			}
+		}
+
+		for _, suffix := range callResults {
+			if !slices.Contains(results, suffix) {
+				t.logger.Trace("handling invalidation of list: got deleted path", "prefix", call.prefix, "after", call.after, "limit", call.limit, "new", suffix, "previously", len(callResults), "now", len(results))
+
+				fullpath := path.Join(call.prefix, suffix)
+				t.trackRead(fullpath)
+			}
 		}
 	}
 }
 
 func (t *ttlInvalidate) trackRead(path string) {
-	t.logger.Trace("tracking read for future invalidation", "key", path)
 	t.cache.GetOrAdd(path, struct{}{})
 }
 
-func (t *ttlInvalidate) trackList(prefix string, after string, limit int) {
-	t.logger.Trace("tracking list for future invalidation", "prefix", prefix, "after", after, "limit", limit)
+func (t *ttlInvalidate) trackList(prefix string, after string, limit int, results []string) {
+	t.logger.Trace("tracking list for future invalidation", "prefix", prefix, "after", after, "limit", limit, "results", len(results))
 	t.listCache.GetOrAdd(ttlInvalidateListArgs{
 		prefix: prefix,
 		after:  after,
 		limit:  limit,
-	}, struct{}{})
+	}, results)
 }
 
 func (t *ttlInvalidate) Put(ctx context.Context, entry *Entry) error {
@@ -151,13 +159,21 @@ func (t *ttlInvalidate) Delete(ctx context.Context, key string) error {
 }
 
 func (t *ttlInvalidate) List(ctx context.Context, prefix string) ([]string, error) {
-	t.trackList(prefix, "", -1)
-	return t.backend.List(ctx, prefix)
+	results, err := t.backend.List(ctx, prefix)
+	if err == nil {
+		t.trackList(prefix, "", -1, results)
+	}
+
+	return results, err
 }
 
 func (t *ttlInvalidate) ListPage(ctx context.Context, prefix string, after string, limit int) ([]string, error) {
-	t.trackList(prefix, after, limit)
-	return t.backend.ListPage(ctx, prefix, after, limit)
+	results, err := t.backend.ListPage(ctx, prefix, after, limit)
+	if err == nil {
+		t.trackList(prefix, after, limit, results)
+	}
+
+	return results, err
 }
 
 func (t *transactionalTtlInvalidate) BeginReadOnlyTx(ctx context.Context) (Transaction, error) {
@@ -170,7 +186,7 @@ func (t *transactionalTtlInvalidate) BeginReadOnlyTx(ctx context.Context) (Trans
 		parent:      t,
 		txn:         txn,
 		readEntries: map[string]struct{}{},
-		listEntries: map[string][]*ttlInvalidateListArgs{},
+		listEntries: map[string]map[ttlInvalidateListArgs][]string{},
 	}, nil
 }
 
@@ -184,7 +200,7 @@ func (t *transactionalTtlInvalidate) BeginTx(ctx context.Context) (Transaction, 
 		parent:      t,
 		txn:         txn,
 		readEntries: map[string]struct{}{},
-		listEntries: map[string][]*ttlInvalidateListArgs{},
+		listEntries: map[string]map[ttlInvalidateListArgs][]string{},
 	}, nil
 }
 
@@ -209,34 +225,46 @@ func (t *ttlInvalidateTransaction) Delete(ctx context.Context, key string) error
 	return t.txn.Delete(ctx, key)
 }
 
-func (t *ttlInvalidateTransaction) trackList(prefix string, after string, limit int) {
+func (t *ttlInvalidateTransaction) trackList(prefix string, after string, limit int, results []string) {
 	t.readLock.Lock()
 	defer t.readLock.Unlock()
 
 	var found bool
-	for _, entry := range t.listEntries[prefix] {
-		if entry.after == after && entry.limit == limit {
+	for entry, entryResults := range t.listEntries[prefix] {
+		if entry.after == after && entry.limit == limit && slices.Equal(entryResults, results) {
 			found = true
 			break
 		}
 	}
 
 	if !found {
-		t.listEntries[prefix] = append(t.listEntries[prefix], &ttlInvalidateListArgs{
+		if t.listEntries[prefix] == nil {
+			t.listEntries[prefix] = map[ttlInvalidateListArgs][]string{}
+		}
+
+		t.listEntries[prefix][ttlInvalidateListArgs{
 			after: after,
 			limit: limit,
-		})
+		}] = results
 	}
 }
 
 func (t *ttlInvalidateTransaction) List(ctx context.Context, prefix string) ([]string, error) {
-	t.trackList(prefix, "", -1)
-	return t.txn.List(ctx, prefix)
+	results, err := t.txn.List(ctx, prefix)
+	if err == nil {
+		t.trackList(prefix, "", -1, results)
+	}
+
+	return results, err
 }
 
 func (t *ttlInvalidateTransaction) ListPage(ctx context.Context, prefix string, after string, limit int) ([]string, error) {
-	t.trackList(prefix, after, limit)
-	return t.txn.ListPage(ctx, prefix, after, limit)
+	results, err := t.txn.ListPage(ctx, prefix, after, limit)
+	if err == nil {
+		t.trackList(prefix, after, limit, results)
+	}
+
+	return results, err
 }
 
 func (t *ttlInvalidateTransaction) Commit(ctx context.Context) error {
@@ -266,8 +294,8 @@ func (t *ttlInvalidateTransaction) handleTracking() {
 	}
 
 	for prefix, args := range t.listEntries {
-		for _, arg := range args {
-			t.parent.trackList(prefix, arg.after, arg.limit)
+		for arg, results := range args {
+			t.parent.trackList(prefix, arg.after, arg.limit, results)
 		}
 	}
 }
