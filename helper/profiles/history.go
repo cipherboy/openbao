@@ -1,10 +1,10 @@
 package profiles
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 
+	"github.com/go-viper/mapstructure/v2"
 	"github.com/openbao/openbao/sdk/v2/logical"
 )
 
@@ -27,12 +27,7 @@ type EvaluationHistory struct {
 
 func (eh *EvaluationHistory) AddRequest(outerBlock string, requestBlock string, request *logical.Request) error {
 	var data map[string]interface{}
-	encoded, err := json.Marshal(request)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(encoded, &data); err != nil {
+	if err := mapstructure.Decode(request, &data); err != nil {
 		return err
 	}
 
@@ -49,12 +44,7 @@ func (eh *EvaluationHistory) AddRequestData(outerBlock string, requestBlock stri
 
 func (eh *EvaluationHistory) AddResponse(outerBlock string, requestBlock string, response *logical.Response) error {
 	var data map[string]interface{}
-	encoded, err := json.Marshal(response)
-	if err != nil {
-		return err
-	}
-
-	if err := json.Unmarshal(encoded, &data); err != nil {
+	if err := mapstructure.Decode(response, &data); err != nil {
 		return err
 	}
 
