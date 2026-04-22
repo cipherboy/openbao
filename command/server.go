@@ -2760,6 +2760,7 @@ func createCoreConfig(c *ServerCommand, config *server.Config, backend physical.
 		UnsafeCrossNamespaceIdentity:   config.UnsafeCrossNamespaceIdentity,
 		AllowUnauthenticatedWorkflows:  config.AllowUnauthenticatedWorkflows,
 		UnsafeRelativePaths:            config.UnsafeRelativePaths,
+		EnableGRPCInvalidation:         config.EnableGRPCInvalidation,
 	}
 
 	if config.DisableSSCTokens != nil {

@@ -1264,7 +1264,9 @@ func (c *Core) clearLeader(uuid string) error {
 // by the physical backend
 func (c *Core) StandbyReadsEnabled() bool {
 	if _, ok := c.underlyingPhysical.(physical.CacheInvalidationBackend); !ok {
-		return false
+		if !c.enableGRPCInvalidation {
+			return false
+		}
 	}
 
 	conf := c.rawConfig.Load()

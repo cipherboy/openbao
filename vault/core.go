@@ -633,7 +633,8 @@ type Core struct {
 	allowUnauthedWorkflows bool
 	workflowStore          *WorkflowStore
 
-	unsafeRelativePaths bool
+	unsafeRelativePaths    bool
+	enableGRPCInvalidation bool
 }
 
 // c.stateLock needs to be held in read mode before calling this function.
@@ -788,7 +789,8 @@ type CoreConfig struct {
 
 	AllowUnauthenticatedWorkflows bool
 
-	UnsafeRelativePaths bool
+	UnsafeRelativePaths    bool
+	EnableGRPCInvalidation bool
 }
 
 // GetServiceRegistration returns the config's ServiceRegistration, or nil if it does
@@ -945,6 +947,7 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		unsafeCrossNamespaceIdentity:   conf.UnsafeCrossNamespaceIdentity,
 		allowUnauthedWorkflows:         conf.AllowUnauthenticatedWorkflows,
 		unsafeRelativePaths:            conf.UnsafeRelativePaths,
+		enableGRPCInvalidation:         conf.EnableGRPCInvalidation,
 	}
 
 	c.standby.Store(true)
@@ -1024,8 +1027,24 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 
 func coreInit(c *Core, conf *CoreConfig) error {
 	phys := conf.Physical
+	hookLayer := c.underlyingPhysical
+
+	haEnabled := conf.HAPhysical != nil && conf.HAPhysical.HAEnabled()
+
 	// Wrap the physical backend in a cache layer if enabled
 	cacheLogger := c.baseLogger.Named("storage.cache")
+
+	// Wrap physical for invalidation.
+	if _, ok := phys.(physical.CacheInvalidationBackend); !ok && c.enableGRPCInvalidation && haEnabled {
+		c.logger.Debug("enabling grpc-based invalidation on HA backend")
+		grpcLogger := c.baseLogger.Named("storage.grpcinv")
+		c.allLoggers = append(c.allLoggers, grpcLogger)
+		c.physical = physical.NewGRPCInvalidator(c.physical, grpcLogger, c.SendInvalidationNotice)
+		hookLayer = c.physical
+	} else {
+		c.logger.Debug("skipping grpc-based invalidation", "ha-enabled", haEnabled, "grpc-invalidation", c.enableGRPCInvalidation, "cache_invalidation", ok)
+	}
+
 	c.allLoggers = append(c.allLoggers, cacheLogger)
 	c.physical = physical.NewCache(phys, conf.CacheSize, cacheLogger, c.MetricSink().Sink)
 	c.physicalCache = c.physical.(physical.ToggleablePurgemonster)
@@ -1035,8 +1054,8 @@ func coreInit(c *Core, conf *CoreConfig) error {
 		c.physical = physical.NewStorageEncoding(c.physical)
 	}
 
-	if c.StandbyReadsEnabled() {
-		c.underlyingPhysical.(physical.CacheInvalidationBackend).HookInvalidate(c.Invalidate)
+	if c.StandbyReadsEnabled() && haEnabled {
+		hookLayer.(physical.CacheInvalidationBackend).HookInvalidate(c.Invalidate)
 	}
 
 	return nil

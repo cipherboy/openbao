@@ -154,6 +154,8 @@ type Config struct {
 	// Whether to allow unsafe (usually URL encoded) relative request paths
 	// (containing `..`).
 	UnsafeRelativePaths bool `hcl:"unsafe_relative_paths"`
+
+	EnableGRPCInvalidation bool `hcl:"enable_grpc_invalidation"`
 }
 
 func (c *Config) Validate(sourceFilePath string) []configutil.ConfigError {
@@ -512,6 +514,11 @@ func (c *Config) Merge(c2 *Config) *Config {
 	result.DisableCache = c.DisableCache
 	if c2.DisableCache {
 		result.DisableCache = c2.DisableCache
+	}
+
+	result.EnableGRPCInvalidation = c.EnableGRPCInvalidation
+	if c2.EnableGRPCInvalidation {
+		result.EnableGRPCInvalidation = c2.EnableGRPCInvalidation
 	}
 
 	result.DisableSentinelTrace = c.DisableSentinelTrace
