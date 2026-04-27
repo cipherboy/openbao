@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/cenkalti/backoff/v5"
@@ -83,6 +84,10 @@ type PostgreSQLBackend struct {
 
 	fenceLock sync.RWMutex
 	fence     *PostgreSQLLock
+
+	lastIndexLock sync.Mutex
+	lastIndex     atomic.Uint64
+	lastIndexTime atomic.Pointer[time.Time]
 }
 
 // PostgreSQLLock implements a lock using an PostgreSQL client.
