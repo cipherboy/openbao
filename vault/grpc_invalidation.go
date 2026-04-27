@@ -1,5 +1,8 @@
 package vault
 
 func (c *Core) SendInvalidationNotice(keys ...string) {
-	// return
+	// Ensure we're called on the active node only.
+	if c.standby.Load() {
+		return
+	}
 }
