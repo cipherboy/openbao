@@ -584,7 +584,7 @@ func (c *Core) switchedLockHandleRequest(httpCtx context.Context, req *logical.R
 		return nil, consts.ErrSealed
 	}
 
-	if c.activeContext == nil || c.activeContext.Err() != nil {
+	if c.activeContext.Load().Err() != nil {
 		if c.standby.Load() {
 			return nil, logical.ErrPerfStandbyPleaseForward
 		}
@@ -595,7 +595,7 @@ func (c *Core) switchedLockHandleRequest(httpCtx context.Context, req *logical.R
 	// so we have a clean context with few values in it, and the http request
 	// context so that if the remote peer closes the connection, we can
 	// properly stop this request.
-	ctx, cancel := context.WithCancel(c.activeContext)
+	ctx, cancel := context.WithCancel(c.activeContext.Load())
 	defer cancel()
 
 	stop := context.AfterFunc(httpCtx, cancel)
@@ -1169,7 +1169,7 @@ func (c *Core) handleRequest(ctx context.Context, req *logical.Request) (retResp
 			// valid request (this is the token's final use). We pass the ID in
 			// directly just to be safe in case something else modifies te later.
 			defer func(id string) {
-				nsActiveCtx := namespace.ContextWithNamespace(c.activeContext, ns)
+				nsActiveCtx := namespace.ContextWithNamespace(c.activeContext.Load(), ns)
 				leaseID, err := c.expiration.CreateOrFetchRevocationLeaseByToken(nsActiveCtx, te)
 				if err == nil {
 					err = c.expiration.LazyRevoke(ctx, leaseID)

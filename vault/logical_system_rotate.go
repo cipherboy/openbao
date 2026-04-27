@@ -694,7 +694,7 @@ func (b *SystemBackend) handleRotateUpdate() framework.OperationFunc {
 			}
 		}
 
-		ctx, cancel := context.WithCancel(namespace.RootContext(b.Core.activeContext))
+		ctx, cancel := context.WithCancel(namespace.RootContext(b.Core.activeContext.Load()))
 		defer cancel()
 
 		// Use the key to make progress on rotation (rekey)
@@ -798,7 +798,7 @@ func (b *SystemBackend) handleRotateVerifyPut() framework.OperationFunc {
 			}
 		}
 
-		ctx, cancel := context.WithCancel(namespace.RootContext(b.Core.activeContext))
+		ctx, cancel := context.WithCancel(namespace.RootContext(b.Core.activeContext.Load()))
 		defer cancel()
 
 		// Use the key to make progress on rotation (rekey) verification

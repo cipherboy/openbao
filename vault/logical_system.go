@@ -244,7 +244,7 @@ func (b *SystemBackend) handleTidyLeases(ctx context.Context, req *logical.Reque
 	}
 
 	go func() {
-		tidyCtx := namespace.ContextWithNamespace(b.Core.activeContext, ns)
+		tidyCtx := namespace.ContextWithNamespace(b.Core.activeContext.Load(), ns)
 		err := b.Core.expiration.Tidy(tidyCtx)
 		if err != nil {
 			b.Backend.Logger().Error("failed to tidy leases", "error", err)
@@ -1370,7 +1370,7 @@ func (b *SystemBackend) handleRemount(ctx context.Context, req *logical.Request,
 // and intermittently checks to see if it is still open.
 func (b *SystemBackend) moveMount(ns *namespace.Namespace, logger log.Logger, migrationID string, entry *routing.MountEntry, fromPathDetails, toPathDetails namespace.MountPathDetails) error {
 	logger.Info("Starting to update the mount table and revoke leases")
-	revokeCtx := namespace.ContextWithNamespace(b.Core.activeContext, ns)
+	revokeCtx := namespace.ContextWithNamespace(b.Core.activeContext.Load(), ns)
 
 	var err error
 	// Attempt remount
@@ -2046,7 +2046,7 @@ func (b *SystemBackend) handleRevoke(ctx context.Context, req *logical.Request, 
 	if err != nil {
 		return nil, err
 	}
-	revokeCtx := namespace.ContextWithNamespace(b.Core.activeContext, ns)
+	revokeCtx := namespace.ContextWithNamespace(b.Core.activeContext.Load(), ns)
 	if data.Get("sync").(bool) {
 		// Invoke the expiration manager directly
 		if err := b.Core.expiration.Revoke(revokeCtx, leaseID); err != nil {
@@ -2088,7 +2088,7 @@ func (b *SystemBackend) handleRevokePrefixCommon(ctx context.Context,
 	}
 
 	// Invoke the expiration manager directly
-	revokeCtx := namespace.ContextWithNamespace(b.Core.activeContext, ns)
+	revokeCtx := namespace.ContextWithNamespace(b.Core.activeContext.Load(), ns)
 	if force {
 		err = b.Core.expiration.RevokeForce(revokeCtx, prefix)
 	} else {
@@ -4502,7 +4502,7 @@ func (b *SystemBackend) rotateBarrierKey(ctx context.Context) error {
 		// Schedule the destroy of the upgrade path
 		time.AfterFunc(b.Core.KeyRotateGracePeriod(), func() {
 			b.Backend.Logger().Debug("cleaning up upgrade keys", "waited", b.Core.KeyRotateGracePeriod())
-			if err := b.Core.barrier.DestroyUpgrade(b.Core.activeContext, newTerm); err != nil {
+			if err := b.Core.barrier.DestroyUpgrade(b.Core.activeContext.Load(), newTerm); err != nil {
 				b.Backend.Logger().Error("failed to destroy upgrade", "term", newTerm, "error", err)
 			}
 		})

@@ -638,7 +638,7 @@ func (sm *SealManager) RotateBarrierKey(ctx context.Context, ns *namespace.Names
 		// Schedule the destroy of the upgrade path
 		time.AfterFunc(sm.core.KeyRotateGracePeriod(), func() {
 			sm.logger.Debug("cleaning up upgrade keys", "waited", sm.core.KeyRotateGracePeriod())
-			if err := b.DestroyUpgrade(sm.core.activeContext, newTerm); err != nil {
+			if err := b.DestroyUpgrade(sm.core.activeContext.Load(), newTerm); err != nil {
 				sm.logger.Error("failed to destroy upgrade", "term", newTerm, "error", err, "namespace", ns.Path)
 			}
 		})

@@ -906,7 +906,7 @@ func TestCore_OneTenPlus_BatchTokens(t *testing.T) {
 		}
 	}
 
-	err := c.loadVersionHistory(c.activeContext)
+	err := c.loadVersionHistory(t.Context())
 	if err != nil {
 		t.Fatalf("failed to populate version history cache, err: %s", err.Error())
 	}
@@ -2464,7 +2464,7 @@ func testCore_Standby_Common(t *testing.T, inm physical.Backend, inmha physical.
 	// Wait for postUnseal to conclude
 	require.Eventually(t, func() bool {
 		core2.stateLock.RLock()
-		c2ctx := core2.activeContext
+		c2ctx := core2.activeContext.Load()
 		core2.stateLock.RUnlock()
 
 		return c2ctx != nil
