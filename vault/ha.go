@@ -386,7 +386,7 @@ func (c *Core) stopStandby() {
 	}
 }
 
-func (c *Core) restart() {
+func (c *Core) Restart() {
 	restartCh := c.standbyRestartCh.Load()
 	if restartCh == nil {
 		return
@@ -515,6 +515,27 @@ func (c *Core) runStandbyOnce(doneCh chan<- struct{}, manualStepDownCh chan stru
 
 		readStandbyCtx, readStandbyCancel := context.WithCancel(namespace.RootContext(context.Background()))
 		defer readStandbyCancel()
+
+		// Before unseal, check if we need to do GRPC based invalidation;
+		// if so, start streaming invalidations.
+		if _, ok := c.underlyingPhysical.(physical.CacheInvalidationBackend); !ok {
+			c.logger.Debug("beginning invalidation streaming")
+
+			c.requestForwardingConnectionLock.RLock()
+			if c.rpcForwardingClient == nil {
+				c.logger.Error("skipping invalidation streaming as no RPC client is present")
+				c.requestForwardingConnectionLock.RUnlock()
+				return false
+			}
+			c.rpcForwardingClient.StreamInvalidations(readStandbyCtx)
+			c.requestForwardingConnectionLock.RUnlock()
+
+			c.logger.Debug("awaiting replication checkpoint")
+			if err := c.AwaitReplication(readStandbyCtx); err != nil {
+				c.logger.Error("failed to await replication", "err", err)
+				return false
+			}
+		}
 
 		// Unseal, holding the state lock.
 		c.replicationState.Store(uint32(consts.ReplicationDRDisabled | consts.ReplicationPerformanceStandby))
@@ -1265,6 +1286,8 @@ func (c *Core) clearLeader(uuid string) error {
 func (c *Core) StandbyReadsEnabled() bool {
 	if _, ok := c.underlyingPhysical.(physical.CacheInvalidationBackend); !ok {
 		if !c.enableGRPCInvalidation {
+			return false
+		} else if c.rpcForwardingClient == nil {
 			return false
 		}
 	}

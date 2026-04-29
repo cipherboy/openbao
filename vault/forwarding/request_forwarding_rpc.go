@@ -5,15 +5,21 @@ package forwarding
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"runtime/debug"
+	"sync/atomic"
 	"time"
 
+	"github.com/cenkalti/backoff/v4"
 	metrics "github.com/hashicorp/go-metrics/compat"
 	"github.com/openbao/openbao/helper/forwarding"
 	"github.com/openbao/openbao/physical/raft"
 	"github.com/openbao/openbao/sdk/v2/helper/consts"
+	"google.golang.org/grpc"
 )
 
 type forwardedRequestRPCServer struct {
@@ -106,11 +112,51 @@ func (s *forwardedRequestRPCServer) Echo(ctx context.Context, in *EchoRequest) (
 	return reply, nil
 }
 
+func (s *forwardedRequestRPCServer) StartInvalidations(ctx context.Context, req *StartInvalidationRequest) (*StartInvalidationResponse, error) {
+	index, err := s.core.MarkPeerStated(ctx, req.Uuid)
+
+	var errMsg string
+	if err != nil {
+		s.core.Logger().Error("invalidation: failed to mark peer as started", "err", err)
+		errMsg = "failed to start invalidations; check active logs for more info"
+	}
+
+	return &StartInvalidationResponse{
+		Err:   errMsg,
+		Index: index,
+	}, nil
+}
+
+func (s *forwardedRequestRPCServer) CheckInvalidations(req *CheckInvalidationRequest, stream grpc.ServerStreamingServer[CheckInvalidationResponse]) error {
+	uuid, stopCh, err := s.core.AddInvalidationPeer(stream)
+	if err != nil {
+		s.core.Logger().Error("invalidation: failed registering invalidation peer", "err", err)
+		return fmt.Errorf("not registered; check active server's logs for information")
+	}
+
+	// Send an initial response with the uuid.
+	stream.Send(&CheckInvalidationResponse{
+		Uuid: uuid,
+	})
+
+	select {
+	case <-stopCh:
+	}
+
+	s.core.Logger().Trace("invalidation: finishing invalidation handling for server", "uuid", uuid)
+
+	return nil
+}
+
 type Client struct {
 	RequestForwardingClient
 	core        core
 	echoTicker  *time.Ticker
 	echoContext context.Context
+
+	invalidationsContext       context.Context
+	invalidationsContextCancel context.CancelFunc
+	peerUUID                   atomic.Pointer[string]
 }
 
 func NewClient(core core, requestForwardingClient RequestForwardingClient, echoTicker *time.Ticker, echoContext context.Context) *Client {
@@ -189,4 +235,112 @@ func (c *Client) StartHeartbeat() {
 			}
 		}
 	}()
+}
+
+func (c *Client) CheckReplicationIndex(ctx context.Context) (string, error) {
+	var uuid string
+
+	var b backoff.BackOff = backoff.NewExponentialBackOff(
+		backoff.WithInitialInterval(15*time.Millisecond),
+		backoff.WithMaxInterval(1*time.Second),
+		backoff.WithMaxElapsedTime(5*time.Second),
+	)
+	b.Reset()
+
+	if err := backoff.Retry(func() error {
+		if value := c.peerUUID.Load(); value != nil {
+			uuid = *value
+			return nil
+		}
+
+		return fmt.Errorf("active node has not returned a uuid")
+	}, b); err != nil {
+		return "", err
+	}
+
+	resp, err := c.StartInvalidations(ctx, &StartInvalidationRequest{
+		Uuid: uuid,
+	})
+	if err != nil {
+		return "", fmt.Errorf("error checking active node's replication index: %w", err)
+	}
+
+	if resp == nil {
+		return "", errors.New("no replication index returned by active node")
+	}
+
+	if resp.Err != "" {
+		return "", fmt.Errorf("error checking replication index: %v", resp.Err)
+	}
+
+	return resp.Index, nil
+}
+
+func (c *Client) StreamInvalidations(ctx context.Context) {
+	go func() {
+		c.invalidationsContext, c.invalidationsContextCancel = context.WithCancel(c.echoContext)
+		for {
+			select {
+			case <-c.invalidationsContext.Done():
+				c.core.Logger().Debug("forwarding: stopping invalidation streaming")
+				return
+			default:
+			}
+
+			c.core.Logger().Trace("forwarding: starting invalidation stream")
+
+			stream, err := c.CheckInvalidations(ctx, &CheckInvalidationRequest{})
+			if err != nil {
+				c.core.Logger().Debug("forwarding: failed getting invalidation; restarting standby", "err", err)
+				c.core.Restart()
+				break
+			}
+
+			for {
+				select {
+				case <-c.invalidationsContext.Done():
+					break
+				default:
+				}
+
+				invalidation, err := stream.Recv()
+				if err != nil {
+					if err == io.EOF {
+						c.core.Logger().Debug("forwarding: failed processing invalidation; restarting standby", "err", err)
+						break
+					}
+
+					c.core.Logger().Debug("forwarding: failed processing invalidation; restarting standby", "err", err)
+					c.core.Restart()
+					break
+				}
+
+				if c.peerUUID.Load() == nil {
+					c.peerUUID.Store(&invalidation.Uuid)
+				}
+
+				c.core.Logger().Trace("forwarding: invalidating keys", "index", invalidation.Index, "keys", invalidation.Keys, "restart", invalidation.Restart, "uuid", invalidation.Uuid)
+				if invalidation.Restart {
+					c.core.Logger().Debug("forwarding: server indicated restart")
+					c.core.Restart()
+					break
+				}
+
+				err = c.core.AwaitInvalidation(ctx, invalidation.Index, invalidation.Keys...)
+				if err != nil {
+					c.core.Logger().Debug("forwarding: failed awaiting invalidation; restarting standby", "err", err)
+					c.core.Restart()
+					break
+				}
+			}
+		}
+	}()
+}
+
+func (c *Client) StopInvalidations() {
+	if c == nil || c.invalidationsContextCancel == nil {
+		return
+	}
+
+	c.invalidationsContextCancel()
 }

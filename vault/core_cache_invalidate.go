@@ -508,7 +508,7 @@ func (ij *invalidationJob) OnFailure(err error) {
 
 	// This was a fatal failure; dispatch a restart.
 	ij.im.dispacherLogger.Error("fatal failure dispatching invalidation; restarting core", "key", ij.key, "err", err)
-	ij.im.core.restart()
+	ij.im.core.Restart()
 }
 
 func (im *invalidationManager) Add(key ...string) {

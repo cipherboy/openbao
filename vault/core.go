@@ -628,6 +628,11 @@ type Core struct {
 	// refreshing the Core-adjacent caches afterwards.
 	invalidations *invalidationManager
 
+	// When awaitInvalidateHook is set early on startup, this maintains a list
+	// of connected invalidation peers. When connections blip, we maintain an
+	// invalidation state.
+	connectedInvalidationPeers *invalidationPeers
+
 	// Whether unauthenticated workflows are allowed by this OpenBao
 	// instance.
 	allowUnauthedWorkflows bool
@@ -1039,8 +1044,8 @@ func coreInit(c *Core, conf *CoreConfig) error {
 		c.logger.Debug("enabling grpc-based invalidation on HA backend")
 		grpcLogger := c.baseLogger.Named("storage.grpcinv")
 		c.allLoggers = append(c.allLoggers, grpcLogger)
-		c.physical = physical.NewGRPCInvalidator(c.physical, grpcLogger, c.SendInvalidationNotice)
-		hookLayer = c.physical
+		phys = physical.NewGRPCInvalidator(phys, grpcLogger, c.SendInvalidationNotice)
+		hookLayer = phys
 	} else {
 		c.logger.Debug("skipping grpc-based invalidation", "ha-enabled", haEnabled, "grpc-invalidation", c.enableGRPCInvalidation, "cache_invalidation", ok)
 	}
@@ -1055,6 +1060,7 @@ func coreInit(c *Core, conf *CoreConfig) error {
 	}
 
 	if c.StandbyReadsEnabled() && haEnabled {
+		c.logger.Debug("enabling invalidation hook")
 		hookLayer.(physical.CacheInvalidationBackend).HookInvalidate(c.Invalidate)
 	}
 
@@ -2157,6 +2163,8 @@ func (s standardUnsealStrategy) unseal(ctx context.Context, logger log.Logger, c
 	c.clearForwardingClients()
 	c.requestForwardingConnectionLock.Unlock()
 
+	c.connectedInvalidationPeers = c.NewInvalidationPeers()
+
 	// Mark the active time. We do this first so it can be correlated to the logs
 	// for the active startup.
 	c.activeTime = time.Now().UTC()
@@ -2426,6 +2434,7 @@ func (c *Core) preSeal() error {
 	c.stopForwarding()
 	c.stopRaftActiveNode()
 	c.cancelNamespaceDeletion()
+	c.CleanupInvalidationPeers()
 
 	if err := c.invalidations.Stop(); err != nil {
 		result = multierror.Append(result, fmt.Errorf("error tearing down invalidations: %w", err))
@@ -3876,12 +3885,19 @@ func (c *Core) refreshRequestForwardingConnection(ctx context.Context, clusterAd
 	)
 	c.rpcForwardingClient.StartHeartbeat()
 
+	if c.enableGRPCInvalidation {
+		c.logger.Info("restarting standby as active node has changed; may enable grpc invalidation")
+		c.Restart()
+	}
+
 	return nil
 }
 
 func (c *Core) clearForwardingClients() {
 	c.logger.Debug("clearing forwarding clients")
 	defer c.logger.Debug("done clearing forwarding clients")
+
+	c.rpcForwardingClient.StopInvalidations()
 
 	if c.rpcClientConnCancelFunc != nil {
 		c.rpcClientConnCancelFunc()

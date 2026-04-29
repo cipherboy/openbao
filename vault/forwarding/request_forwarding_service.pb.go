@@ -381,6 +381,206 @@ func (x *ClientKey) GetD() []byte {
 	return nil
 }
 
+type StartInvalidationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Uuid          string                 `protobuf:"bytes,1,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartInvalidationRequest) Reset() {
+	*x = StartInvalidationRequest{}
+	mi := &file_vault_forwarding_request_forwarding_service_proto_msgTypes[4]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartInvalidationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartInvalidationRequest) ProtoMessage() {}
+
+func (x *StartInvalidationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vault_forwarding_request_forwarding_service_proto_msgTypes[4]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartInvalidationRequest.ProtoReflect.Descriptor instead.
+func (*StartInvalidationRequest) Descriptor() ([]byte, []int) {
+	return file_vault_forwarding_request_forwarding_service_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *StartInvalidationRequest) GetUuid() string {
+	if x != nil {
+		return x.Uuid
+	}
+	return ""
+}
+
+type StartInvalidationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Index         string                 `protobuf:"bytes,1,opt,name=index,proto3" json:"index,omitempty"`
+	Err           string                 `protobuf:"bytes,2,opt,name=err,proto3" json:"err,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *StartInvalidationResponse) Reset() {
+	*x = StartInvalidationResponse{}
+	mi := &file_vault_forwarding_request_forwarding_service_proto_msgTypes[5]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *StartInvalidationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*StartInvalidationResponse) ProtoMessage() {}
+
+func (x *StartInvalidationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vault_forwarding_request_forwarding_service_proto_msgTypes[5]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use StartInvalidationResponse.ProtoReflect.Descriptor instead.
+func (*StartInvalidationResponse) Descriptor() ([]byte, []int) {
+	return file_vault_forwarding_request_forwarding_service_proto_rawDescGZIP(), []int{5}
+}
+
+func (x *StartInvalidationResponse) GetIndex() string {
+	if x != nil {
+		return x.Index
+	}
+	return ""
+}
+
+func (x *StartInvalidationResponse) GetErr() string {
+	if x != nil {
+		return x.Err
+	}
+	return ""
+}
+
+type CheckInvalidationRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckInvalidationRequest) Reset() {
+	*x = CheckInvalidationRequest{}
+	mi := &file_vault_forwarding_request_forwarding_service_proto_msgTypes[6]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckInvalidationRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckInvalidationRequest) ProtoMessage() {}
+
+func (x *CheckInvalidationRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_vault_forwarding_request_forwarding_service_proto_msgTypes[6]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckInvalidationRequest.ProtoReflect.Descriptor instead.
+func (*CheckInvalidationRequest) Descriptor() ([]byte, []int) {
+	return file_vault_forwarding_request_forwarding_service_proto_rawDescGZIP(), []int{6}
+}
+
+type CheckInvalidationResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Index         string                 `protobuf:"bytes,1,opt,name=index,proto3" json:"index,omitempty"`
+	Keys          []string               `protobuf:"bytes,2,rep,name=keys,proto3" json:"keys,omitempty"`
+	Restart       bool                   `protobuf:"varint,3,opt,name=restart,proto3" json:"restart,omitempty"`
+	Uuid          string                 `protobuf:"bytes,4,opt,name=uuid,proto3" json:"uuid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CheckInvalidationResponse) Reset() {
+	*x = CheckInvalidationResponse{}
+	mi := &file_vault_forwarding_request_forwarding_service_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CheckInvalidationResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CheckInvalidationResponse) ProtoMessage() {}
+
+func (x *CheckInvalidationResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_vault_forwarding_request_forwarding_service_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CheckInvalidationResponse.ProtoReflect.Descriptor instead.
+func (*CheckInvalidationResponse) Descriptor() ([]byte, []int) {
+	return file_vault_forwarding_request_forwarding_service_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *CheckInvalidationResponse) GetIndex() string {
+	if x != nil {
+		return x.Index
+	}
+	return ""
+}
+
+func (x *CheckInvalidationResponse) GetKeys() []string {
+	if x != nil {
+		return x.Keys
+	}
+	return nil
+}
+
+func (x *CheckInvalidationResponse) GetRestart() bool {
+	if x != nil {
+		return x.Restart
+	}
+	return false
+}
+
+func (x *CheckInvalidationResponse) GetUuid() string {
+	if x != nil {
+		return x.Uuid
+	}
+	return ""
+}
+
 var File_vault_forwarding_request_forwarding_service_proto protoreflect.FileDescriptor
 
 const file_vault_forwarding_request_forwarding_service_proto_rawDesc = "" +
@@ -419,10 +619,23 @@ const file_vault_forwarding_request_forwarding_service_proto_rawDesc = "" +
 	"\x04type\x18\x01 \x01(\tR\x04type\x12\f\n" +
 	"\x01x\x18\x02 \x01(\fR\x01x\x12\f\n" +
 	"\x01y\x18\x03 \x01(\fR\x01y\x12\f\n" +
-	"\x01d\x18\x04 \x01(\fR\x01d2\x8c\x01\n" +
+	"\x01d\x18\x04 \x01(\fR\x01d\".\n" +
+	"\x18StartInvalidationRequest\x12\x12\n" +
+	"\x04uuid\x18\x01 \x01(\tR\x04uuid\"C\n" +
+	"\x19StartInvalidationResponse\x12\x14\n" +
+	"\x05index\x18\x01 \x01(\tR\x05index\x12\x10\n" +
+	"\x03err\x18\x02 \x01(\tR\x03err\"\x1a\n" +
+	"\x18CheckInvalidationRequest\"s\n" +
+	"\x19CheckInvalidationResponse\x12\x14\n" +
+	"\x05index\x18\x01 \x01(\tR\x05index\x12\x12\n" +
+	"\x04keys\x18\x02 \x03(\tR\x04keys\x12\x18\n" +
+	"\arestart\x18\x03 \x01(\bR\arestart\x12\x12\n" +
+	"\x04uuid\x18\x04 \x01(\tR\x04uuid2\xd8\x02\n" +
 	"\x11RequestForwarding\x12=\n" +
 	"\x0eForwardRequest\x12\x13.forwarding.Request\x1a\x14.forwarding.Response\"\x00\x128\n" +
-	"\x04Echo\x12\x17.forwarding.EchoRequest\x1a\x15.forwarding.EchoReply\"\x00B-Z+github.com/openbao/openbao/vault/forwardingb\x06proto3"
+	"\x04Echo\x12\x17.forwarding.EchoRequest\x1a\x15.forwarding.EchoReply\"\x00\x12c\n" +
+	"\x12StartInvalidations\x12$.forwarding.StartInvalidationRequest\x1a%.forwarding.StartInvalidationResponse\"\x00\x12e\n" +
+	"\x12CheckInvalidations\x12$.forwarding.CheckInvalidationRequest\x1a%.forwarding.CheckInvalidationResponse\"\x000\x01B-Z+github.com/openbao/openbao/vault/forwardingb\x06proto3"
 
 var (
 	file_vault_forwarding_request_forwarding_service_proto_rawDescOnce sync.Once
@@ -436,24 +649,32 @@ func file_vault_forwarding_request_forwarding_service_proto_rawDescGZIP() []byte
 	return file_vault_forwarding_request_forwarding_service_proto_rawDescData
 }
 
-var file_vault_forwarding_request_forwarding_service_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_vault_forwarding_request_forwarding_service_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_vault_forwarding_request_forwarding_service_proto_goTypes = []any{
-	(*EchoRequest)(nil),         // 0: forwarding.EchoRequest
-	(*EchoReply)(nil),           // 1: forwarding.EchoReply
-	(*NodeInformation)(nil),     // 2: forwarding.NodeInformation
-	(*ClientKey)(nil),           // 3: forwarding.ClientKey
-	(*forwarding.Request)(nil),  // 4: forwarding.Request
-	(*forwarding.Response)(nil), // 5: forwarding.Response
+	(*EchoRequest)(nil),               // 0: forwarding.EchoRequest
+	(*EchoReply)(nil),                 // 1: forwarding.EchoReply
+	(*NodeInformation)(nil),           // 2: forwarding.NodeInformation
+	(*ClientKey)(nil),                 // 3: forwarding.ClientKey
+	(*StartInvalidationRequest)(nil),  // 4: forwarding.StartInvalidationRequest
+	(*StartInvalidationResponse)(nil), // 5: forwarding.StartInvalidationResponse
+	(*CheckInvalidationRequest)(nil),  // 6: forwarding.CheckInvalidationRequest
+	(*CheckInvalidationResponse)(nil), // 7: forwarding.CheckInvalidationResponse
+	(*forwarding.Request)(nil),        // 8: forwarding.Request
+	(*forwarding.Response)(nil),       // 9: forwarding.Response
 }
 var file_vault_forwarding_request_forwarding_service_proto_depIDxs = []int32{
 	2, // 0: forwarding.EchoRequest.node_info:type_name -> forwarding.NodeInformation
 	2, // 1: forwarding.EchoReply.node_info:type_name -> forwarding.NodeInformation
-	4, // 2: forwarding.RequestForwarding.ForwardRequest:input_type -> forwarding.Request
+	8, // 2: forwarding.RequestForwarding.ForwardRequest:input_type -> forwarding.Request
 	0, // 3: forwarding.RequestForwarding.Echo:input_type -> forwarding.EchoRequest
-	5, // 4: forwarding.RequestForwarding.ForwardRequest:output_type -> forwarding.Response
-	1, // 5: forwarding.RequestForwarding.Echo:output_type -> forwarding.EchoReply
-	4, // [4:6] is the sub-list for method output_type
-	2, // [2:4] is the sub-list for method input_type
+	4, // 4: forwarding.RequestForwarding.StartInvalidations:input_type -> forwarding.StartInvalidationRequest
+	6, // 5: forwarding.RequestForwarding.CheckInvalidations:input_type -> forwarding.CheckInvalidationRequest
+	9, // 6: forwarding.RequestForwarding.ForwardRequest:output_type -> forwarding.Response
+	1, // 7: forwarding.RequestForwarding.Echo:output_type -> forwarding.EchoReply
+	5, // 8: forwarding.RequestForwarding.StartInvalidations:output_type -> forwarding.StartInvalidationResponse
+	7, // 9: forwarding.RequestForwarding.CheckInvalidations:output_type -> forwarding.CheckInvalidationResponse
+	6, // [6:10] is the sub-list for method output_type
+	2, // [2:6] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
 	2, // [2:2] is the sub-list for extension extendee
 	0, // [0:2] is the sub-list for field type_name
@@ -470,7 +691,7 @@ func file_vault_forwarding_request_forwarding_service_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_vault_forwarding_request_forwarding_service_proto_rawDesc), len(file_vault_forwarding_request_forwarding_service_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

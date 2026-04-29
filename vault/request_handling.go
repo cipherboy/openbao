@@ -413,6 +413,7 @@ func (c *Core) CheckToken(ctx context.Context, req *logical.Request, unauth bool
 		// ignore errors...this was best-effort anyways
 		if err != nil && !unauth {
 			if c.standby.Load() {
+				c.logger.Error("forwarding to primary in CheckToken after c.fetchACLTokenEntryAndEntity", "err", err)
 				return nil, acl, te, entity, logical.ErrPerfStandbyPleaseForward
 			}
 			return nil, acl, te, entity, err
@@ -425,6 +426,7 @@ func (c *Core) CheckToken(ctx context.Context, req *logical.Request, unauth bool
 	}
 	if te != nil && te.EntityID != "" && entity == nil {
 		if c.standby.Load() {
+			c.logger.Error("forwarding to primary in CheckToken due to missing entity id", "entityID", te.EntityID, "entity", entity)
 			return nil, acl, te, entity, logical.ErrPerfStandbyPleaseForward
 		}
 		c.logger.Warn("permission denied as the entity on the token is invalid")
@@ -586,6 +588,7 @@ func (c *Core) switchedLockHandleRequest(httpCtx context.Context, req *logical.R
 
 	if c.activeContext.Load().Err() != nil {
 		if c.standby.Load() {
+			c.logger.Error("forwarding to primary due to expired active context", "err", c.activeContext.Load().Err())
 			return nil, logical.ErrPerfStandbyPleaseForward
 		}
 		return nil, errors.New("active context canceled after getting state lock")
@@ -841,6 +844,7 @@ func (c *Core) handleCancelableRequest(ctx context.Context, req *logical.Request
 	// Always forward requests that are using a limited use count token.
 	if c.standby.Load() && req.ClientTokenRemainingUses > 0 {
 		// Prevent forwarding on local-only requests.
+		c.logger.Error("forwarding to primary in cancelable request due to limited use token", "req.ClientTokenRemainingUses", req.ClientTokenRemainingUses)
 		return nil, logical.ErrPerfStandbyPleaseForward
 	}
 
@@ -1138,6 +1142,7 @@ func (c *Core) handleRequest(ctx context.Context, req *logical.Request) (retResp
 		return logical.ErrorResponse(ctErr.Error()), nil, ctErr
 	}
 	if ctErr == logical.ErrPerfStandbyPleaseForward {
+		c.logger.Error("forwarding to primary in handle request due to checking token error", "err", ctErr)
 		return nil, nil, ctErr
 	}
 
@@ -1519,6 +1524,7 @@ func (c *Core) handleLoginRequest(ctx context.Context, req *logical.Request) (re
 	var ctErr error
 	auth, acl, te, entity, ctErr = c.CheckToken(ctx, req, true)
 	if ctErr == logical.ErrPerfStandbyPleaseForward {
+		c.logger.Error("forwarding to primary - in handle login request due to c.CheckToken errors", "ctErrrr", ctErr)
 		return nil, nil, ctErr
 	}
 
@@ -2265,6 +2271,7 @@ func (c *Core) RegisterAuth(ctx context.Context, tokenTTL time.Duration, path st
 	}
 
 	if c.standby.Load() && persistToken {
+		c.logger.Error("forwarding to primary in register auth", "persistToken", persistToken)
 		return nil, logical.ErrPerfStandbyPleaseForward
 	}
 
@@ -2420,6 +2427,7 @@ func (c *Core) PopulateTokenEntry(ctx context.Context, req *logical.Request) err
 	// decodes the SSCT, and it may need the original SSCT to check state.
 	te, err := c.LookupToken(ctx, token)
 	if err != nil {
+		c.logger.Error("looking up token", "err", err)
 		if errors.Is(err, logical.ErrPerfStandbyPleaseForward) {
 			return err
 		}

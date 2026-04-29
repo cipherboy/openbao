@@ -40,6 +40,11 @@ type core interface {
 	clusterInfoGetter
 	GetRaftBackend() *raft.RaftBackend
 	Logger() log.Logger
+
+	Restart()
+	MarkPeerStated(ctx context.Context, uuid string) (string, error)
+	AddInvalidationPeer(stream grpc.ServerStreamingServer[CheckInvalidationResponse]) (string, chan struct{}, error)
+	AwaitInvalidation(ctx context.Context, index string, keys ...string) error
 }
 
 type clusterPeerClusterAddrsCache interface {

@@ -23,8 +23,10 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	RequestForwarding_ForwardRequest_FullMethodName = "/forwarding.RequestForwarding/ForwardRequest"
-	RequestForwarding_Echo_FullMethodName           = "/forwarding.RequestForwarding/Echo"
+	RequestForwarding_ForwardRequest_FullMethodName     = "/forwarding.RequestForwarding/ForwardRequest"
+	RequestForwarding_Echo_FullMethodName               = "/forwarding.RequestForwarding/Echo"
+	RequestForwarding_StartInvalidations_FullMethodName = "/forwarding.RequestForwarding/StartInvalidations"
+	RequestForwarding_CheckInvalidations_FullMethodName = "/forwarding.RequestForwarding/CheckInvalidations"
 )
 
 // RequestForwardingClient is the client API for RequestForwarding service.
@@ -33,6 +35,8 @@ const (
 type RequestForwardingClient interface {
 	ForwardRequest(ctx context.Context, in *forwarding.Request, opts ...grpc.CallOption) (*forwarding.Response, error)
 	Echo(ctx context.Context, in *EchoRequest, opts ...grpc.CallOption) (*EchoReply, error)
+	StartInvalidations(ctx context.Context, in *StartInvalidationRequest, opts ...grpc.CallOption) (*StartInvalidationResponse, error)
+	CheckInvalidations(ctx context.Context, in *CheckInvalidationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CheckInvalidationResponse], error)
 }
 
 type requestForwardingClient struct {
@@ -63,12 +67,43 @@ func (c *requestForwardingClient) Echo(ctx context.Context, in *EchoRequest, opt
 	return out, nil
 }
 
+func (c *requestForwardingClient) StartInvalidations(ctx context.Context, in *StartInvalidationRequest, opts ...grpc.CallOption) (*StartInvalidationResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(StartInvalidationResponse)
+	err := c.cc.Invoke(ctx, RequestForwarding_StartInvalidations_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *requestForwardingClient) CheckInvalidations(ctx context.Context, in *CheckInvalidationRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[CheckInvalidationResponse], error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	stream, err := c.cc.NewStream(ctx, &RequestForwarding_ServiceDesc.Streams[0], RequestForwarding_CheckInvalidations_FullMethodName, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &grpc.GenericClientStream[CheckInvalidationRequest, CheckInvalidationResponse]{ClientStream: stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type RequestForwarding_CheckInvalidationsClient = grpc.ServerStreamingClient[CheckInvalidationResponse]
+
 // RequestForwardingServer is the server API for RequestForwarding service.
 // All implementations must embed UnimplementedRequestForwardingServer
 // for forward compatibility.
 type RequestForwardingServer interface {
 	ForwardRequest(context.Context, *forwarding.Request) (*forwarding.Response, error)
 	Echo(context.Context, *EchoRequest) (*EchoReply, error)
+	StartInvalidations(context.Context, *StartInvalidationRequest) (*StartInvalidationResponse, error)
+	CheckInvalidations(*CheckInvalidationRequest, grpc.ServerStreamingServer[CheckInvalidationResponse]) error
 	mustEmbedUnimplementedRequestForwardingServer()
 }
 
@@ -84,6 +119,12 @@ func (UnimplementedRequestForwardingServer) ForwardRequest(context.Context, *for
 }
 func (UnimplementedRequestForwardingServer) Echo(context.Context, *EchoRequest) (*EchoReply, error) {
 	return nil, status.Error(codes.Unimplemented, "method Echo not implemented")
+}
+func (UnimplementedRequestForwardingServer) StartInvalidations(context.Context, *StartInvalidationRequest) (*StartInvalidationResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method StartInvalidations not implemented")
+}
+func (UnimplementedRequestForwardingServer) CheckInvalidations(*CheckInvalidationRequest, grpc.ServerStreamingServer[CheckInvalidationResponse]) error {
+	return status.Error(codes.Unimplemented, "method CheckInvalidations not implemented")
 }
 func (UnimplementedRequestForwardingServer) mustEmbedUnimplementedRequestForwardingServer() {}
 func (UnimplementedRequestForwardingServer) testEmbeddedByValue()                           {}
@@ -142,6 +183,35 @@ func _RequestForwarding_Echo_Handler(srv interface{}, ctx context.Context, dec f
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RequestForwarding_StartInvalidations_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(StartInvalidationRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RequestForwardingServer).StartInvalidations(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RequestForwarding_StartInvalidations_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RequestForwardingServer).StartInvalidations(ctx, req.(*StartInvalidationRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RequestForwarding_CheckInvalidations_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(CheckInvalidationRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(RequestForwardingServer).CheckInvalidations(m, &grpc.GenericServerStream[CheckInvalidationRequest, CheckInvalidationResponse]{ServerStream: stream})
+}
+
+// This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
+type RequestForwarding_CheckInvalidationsServer = grpc.ServerStreamingServer[CheckInvalidationResponse]
+
 // RequestForwarding_ServiceDesc is the grpc.ServiceDesc for RequestForwarding service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -157,7 +227,17 @@ var RequestForwarding_ServiceDesc = grpc.ServiceDesc{
 			MethodName: "Echo",
 			Handler:    _RequestForwarding_Echo_Handler,
 		},
+		{
+			MethodName: "StartInvalidations",
+			Handler:    _RequestForwarding_StartInvalidations_Handler,
+		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "CheckInvalidations",
+			Handler:       _RequestForwarding_CheckInvalidations_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "vault/forwarding/request_forwarding_service.proto",
 }

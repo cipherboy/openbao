@@ -17,7 +17,7 @@ message EchoRequest {
 	// ClusterAddrs is used to send up a list of cluster addresses to a dr
 	// primary from a dr secondary
 	repeated string cluster_addrs = 3;
-    
+
 	uint64 raft_applied_index = 4;
 	string raft_node_id = 5;
 	NodeInformation node_info = 6;
@@ -46,13 +46,34 @@ message NodeInformation {
 }
 
 message ClientKey {
-    string type = 1;
-    bytes x = 2;
-    bytes y = 3;
-    bytes d = 4;
+	string type = 1;
+	bytes x = 2;
+	bytes y = 3;
+	bytes d = 4;
+}
+
+message StartInvalidationRequest {
+	string uuid = 1;
+}
+
+message StartInvalidationResponse {
+	string index = 1;
+	string err = 2;
+}
+
+message CheckInvalidationRequest {}
+
+message CheckInvalidationResponse {
+	string index = 1;
+	repeated string keys = 2;
+	bool restart = 3;
+	string uuid = 4;
 }
 
 service RequestForwarding {
 	rpc ForwardRequest(forwarding.Request) returns (forwarding.Response) {}
 	rpc Echo(EchoRequest) returns (EchoReply) {}
+
+	rpc StartInvalidations(StartInvalidationRequest) returns (StartInvalidationResponse)  {}
+	rpc CheckInvalidations(CheckInvalidationRequest) returns (stream CheckInvalidationResponse) {}
 }

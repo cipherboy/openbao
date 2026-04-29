@@ -43,9 +43,13 @@ func NewGRPCInvalidator(b Backend, logger log.Logger, notifyWrite InvalidateFunc
 	return g
 }
 
+// We do nothing here.
+func (g *grpcInvalidator) HookInvalidate(hook InvalidateFunc) {}
+
 func (g *grpcInvalidator) Put(ctx context.Context, entry *Entry) error {
 	err := g.backend.Put(ctx, entry)
 	if err == nil {
+		g.logger.Error("notifying of write", "key", entry.Key)
 		g.notifyWrite(entry.Key)
 	}
 
@@ -59,6 +63,7 @@ func (g *grpcInvalidator) Get(ctx context.Context, key string) (*Entry, error) {
 func (g *grpcInvalidator) Delete(ctx context.Context, key string) error {
 	err := g.backend.Delete(ctx, key)
 	if err == nil {
+		g.logger.Error("notifying of delete", "key", key)
 		g.notifyWrite(key)
 	}
 
@@ -132,6 +137,7 @@ func (g *grpcInvalidatorTransaction) ListPage(ctx context.Context, prefix string
 func (g *grpcInvalidatorTransaction) Commit(ctx context.Context) error {
 	err := g.txn.Commit(ctx)
 	if err == nil {
+		g.logger.Error("notifying of commit on transaction", "key", slices.Collect(maps.Keys(g.writes)))
 		g.grpcInvalidator.notifyWrite(slices.Collect(maps.Keys(g.writes))...)
 	}
 	return err
