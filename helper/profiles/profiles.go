@@ -343,6 +343,18 @@ func (p *ProfileEngine) evaluateHistory(ctx context.Context) (*EvaluationHistory
 	var history EvaluationHistory
 	for outerIndex, outerBlock := range p.profile {
 		if err := func() error {
+			// Check if our outer block needs to be skipped.
+			if outerBlock.When != nil {
+				var execute bool
+				if err := p.evaluateField(ctx, &history, outerBlock.When, &execute); err != nil {
+					return fmt.Errorf("failed to evaluate when: %w", err)
+				}
+
+				if !execute {
+					return nil
+				}
+			}
+
 			for requestIndex, requestBlock := range outerBlock.Requests {
 				if err := func() error {
 					return p.evaluateRequest(ctx, &history, outerIndex, outerBlock, requestIndex, requestBlock)
