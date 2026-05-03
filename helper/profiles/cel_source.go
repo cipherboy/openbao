@@ -25,7 +25,9 @@ import (
 //   - requests
 //   - responses
 //   - input
-func CELSourceBuilder(engine *ProfileEngine, field map[string]interface{}) Source {
+//
+// And in a for_each context, the CEL context will include a this value.
+func CELSourceBuilder(engine *ProfileEngine, field map[string]interface{}, this *IterContext) Source {
 	var options []cel.EnvOption
 
 	if HasRequestSource(engine) {
@@ -40,11 +42,21 @@ func CELSourceBuilder(engine *ProfileEngine, field map[string]interface{}) Sourc
 		options = append(options, cel.Variable("input", types.NewMapType(types.StringType, types.DynType)))
 	}
 
+	if this != nil {
+		options = append(options, cel.Variable("this", types.DynType))
+		options = append(options, cel.Variable("this_index", types.DynType))
+		if this.Outer != nil {
+			options = append(options, cel.Variable("outer_this", types.DynType))
+			options = append(options, cel.Variable("outer_this_index", types.DynType))
+		}
+	}
+
 	return &CELSource{
 		engine: engine,
 		field:  field,
 
 		options: options,
+		this:    this,
 	}
 }
 
@@ -59,6 +71,7 @@ func WithCELSource() func(*ProfileEngine) {
 type CELSource struct {
 	engine *ProfileEngine
 	field  map[string]interface{}
+	this   *IterContext
 
 	options []cel.EnvOption
 
@@ -151,6 +164,7 @@ func (s *CELSource) Validate() ([]string, []string, error) {
 
 func (s *CELSource) Evaluate(ctx context.Context, eh *EvaluationHistory) (interface{}, error) {
 	data := map[string]interface{}{}
+	s.this.IntoMap(data)
 
 	if HasRequestSource(s.engine) {
 		data["requests"] = eh.Requests
