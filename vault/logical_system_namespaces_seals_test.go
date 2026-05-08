@@ -15,7 +15,7 @@ import (
 
 func TestNamespaceBackend_SealUnseal(t *testing.T) {
 	t.Parallel()
-	c, _, _ := TestCoreUnsealed(t)
+	c, rootShares, root := TestCoreUnsealed(t)
 	b := c.systemBackend
 
 	rootCtx := namespace.RootContext(context.Background())
@@ -87,7 +87,8 @@ func TestNamespaceBackend_SealUnseal(t *testing.T) {
 	})
 
 	t.Run("preserve mounts after unsealing namespaces", func(t *testing.T) {
-		keyshares := TestCoreCreateUnsealedNamespaces(t, c, &namespace.Namespace{Path: "foobar/"})
+		nsFoobar := &namespace.Namespace{Path: "foobar/"}
+		keyshares := TestCoreCreateUnsealedNamespaces(t, c, nsFoobar)
 		ns, err := c.namespaceStore.GetNamespaceByPath(rootCtx, "foobar")
 		require.NoError(t, err)
 		nsCtx := namespace.ContextWithNamespace(rootCtx, ns)
@@ -179,5 +180,67 @@ func TestNamespaceBackend_SealUnseal(t *testing.T) {
 		res, err = c.router.Route(nsCtx, req)
 		require.NoError(t, err)
 		require.NotNil(t, res)
+
+		// Sealing and unsealing the root namespace should work.
+		require.NoError(t, c.Seal(root))
+
+		// Unseal the root namespace.
+		for i, key := range rootShares {
+			unseal, err := TestCoreUnseal(c, key)
+			require.NoError(t, err)
+			require.False(t, i+1 == len(rootShares) && !unseal)
+		}
+
+		// Namespace should now be sealed.
+		req = logical.TestRequest(t, logical.UpdateOperation, "namespaces/child")
+		res, err = b.HandleRequest(nsCtx, req)
+		require.Error(t, err)
+		require.NotNil(t, res.Error())
+
+		// Validate that mounts are gone.
+		req = logical.TestRequest(t, logical.ReadOperation, "mounts")
+		res, err = b.HandleRequest(nsCtx, req)
+		require.NoError(t, err)
+		require.Empty(t, res.Data)
+
+		req = logical.TestRequest(t, logical.ReadOperation, "auth")
+		res, err = b.HandleRequest(nsCtx, req)
+		require.NoError(t, err)
+		require.Empty(t, res.Data)
+
+		// We should be able to unseal it.
+		req = logical.TestRequest(t, logical.UpdateOperation, "namespaces/foobar/unseal")
+		req.Data["key"] = base64.RawStdEncoding.EncodeToString(keyshares["foobar/"][0])
+		res, err = b.HandleRequest(rootCtx, req)
+		require.NoError(t, err)
+		require.Equal(t, 1, res.Data["progress"])
+		require.Equal(t, true, res.Data["sealed"])
+
+		req = logical.TestRequest(t, logical.UpdateOperation, "namespaces/foobar/unseal")
+		req.Data["key"] = base64.RawStdEncoding.EncodeToString(keyshares["foobar/"][1])
+		res, err = b.HandleRequest(rootCtx, req)
+		require.NoError(t, err)
+		require.Equal(t, 2, res.Data["progress"])
+		require.Equal(t, true, res.Data["sealed"])
+
+		req = logical.TestRequest(t, logical.UpdateOperation, "namespaces/foobar/unseal")
+		req.Data["key"] = base64.RawStdEncoding.EncodeToString(keyshares["foobar/"][2])
+		res, err = b.HandleRequest(rootCtx, req)
+		require.NoError(t, err)
+
+		// progress reset
+		require.Equal(t, 0, res.Data["progress"])
+		require.Equal(t, false, res.Data["sealed"])
+
+		// Now we should be able to list mounts again.
+		req = logical.TestRequest(t, logical.ReadOperation, "mounts")
+		res, err = b.HandleRequest(nsCtx, req)
+		require.NoError(t, err)
+		require.NotNil(t, res.Data["my_secrets/"])
+
+		req = logical.TestRequest(t, logical.ReadOperation, "auth")
+		res, err = b.HandleRequest(nsCtx, req)
+		require.NoError(t, err)
+		require.NotNil(t, res.Data["my_approle/"])
 	})
 }
