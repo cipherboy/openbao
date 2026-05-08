@@ -632,7 +632,8 @@ type Core struct {
 	allowUnauthedWorkflows bool
 	workflowStore          *WorkflowStore
 
-	unsafeRelativePaths bool
+	unsafeRelativePaths       bool
+	withEncryptedStoragePaths bool
 }
 
 // c.stateLock needs to be held in read mode before calling this function.
@@ -787,7 +788,8 @@ type CoreConfig struct {
 
 	AllowUnauthenticatedWorkflows bool
 
-	UnsafeRelativePaths bool
+	UnsafeRelativePaths       bool
+	WithEncryptedStoragePaths bool
 }
 
 // GetServiceRegistration returns the config's ServiceRegistration, or nil if it does
@@ -945,6 +947,7 @@ func CreateCore(conf *CoreConfig) (*Core, error) {
 		allowUnauthedWorkflows:         conf.AllowUnauthenticatedWorkflows,
 		unsafeRelativePaths:            conf.UnsafeRelativePaths,
 		namespaceRootGens:              make(map[string]*rootTokenGeneration),
+		withEncryptedStoragePaths:      conf.WithEncryptedStoragePaths,
 	}
 
 	c.standby.Store(true)
@@ -1058,6 +1061,9 @@ func NewCore(conf *CoreConfig) (*Core, error) {
 
 	// Construct a new AES-GCM barrier
 	c.barrier = barrier.NewAESGCMBarrier(c.physical, "")
+	if c.withEncryptedStoragePaths {
+		c.barrier = barrier.NewEncryptedPathsBarrier(c.barrier)
+	}
 	c.SetupSealManager()
 
 	// We create the funcs here, then populate the given config with it so that
