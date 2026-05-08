@@ -128,9 +128,14 @@ func (sm *SealManager) SetSeal(ctx context.Context, sealConfig *SealConfig, ns *
 	defaultSeal.SetCore(sm.core)
 	defaultSeal.SetMetaPrefix(metaPrefix)
 
-	// At this point, the namespace's barrier is still the parent's barrier,
-	// hence we can just query that without computing the actual parent.
-	defaultSeal.SetConfigAccess(sm.namespaceBarrierByLongestPrefix(ns.Path))
+	// The configuration access should always at least use the parent's seal
+	// configuration information.
+	parent, ok := ns.ParentPath()
+	if !ok {
+		return fmt.Errorf("cannot seal the root namespace via this approach")
+	}
+	parentBarrier := sm.namespaceBarrierByLongestPrefix(parent)
+	defaultSeal.SetConfigAccess(parentBarrier)
 
 	ctx = namespace.ContextWithNamespace(ctx, ns)
 	if err := defaultSeal.Init(ctx); err != nil {
