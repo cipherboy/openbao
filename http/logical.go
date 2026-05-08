@@ -409,6 +409,11 @@ func respondLogical(core *vault.Core, w http.ResponseWriter, r *http.Request, re
 		return
 	}
 
+	// Try to add an index.
+	if index := core.GetIndex(r.Context()); index != "" {
+		w.Header().Add(consts.IndexResponseHeaderName, index)
+	}
+
 	if resp != nil {
 		if resp.Redirect != "" {
 			// If we have a redirect, redirect! We use a 307 code

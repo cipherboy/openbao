@@ -108,4 +108,7 @@ const (
 	// preserved. The remainder of the header value (after the trailing
 	// dash) is ignored. Any repeated header keys result in request failure.
 	InlineAuthParameterHeaderPrefix = api.InlineAuthParameterHeaderPrefix
+
+	IndexResponseHeaderName = api.IndexResponseHeaderName
+	IndexRequestHeaderName  = api.IndexRequestHeaderName
 )

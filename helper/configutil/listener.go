@@ -67,6 +67,9 @@ type Listener struct {
 	RequireRequestHeader     bool          `hcl:"-"`
 	RequireRequestHeaderRaw  interface{}   `hcl:"require_request_header"`
 
+	MaxIndexWait    time.Duration `hcl:"-"`
+	MaxIndexWaitRaw interface{}   `hcl:"max_index_wait"`
+
 	TLSDisable    bool        `hcl:"-"`
 	TLSDisableRaw interface{} `hcl:"tls_disable"`
 	TLSCertGetter interface{} `hcl:"-"`
@@ -302,6 +305,18 @@ func ParseListeners(result *SharedConfig, list *ast.ObjectList) error {
 
 				l.MaxRequestJsonStringsRaw = nil
 			}
+
+			if l.MaxIndexWaitRaw != nil {
+				if l.MaxIndexWait, err = parseutil.ParseDurationSecond(l.MaxIndexWaitRaw); err != nil {
+					return multierror.Prefix(fmt.Errorf("error parsing max_index_wait: %w", err), fmt.Sprintf("listeners.%d", i))
+				}
+				if l.MaxIndexWait < 0 {
+					return multierror.Prefix(errors.New("max_index_wait cannot be negative"), fmt.Sprintf("listeners.%d", i))
+				}
+
+				l.MaxIndexWaitRaw = nil
+			}
+
 		}
 
 		// TLS Parameters

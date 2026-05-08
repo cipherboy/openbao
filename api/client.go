@@ -130,6 +130,9 @@ const (
 	// dash) is ignored. Any repeated header keys result in request failure.
 	InlineAuthParameterHeaderPrefix = "X-Vault-Inline-Auth-Parameter-"
 
+	IndexResponseHeaderName = "X-Vault-Index"
+	IndexRequestHeaderName  = "X-Vault-Minimum-Index"
+
 	TLSErrorString = "This error usually means that the server is running with TLS disabled\n" +
 		"but the client is configured to use TLS. Please either enable TLS\n" +
 		"on the server or run the client with -address set to an address\n" +
