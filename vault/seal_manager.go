@@ -117,6 +117,12 @@ func (sm *SealManager) SetSeal(ctx context.Context, sealConfig *SealConfig, ns *
 	sm.lock.Lock()
 	defer sm.lock.Unlock()
 
+	// Check if we're already present; if so, don't set any seal information
+	// as we don't want to overwrite what we have.
+	if _, ok := sm.sealByNamespace[ns.UUID]; ok {
+		return nil
+	}
+
 	if err := sealConfig.Validate(); err != nil {
 		return fmt.Errorf("invalid seal configuration: %w", err)
 	}
