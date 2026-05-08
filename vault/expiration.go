@@ -341,7 +341,7 @@ func NewExpirationManager(c *Core, e ExpireLeaseStrategy, logger log.Logger, det
 		quitCh: make(chan struct{}),
 
 		coreStateLock: c.stateLock,
-		quitContext:   c.activeContext,
+		quitContext:   c.activeContext.Load(),
 
 		logLeaseExpirations: api.ReadBaoVariable("BAO_SKIP_LOGGING_LEASE_EXPIRATIONS") == "",
 

@@ -354,9 +354,9 @@ func (c *Core) StepDown(httpCtx context.Context, req *logical.Request) (retErr e
 	if te != nil && te.NumUses == tokenRevocationPending {
 		// Token needs to be revoked. We do this immediately here because
 		// we won't have a token store after sealing.
-		leaseID, err := c.expiration.CreateOrFetchRevocationLeaseByToken(c.activeContext, te)
+		leaseID, err := c.expiration.CreateOrFetchRevocationLeaseByToken(c.activeContext.Load(), te)
 		if err == nil {
-			err = c.expiration.Revoke(c.activeContext, leaseID)
+			err = c.expiration.Revoke(c.activeContext.Load(), leaseID)
 		}
 		if err != nil {
 			c.logger.Error("token needed revocation before step-down but failed to revoke", "error", err)
@@ -692,14 +692,13 @@ func (c *Core) waitForLeadership(manualStepDownCh, stopCh <-chan struct{}) {
 
 		// Create the active context
 		activeCtx, activeCtxCancel := context.WithCancel(namespace.RootContext(context.Background()))
-		c.activeContext = activeCtx
-		c.activeContextCancelFunc.Store(&activeCtxCancel)
+		c.activeContext.Store(NewAtomicContext(activeCtx, activeCtxCancel))
 
 		// Mark storage as readable again.
 		c.barrier.SetReadOnly(false)
 
 		// Perform seal migration
-		if err := c.migrateSeal(c.activeContext); err != nil {
+		if err := c.migrateSeal(activeCtx); err != nil {
 			c.logger.Error("root seal migration error", "error", err)
 			// nothing we can do about it here
 			_ = c.sealManager.sealAll()

@@ -510,8 +510,7 @@ type Core struct {
 
 	// This can be used to trigger operations to stop running when Vault is
 	// going to be shut down, stepped down, or sealed
-	activeContext           context.Context
-	activeContextCancelFunc atomic.Pointer[context.CancelFunc]
+	activeContext atomic.Pointer[atomicContext]
 
 	// unsealwithStoredKeysLock is a mutex that prevents multiple processes from
 	// unsealing with stored keys are the same time.
@@ -1056,6 +1055,12 @@ func NewCore(conf *CoreConfig) (*Core, error) {
 		return nil, err
 	}
 
+	if c.recoveryMode {
+		// When in recovery mode, assign a default context during startup.
+		ctx, cancel := context.WithCancel(context.Background())
+		c.activeContext.Store(NewAtomicContext(ctx, cancel))
+	}
+
 	// Construct a new AES-GCM barrier
 	c.barrier = barrier.NewAESGCMBarrier(c.physical, "")
 	c.SetupSealManager()
@@ -1385,7 +1390,7 @@ func (c *Core) GetContext() (context.Context, context.CancelFunc) {
 	c.stateLock.RLock()
 	defer c.stateLock.RUnlock()
 
-	return context.WithCancel(namespace.RootContext(c.activeContext))
+	return context.WithCancel(namespace.RootContext(c.activeContext.Load()))
 }
 
 // Sealed checks if the Vault is currently sealed
@@ -1973,9 +1978,9 @@ func (c *Core) sealInitCommon(ctx context.Context, req *logical.Request) (retErr
 	if te != nil && te.NumUses == tokenRevocationPending {
 		// Token needs to be revoked. We do this immediately here because
 		// we won't have a token store after sealing.
-		leaseID, err := c.expiration.CreateOrFetchRevocationLeaseByToken(c.activeContext, te)
+		leaseID, err := c.expiration.CreateOrFetchRevocationLeaseByToken(c.activeContext.Load(), te)
 		if err == nil {
-			err = c.expiration.Revoke(c.activeContext, leaseID)
+			err = c.expiration.Revoke(c.activeContext.Load(), leaseID)
 		}
 		if err != nil {
 			c.logger.Error("token needed revocation before seal but failed to revoke", "error", err)
@@ -2026,7 +2031,7 @@ func (c *Core) sealInternalWithOptions(grabStateLock bool) error {
 	c.clearForwardingClients()
 	c.requestForwardingConnectionLock.Unlock()
 
-	activeCtxCancel := c.activeContextCancelFunc.Load()
+	activeCtxCancel := c.activeContext.Load().Canceler()
 	cancelCtxAndLock := func() {
 		doneCh := make(chan struct{})
 		go func() {
@@ -2034,9 +2039,7 @@ func (c *Core) sealInternalWithOptions(grabStateLock bool) error {
 			case <-doneCh:
 			// Attempt to drain any inflight requests
 			case <-time.After(DefaultMaxRequestDuration):
-				if activeCtxCancel != nil {
-					(*activeCtxCancel)()
-				}
+				activeCtxCancel()
 			}
 		}()
 
@@ -2050,9 +2053,7 @@ func (c *Core) sealInternalWithOptions(grabStateLock bool) error {
 		close(doneCh)
 
 		// Stop requests from processing
-		if activeCtxCancel != nil {
-			(*activeCtxCancel)()
-		}
+		activeCtxCancel()
 	}
 
 	// Do pre-seal teardown if HA is not enabled
@@ -2065,9 +2066,7 @@ func (c *Core) sealInternalWithOptions(grabStateLock bool) error {
 		c.standby.Store(true)
 
 		// Stop requests from processing
-		if activeCtxCancel != nil {
-			(*activeCtxCancel)()
-		}
+		activeCtxCancel()
 	} else {
 		// If we are keeping the lock we already have the state write lock
 		// held. Otherwise grab it here so that when stopCh is triggered we are
@@ -2088,6 +2087,9 @@ func (c *Core) sealInternalWithOptions(grabStateLock bool) error {
 		// Wait for runStandby to stop
 		<-c.standbyDoneCh
 		c.logger.Debug("runStandby done")
+
+		// Stop requests from processing
+		activeCtxCancel()
 	}
 
 	// Stop all running subsystems.
@@ -2155,7 +2157,7 @@ func (s standardUnsealStrategy) unseal(ctx context.Context, logger log.Logger, c
 
 	if c.autoRotateCancel == nil {
 		var autoRotateCtx context.Context
-		autoRotateCtx, c.autoRotateCancel = context.WithCancel(c.activeContext)
+		autoRotateCtx, c.autoRotateCancel = context.WithCancel(c.activeContext.Load())
 		go c.autoRotateBarrierLoop(autoRotateCtx)
 	}
 
@@ -2291,8 +2293,7 @@ func (c *Core) postUnseal(ctx context.Context, ctxCancelFunc context.CancelFunc,
 	c.postUnsealFuncs = nil
 
 	// Create a new request context
-	c.activeContext = ctx
-	c.activeContextCancelFunc.Store(&ctxCancelFunc)
+	c.activeContext.Store(NewAtomicContext(ctx, ctxCancelFunc))
 
 	defer func() {
 		if retErr != nil {
@@ -2331,7 +2332,7 @@ func (c *Core) postUnseal(ctx context.Context, ctxCancelFunc context.CancelFunc,
 	// the keys used for auto unsealing ensures Vault and its data will
 	// continue to be accessible even after prior seal keys are destroyed.
 	if seal, ok := c.seal.(*autoSeal); ok {
-		if err := seal.UpgradeKeys(c.activeContext); err != nil {
+		if err := seal.UpgradeKeys(c.activeContext.Load()); err != nil {
 			c.logger.Warn("post-unseal upgrade seal keys failed", "error", err)
 		}
 
@@ -3122,7 +3123,7 @@ func (c *Core) setupCachedMFAResponseAuth() {
 	mfaQueue := c.mfaResponseAuthQueue
 	c.mfaResponseAuthQueueLock.Unlock()
 
-	ctx := c.activeContext
+	ctx := c.activeContext.Load()
 
 	go func() {
 		ticker := time.Tick(5 * time.Second)
@@ -3148,7 +3149,7 @@ func (c *Core) updateLockedUserEntries() {
 	}
 
 	var updateLockedUserEntriesCtx context.Context
-	updateLockedUserEntriesCtx, c.updateLockedUserEntriesCancel = context.WithCancel(c.activeContext)
+	updateLockedUserEntriesCtx, c.updateLockedUserEntriesCancel = context.WithCancel(c.activeContext.Load())
 
 	if err := c.runLockedUserEntryUpdates(updateLockedUserEntriesCtx); err != nil {
 		c.Logger().Error("failed to run locked user entry updates", "error", err)

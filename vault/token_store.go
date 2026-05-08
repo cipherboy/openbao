@@ -783,8 +783,6 @@ func (c *Core) CreateToken(ctx context.Context, entry *logical.TokenEntry, persi
 type TokenStore struct {
 	*framework.Backend
 
-	activeContext context.Context
-
 	core *Core
 
 	batchTokenEncryptor barrier.Encryptor
@@ -823,7 +821,6 @@ type TokenStore struct {
 func NewTokenStore(ctx context.Context, logger log.Logger, core *Core, config *logical.BackendConfig) (*TokenStore, error) {
 	// Initialize the store
 	t := &TokenStore{
-		activeContext:         ctx,
 		core:                  core,
 		batchTokenEncryptor:   core.barrier,
 		cubbyholeDestroyer:    destroyCubbyhole,
@@ -832,7 +829,7 @@ func NewTokenStore(ctx context.Context, logger log.Logger, core *Core, config *l
 		tokensPendingDeletion: &sync.Map{},
 		saltLock:              sync.RWMutex{},
 		tidyLock:              sync.Mutex{},
-		quitContext:           core.activeContext,
+		quitContext:           core.activeContext.Load(),
 		salts:                 make(map[string]*salt.Salt),
 	}
 

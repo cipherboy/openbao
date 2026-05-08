@@ -341,7 +341,7 @@ func (c *Core) mountInternalWithLock(ctx context.Context, entry *routing.MountEn
 	// Initialize() if necessary
 	view.SetReadOnlyErr(origReadOnlyErr)
 	// initialize, using the core's active context.
-	err = backend.Initialize(c.activeContext, &logical.InitializationRequest{Storage: view})
+	err = backend.Initialize(c.activeContext.Load(), &logical.InitializationRequest{Storage: view})
 	if err != nil {
 		return err
 	}
@@ -452,7 +452,7 @@ func (c *Core) unmountInternal(ctx context.Context, path string, updateStorage b
 		return err
 	}
 
-	revokeCtx := namespace.ContextWithNamespace(c.activeContext, ns)
+	revokeCtx := namespace.ContextWithNamespace(c.activeContext.Load(), ns)
 	if backend != nil && c.rollback != nil {
 		// Invoke the rollback manager a final time. This is not fatal as
 		// various periodic funcs (e.g., PKI) can legitimately error; the
@@ -674,7 +674,7 @@ func (c *Core) remountSecretsEngine(ctx context.Context, src, dst namespace.Moun
 	// various periodic funcs (e.g., PKI) can legitimately error; the
 	// periodic rollback manager logs these errors rather than failing
 	// replication like returning this error would do.
-	rCtx := namespace.ContextWithNamespace(c.activeContext, ns)
+	rCtx := namespace.ContextWithNamespace(c.activeContext.Load(), ns)
 	if c.rollback != nil && c.router.MatchingBackend(ctx, srcRelativePath) != nil {
 		if err := c.rollback.Rollback(rCtx, srcRelativePath); err != nil {
 			c.logger.Error("ignoring rollback error during remount", "error", err, "path", src.Namespace.Path+src.MountPath)

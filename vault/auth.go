@@ -199,7 +199,7 @@ func (c *Core) enableCredentialInternalWithLock(ctx context.Context, entry *rout
 	// Initialize() if necessary
 	view.SetReadOnlyErr(origViewReadOnlyErr)
 	// initialize, using the core's active context.
-	err = backend.Initialize(c.activeContext, &logical.InitializationRequest{Storage: view})
+	err = backend.Initialize(c.activeContext.Load(), &logical.InitializationRequest{Storage: view})
 	if err != nil {
 		return err
 	}
@@ -267,7 +267,7 @@ func (c *Core) disableCredentialInternal(ctx context.Context, path string, updat
 		return err
 	}
 
-	revokeCtx := namespace.ContextWithNamespace(c.activeContext, ns)
+	revokeCtx := namespace.ContextWithNamespace(c.activeContext.Load(), ns)
 
 	if backend != nil && c.expiration != nil && updateStorage {
 		// Revoke credentials from this path
