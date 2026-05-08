@@ -567,6 +567,7 @@ const sidebars: SidebarsConfig = {
                 "rfcs/postgresql",
                 "rfcs/invalidation",
                 "rfcs/grpc-invalidation",
+                "rfcs/index-headers",
             ],
         },
         "glossary",
