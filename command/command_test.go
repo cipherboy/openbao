@@ -395,11 +395,12 @@ func testVaultServerWithNamespace(tb testing.TB, name string, sealed bool) (*api
 
 	client, _, closer := testVaultServerUnseal(tb)
 	data := map[string]any{
-		"seal": map[string]any{
-			"type":             "shamir",
-			"secret_shares":    3,
-			"secret_threshold": 2,
-		},
+		"seal": `
+seal "shamir" {
+	shares = 3
+	threshold = 2
+}
+`,
 	}
 	resp, err := client.Logical().Write("/sys/namespaces/"+name, data)
 	require.NoError(tb, err)
