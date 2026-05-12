@@ -321,10 +321,10 @@ in the root of the TCP listener configuration.
 - `unauthenticated_metrics_access` `(bool: false)` - If set to true, allows
   unauthenticated access to the `/v1/sys/metrics` endpoint.
 
-- `disallow_metrics` `(bool: false)` - Specifies if the `/v1/sys/metrics` endpoint is disabled on this listener. 
+- `disallow_metrics` `(bool: false)` - Specifies if the `/v1/sys/metrics` endpoint is disabled on this listener.
   This is useful for hardening a listener that handles general client traffic, preventing API clients from scraping metrics.
 
-- `metrics_only` `(bool: false)` - Specifies if the listener should *only* serve the `/v1/sys/metrics` endpoint, blocking all other API requests. 
+- `metrics_only` `(bool: false)` - Specifies if the listener should *only* serve the `/v1/sys/metrics` endpoint, blocking all other API requests.
   This is useful for creating a dedicated, secure listener for monitoring systems.
 
 - `metrics_path` `(string: "")` - If present, specifies an alternative path the metrics
@@ -416,8 +416,8 @@ listener "tcp" {
 
 ### Configuring Metrics Security and Access
 
-This example configures two listeners to separate API traffic from metrics monitoring. 
-The first listener handles API requests on port 8200 with metrics disabled, 
+This example configures two listeners to separate API traffic from metrics monitoring.
+The first listener handles API requests on port 8200 with metrics disabled,
 while a second listener on 9101 is dedicated only to serving metrics.
 
 ```hcl

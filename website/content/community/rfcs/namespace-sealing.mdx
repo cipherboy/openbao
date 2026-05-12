@@ -21,20 +21,20 @@ The introduction of namespaces in OpenBao has paved the way for multi-tenancy
 capabilities, allowing multiple tenants to operate on the same instance while
 maintaining logical isolation of data. However, this isolation is currently
 limited to logical hierarchy, and several areas need further improvement to
-provide tenants with greater control, sovereignty, and security over their data. 
+provide tenants with greater control, sovereignty, and security over their data.
 These limitations include:
 
 * **Global Sealing:** The current implementation of (un)sealing affects all
    namespaces simultaneously. This means tenants lack independent control over
    the availability of their specific namespace.
-* **Limited Namespace Control:** Tenants do not have full control over the 
+* **Limited Namespace Control:** Tenants do not have full control over the
    lifecycle of their namespace, including the seal and unseal independently
    of other tenants.
-* **Shared Encryption Keys:** Tenants must rely on the OpenBao operator's 
+* **Shared Encryption Keys:** Tenants must rely on the OpenBao operator's
    cryptographic implementation, as they have no authority over the keys used to
    encrypt and decrypt their data.
 
-To address these limitations, this RFC proposes implementing "Per-Namespace Sealing". 
+To address these limitations, this RFC proposes implementing "Per-Namespace Sealing".
 This feature would provide the following benefits:
 
 * Independent Sealing: Tenants would be able to seal and unseal their namespaces
@@ -48,7 +48,7 @@ This feature would provide the following benefits:
 
 A sealed namespace is created by providing a special option to the namespace create
 API call. The default sealing mechanism is [Shamir's Secret Sharing Algorithm](https://en.wikipedia.org/wiki/Shamir%27s_Secret_Sharing).
-However, other [seal configurations](../configuration/seal/index.mdx) 
+However, other [seal configurations](/docs/configuration/seal)
 already supported for global (root) sealing should also be supported for
 per-namespace sealing.
 
@@ -70,7 +70,7 @@ process. Namespace sealing only affects new namespaces created with explicitly
 provided sealing configuration. The root namespace and namespaces existing prior
 to introduction of per-namespace sealing are not affected.
 
-While it has some behavior in common, sealing is a distinct feature from 
+While it has some behavior in common, sealing is a distinct feature from
 locking/unlocking a namespace.
 
 ### Unsealing a Namespace
@@ -79,7 +79,7 @@ OpenBao starts in a sealed state. Only after the global OpenBao unseal process
 is concluded, unsealing of a (non-root) namespace is possible.
 
 Unsealing a namespace allows the tenant to decrypt its data and allows operations
-on that namespace. Unsealing is the only operation that can be performed on 
+on that namespace. Unsealing is the only operation that can be performed on
 a sealed namespace.
 
 Once a namespace is unsealed, it remains unsealed until one of the below events
@@ -93,11 +93,11 @@ happen:
 
 Auto-Unsealing (non-interactive unsealing) is an option that can be used to
 automatically unseal a namespace with the namespace root key and appropriate
-configuration. 
+configuration.
 
 Auto-Unsealing is considered an important feature, as it is convenient in case
-of multiple nested (sealed) namespaces, with an example structure of 
-`sealed-n1/sealed-ns2/ns3/sealed-ns4`. The default sealing mechanism is Shamir, 
+of multiple nested (sealed) namespaces, with an example structure of
+`sealed-n1/sealed-ns2/ns3/sealed-ns4`. The default sealing mechanism is Shamir,
 requiring a tenant to manually enter unseal key shares, which is incompatible
 with an automatic unsealing process.
 
@@ -154,7 +154,7 @@ A3[Share 3] -->|Recovers| B[Namespace Shamir's Key Encryption Key]
 
 ### Unsealing Process
 
-With Per-Namespace Sealing, the responsibility of the Root Barrier Keyring will be 
+With Per-Namespace Sealing, the responsibility of the Root Barrier Keyring will be
 extended. The parent namespace's Barrier Keyring will be used to encrypt the sealed
 namespace's stored Shamir's Key Encryption Key (KEK). This has the implication that
 a Namespace Shamir's KEK first needs to be decrypted (implying that the parent or
@@ -347,11 +347,11 @@ $ curl \
 
 </details>
 
-Sealing stanzas for KMS and PKCS#11 follow [the existing ones](../configuration/seal/index.mdx).
+Sealing stanzas for KMS and PKCS#11 follow [the existing ones](/docs/configuration/seal).
 
 For PKCS#11 there are some more restrictions: first, OpenBao requires a physical
 connection to an existing HSM. Second, it can only support the PKCS#11 library
-that is already present on the machine the OpenBao instance is running on. 
+that is already present on the machine the OpenBao instance is running on.
 Therefore, the lib field should not be configurable.
 
 Note: [Parallel Unsealing](https://github.com/openbao/openbao/issues/1021) on
@@ -484,8 +484,8 @@ of Namespaces.
 Coupled with per-namespace seal mechanisms, one issue with this is that it requires
 all devices to be online at the time of cluster restart. Instead, one could imagine
 swapping loading of mounts to be lazily done: this might allow the cluster to start
-if certain tenants do not have online KMS or HSMs at the time of the start of a 
-cluster, but puts greater availability requirements on these systems in general. 
+if certain tenants do not have online KMS or HSMs at the time of the start of a
+cluster, but puts greater availability requirements on these systems in general.
 However, this work is strictly disjointed from implementing per-namespaces sealing
 as a feature and so will be done later.
 
@@ -510,7 +510,7 @@ OpenBao. This should have interoperability with the broader Vault Enterprise-awa
 ecosystem.
 * Improved Security Isolation: Tenants can implement their own security policies
   and key management practices without relying on the global OpenBao configuration.
-* Compliance and Regulatory Requirements: Organizations with strict data 
+* Compliance and Regulatory Requirements: Organizations with strict data
   sovereignty or compliance requirements can maintain full control over their
   encryption keys and data access.
 * In case of a leaked encryption key, affected namespaces can be sealed and their
@@ -518,8 +518,8 @@ ecosystem.
 
 ## Unresolved Questions
 
-* In OpenBao, [Shamir's technique can be disabled](../internals/architecture.mdx), so the root key can be used
-  directly for unsealing. Should there be a similar option for namespace 
+* In OpenBao, [Shamir's technique can be disabled](/docs/internals/architecture), so the root key can be used
+  directly for unsealing. Should there be a similar option for namespace
   (un)sealing?
 * How does namespace sealing interact with [#1528](https://github.com/openbao/openbao/issues/1528)?
 * How should we handle the case when the active node goes offline?
@@ -529,4 +529,4 @@ ecosystem.
 _No response_
 
 ## Proof of Concept
-[Proof of concept branch (namespaces-seal)](https://github.com/openbao/openbao/tree/namespaces-seal) 
+[Proof of concept branch (namespaces-seal)](https://github.com/openbao/openbao/tree/namespaces-seal)

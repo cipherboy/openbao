@@ -26,7 +26,7 @@ sequenceDiagram
 
     OpenBao->>Storage: 3. Read 'core/seals/emergency/encrypted-root'
     OpenBao->>OpenBao: 4. Use provided shares to decrypt Root Key
-    
+   
     note over OpenBao: Unseal Successful
     OpenBao-->>-O: Success
 ```
@@ -144,7 +144,7 @@ graph TD
     EmergencyKey["Emergency Key Shards (From emergency seal)"]
 
     KMSKey -- Encrypts --> DefaultEncrypted
-    
+   
     DefaultEncrypted -- "Unseals to" --> RootKey
     EmergencyEncrypted -- "Unseals to" --> RootKey
 

@@ -111,7 +111,7 @@ description: Release notes for OpenBao 2.5.x
 * core/policies: Use per-namespace write lock, improving parallelism. [[GH-2226](https://github.com/openbao/openbao/pull/2226)]
 * core: Added `metrics_only` and `disallow_metrics` options to control metrics endpoint exposure on a per-listener basis. [[GH-1834](https://github.com/openbao/openbao/pull/1834)]
 * database/valkey: Adds the ability to configure the Valkey database connection using a single connection_url parameter. [[GH-1923](https://github.com/openbao/openbao/pull/1923)]
-* database: all database plugins now ignore "not found" errors on revoke by default. See [Plugin Author Guide](../plugins/plugin-authors-guide.mdx#revoke-operations-should-ignore-not-found-errors) for rationale. [[GH-2101](https://github.com/openbao/openbao/pull/2101)]
+* database: all database plugins now ignore "not found" errors on revoke by default. See [Plugin Author Guide](/docs/plugins/plugin-authors-guide#revoke-operations-should-ignore-not-found-errors) for rationale. [[GH-2101](https://github.com/openbao/openbao/pull/2101)]
 * openapi: Add response schemas for token store operations and update operation suffixes. [[GH-1840](https://github.com/openbao/openbao/pull/1840)]
 * pki: add `allowed_ip_sans_cidr` parameter to PKI role system, to provide additional checks for IP SANs. [[GH-1833](https://github.com/openbao/openbao/pull/1833)]
 * storage/postgresql: implement `physical.FencingHABackend` to minimize chances that writes on secondary nodes occur. [[GH-1571](https://github.com/openbao/openbao/pull/1571)]
@@ -181,7 +181,7 @@ the environment variable BAO_CONFIG_FILE for the -config command option. [[GH-21
 * core/policies: Add endpoint to allow detailed listing of a subset of policies. [[GH-1965](https://github.com/openbao/openbao/pull/1965)]
 * core: Added `metrics_only` and `disallow_metrics` options to control metrics endpoint exposure on a per-listener basis. [[GH-1834](https://github.com/openbao/openbao/pull/1834)]
 * database/valkey: Adds the ability to configure the Valkey database connection using a single connection_url parameter. [[GH-1923](https://github.com/openbao/openbao/pull/1923)]
-* database: All database plugins now ignore "not found" errors on revoke by default. See [Plugin Author Guide](../plugins/plugin-authors-guide.mdx#revoke-operations-should-ignore-not-found-errors) for rationale. [[GH-2101](https://github.com/openbao/openbao/pull/2101)]
+* database: All database plugins now ignore "not found" errors on revoke by default. See [Plugin Author Guide](/docs/plugins/plugin-authors-guide#revoke-operations-should-ignore-not-found-errors) for rationale. [[GH-2101](https://github.com/openbao/openbao/pull/2101)]
 * openapi: Add response schemas for token store operations and update operation suffixes. [[GH-1840](https://github.com/openbao/openbao/pull/1840)]
 * pki: Add `allowed_ip_sans_cidr` parameter to PKI role system, to provide additional checks for IP SANs. [[GH-1833](https://github.com/openbao/openbao/pull/1833)]
 * storage/postgresql: Implement `physical.FencingHABackend` to minimize chances that writes on secondary nodes occur. [[GH-1571](https://github.com/openbao/openbao/pull/1571)]
@@ -190,7 +190,7 @@ the environment variable BAO_CONFIG_FILE for the -config command option. [[GH-21
 
 ### DEPRECATIONS
 
-* core/seal: Remove the undocumented "aead" seal mechanism. Consider switching to the [static seal](../configuration/seal/static.mdx) instead as a replacement. [[GH-1910](https://github.com/openbao/openbao/pull/1910)]
+* core/seal: Remove the undocumented "aead" seal mechanism. Consider switching to the [static seal](/docs/configuration/seal/static) instead as a replacement. [[GH-1910](https://github.com/openbao/openbao/pull/1910)]
 * core: Remove `FeatureFlags` parsing and related code. [[GH-2045](https://github.com/openbao/openbao/pull/2045)]
 * sdk: Remove `sdk/v2/helper/license` package. [[GH-2045](https://github.com/openbao/openbao/pull/2045)]
 * ui: Remove `internal/ui/feature-flags` endpoint and all its usage. [[GH-2045](https://github.com/openbao/openbao/pull/2045)]

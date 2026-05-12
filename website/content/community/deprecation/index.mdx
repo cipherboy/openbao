@@ -28,8 +28,8 @@ storage backend.
 
 Also see:
 
-- [Storage backends](../concepts/storage.mdx)
-- [`bao operator migrate`](../commands/operator/migrate.mdx)
+- [Storage backends](/docs/concepts/storage)
+- [`bao operator migrate`](/docs/commands/operator/migrate)
 
 ### JSONX audit log format
 
@@ -40,8 +40,8 @@ either by explicitly setting it or by omitting the `format` parameter entirely.
 
 Also see:
 
-- [Audit devices](../audit/index.mdx)
-- [Server configuration](../configuration/index.mdx)
+- [Audit devices](/docs/audit)
+- [Server configuration](/docs/configuration)
 
 ### Undocumented AEAD seal mechanism
 
@@ -49,7 +49,7 @@ Also see:
 
 The `aead` seal mechanism was never documented and will be removed. If this
 was somehow depended on, consider replacing its usage with the [`static` seal
-mechanism](../configuration/seal/static.mdx).
+mechanism](/docs/configuration/seal/static).
 
 ### Audit device creation via the API
 
@@ -58,13 +58,13 @@ mechanism](../configuration/seal/static.mdx).
 API-driven audit device creation via the `/sys/audit` endpoints will be
 disabled by default starting with **v2.3.2**. If necessary, temporarily
 set `unsafe_allow_api_audit_creation` to re-enable. [Declarative audit
-devices](../configuration/audit.mdx) are available starting with **v2.4.0** and
+devices](/docs/configuration/audit) are available starting with **v2.4.0** and
 represent the preferred alternative audit device management approach.
 
 Also see:
 
-- [Audit devices](../audit/index.mdx)
-- [Server configuration](../configuration/index.mdx)
+- [Audit devices](/docs/audit)
+- [Server configuration](/docs/configuration)
 
 ### Support for PostgreSQL versions lower than v9.5
 
@@ -74,7 +74,7 @@ Upgrade to a [supported PostgreSQL version](https://endoflife.date/postgresql).
 
 Also see:
 
-- [PostgreSQL configuration](../configuration/storage/postgresql.mdx)
+- [PostgreSQL configuration](/docs/configuration/storage/postgresql)
 
 ### Unauthenticated rekey & root rotation endpoints
 
@@ -86,7 +86,7 @@ available as the preferred alternative going forward.
 
 Also see:
 
-- [Listener configuration](../configuration/listener/index.mdx)
+- [Listener configuration](/docs/configuration/listener)
 
 ### Undocumented PKCS#11 seal option aliases
 
@@ -105,4 +105,4 @@ for details and reasoning.
 
 Also see:
 
-- [Listener configuration](../configuration/listener/index.mdx)
+- [Listener configuration](/docs/configuration/listener)

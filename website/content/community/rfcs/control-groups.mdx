@@ -14,12 +14,12 @@ a user to obtain prior authorization before the action would
 succeed.
 
 Control groups utilize the existing
-[response-wrapping](../concepts/response-wrapping.mdx) workflow because
+[response-wrapping](/docs/concepts/response-wrapping) workflow because
 of the asynchronous character, and usage would follow this general
 pattern (via API endpoints):
 
 1. A path is assigned a control-group policy
-2. A user requesting the protected path receives a wrapped response with a `wrapping_accessor` 
+2. A user requesting the protected path receives a wrapped response with a `wrapping_accessor`
 and `wrapping_token`.
 3. Using the `wrapping_accessor`, a control group member can review and authorize the request.
 4. Access to the wrapped response via `wrapping_token` will now succeed once approved.

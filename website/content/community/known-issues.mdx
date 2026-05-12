@@ -6,7 +6,7 @@ description: >-
 
 # Known issues
 
-This page lists known issues for [OpenBao releases](release-notes/index.mdx) and any
+This page lists known issues for [OpenBao releases](/community/release-notes) and any
 workarounds which may address them.
 
 ## Failed to set process secure bits.
@@ -24,7 +24,7 @@ workarounds which may address them.
 
 When running OpenBao from our shipped systemd unit file on older OSes, the
 use of `SecureBits=keep-caps` in the unit file causes OpenBao to attempt to
-use mlock. In 2.0.0 prior to GA, [mlock was removed](rfcs/mlock-removal.mdx)
+use mlock. In 2.0.0 prior to GA, [mlock was removed](/community/rfcs/mlock-removal)
 in favor of cgroups and thus the mlock capability was also removed from the
 systemd unit file, causing this to fail.
 

@@ -138,7 +138,7 @@ backend cannot be declared.
   configuration is 1048576 -- two times the chunking size.
 
 - `max_transaction_size` `(integer: 8388608)` - This configures the maximum
-  number of bytes for a Raft entry containing a [transaction](../../rfcs/transactions.mdx).
+  number of bytes for a Raft entry containing a [transaction](/community/rfcs/transactions).
   Each individual operation within a transaction must still be less than the
   size of a maximum entry (`max_entry_size`). This defaults to 16 times the
   minimum chunking size and must be set independently of `max_entry_size`.
