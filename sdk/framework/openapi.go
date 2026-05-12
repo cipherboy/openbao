@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"regexp"
 	"regexp/syntax"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -325,10 +326,7 @@ func documentPath(p *Path, specialPaths *logical.Paths, requestResponsePrefix st
 			}
 
 			// If both List or Scan and Read are defined, only process Read.
-			if opType == logical.ListOperation && operations[logical.ReadOperation] != nil {
-				continue
-			}
-			if opType == logical.ScanOperation && operations[logical.ReadOperation] != nil {
+			if slices.Contains([]logical.Operation{logical.ListOperation, logical.ScanOperation}, opType) && operations[logical.ReadOperation] != nil {
 				continue
 			}
 
