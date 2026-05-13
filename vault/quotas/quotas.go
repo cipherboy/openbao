@@ -1081,7 +1081,9 @@ func (m *Manager) Setup(ctx context.Context, storage logical.Storage) error {
 	}
 
 	for _, qType := range quotaTypes() {
-		m.setupQuotaType(ctx, storage, qType)
+		if err := m.setupQuotaType(ctx, storage, qType); err != nil {
+			return err
+		}
 	}
 
 	return nil
