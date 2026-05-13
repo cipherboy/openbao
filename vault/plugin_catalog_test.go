@@ -55,7 +55,7 @@ func TestPluginCatalog_CRUD(t *testing.T) {
 	}
 	expectedBuiltin.BuiltinFactory, _ = builtinplugins.Registry.Get(pluginName, consts.PluginTypeDatabase)
 
-	if &(p.BuiltinFactory) == &(expectedBuiltin.BuiltinFactory) {
+	if &p.BuiltinFactory == &expectedBuiltin.BuiltinFactory {
 		t.Fatal("expected BuiltinFactory did not match actual")
 	}
 	expectedBuiltin.BuiltinFactory = nil
@@ -132,7 +132,7 @@ func TestPluginCatalog_CRUD(t *testing.T) {
 	}
 	expectedBuiltin.BuiltinFactory, _ = builtinplugins.Registry.Get(pluginName, consts.PluginTypeDatabase)
 
-	if &(p.BuiltinFactory) == &(expectedBuiltin.BuiltinFactory) {
+	if &p.BuiltinFactory == &expectedBuiltin.BuiltinFactory {
 		t.Fatal("expected BuiltinFactory did not match actual")
 	}
 	expectedBuiltin.BuiltinFactory = nil

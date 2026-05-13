@@ -2951,7 +2951,7 @@ func TestExpiration_CachedPolicyIsShared(t *testing.T) {
 	}
 	ptrs := make([]*string, len(policies))
 	for i := range ptrs {
-		ptrs[i] = &((policies[0])[0])
+		ptrs[i] = &policies[0][0]
 	}
 	for i := 1; i < len(ptrs); i++ {
 		if ptrs[i-1] != ptrs[i] {
