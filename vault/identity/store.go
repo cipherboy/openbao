@@ -1127,6 +1127,8 @@ func (i *IdentityStore) Invalidate(ctx context.Context, key string) {
 		}
 		txn.Commit()
 		return
+	default:
+		i.logger.Trace("unknown path to invalidate in identity engine", "key", key)
 	}
 }
 
