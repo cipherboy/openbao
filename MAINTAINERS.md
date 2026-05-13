@@ -44,7 +44,8 @@ See the information about community membership roles to learn about the role of 
 | Fatima Patel    | [@fatima2003](https://github.com/fatima2003)             |
 | Gabriel Santos  | [@Gabrielopesantos](https://github.com/Gabrielopesantos) |
 | Michael Hofer   | [@karras](https://github.com/karras)                     |
-| Klaus Kiefer    | [@klaus-sap](https://klaus-sap)                          |
+| Klaus Kiefer    | [@klaus-sap](https://github.com/klaus-sap)               |
+| Tero Saarni     | [@tsaarni](https://github.com/tsaarni)                   |
 
 # OpenBao Community Roles
 
