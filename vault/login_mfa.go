@@ -1161,7 +1161,8 @@ func (c *Core) validateOkta(ctx context.Context, mConfig *mfa.Config, username s
 		return err
 	}
 
-	ctx, client, err := okta.NewClient(ctx,
+	ctx, client, err := okta.NewClient(
+		ctx,
 		okta.WithToken(oktaConfig.APIToken),
 		okta.WithOrgUrl(orgURL.String()),
 		// Do not use cache or polling MFA will not refresh

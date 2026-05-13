@@ -377,7 +377,8 @@ func (c *ServerCommand) runRecoveryMode() int {
 			"No configuration files found. Please provide configurations with the " +
 				"-config flag. If you are supplying the path to a directory, please " +
 				"ensure the directory contains files with the .hcl or .json " +
-				"extension."))
+				"extension.",
+		))
 		return 1
 	}
 
@@ -476,7 +477,8 @@ func (c *ServerCommand) runRecoveryMode() int {
 		seal = vault.NewDefaultSeal(vaultseal.NewAccess(vaultseal.NewShamirWrapper()))
 	default:
 		wrapper, config, err := kms.ConfigureWrapper(
-			context.Background(), configSeal.Type, wrapping.WithConfigMap(configSeal.Config))
+			context.Background(), configSeal.Type, wrapping.WithConfigMap(configSeal.Config),
+		)
 		if err != nil {
 			c.UI.Error(fmt.Sprintf("Error configuring seal %q: %s", configSeal.Type, err))
 			return 1
@@ -594,7 +596,8 @@ func (c *ServerCommand) runRecoveryMode() int {
 			"%s%s: %s",
 			strings.Repeat(" ", padding-len(k)),
 			titleCaser.String(k),
-			info[k]))
+			info[k],
+		))
 	}
 
 	c.UI.Output("")
@@ -635,7 +638,8 @@ func (c *ServerCommand) runRecoveryMode() int {
 	if newCoreError != nil {
 		c.UI.Warn(wrapAtLength(
 			"WARNING! A non-fatal error occurred during initialization. Please " +
-				"check the logs for more information."))
+				"check the logs for more information.",
+		))
 		c.UI.Warn("")
 	}
 
@@ -937,7 +941,8 @@ func (c *ServerCommand) Run(args []string) int {
 		case c.flagDevRootTokenID != "":
 			c.UI.Warn(wrapAtLength(
 				"You cannot specify a custom root token ID outside of \"dev\" mode. " +
-					"Your request has been ignored."))
+					"Your request has been ignored.",
+			))
 			c.flagDevRootTokenID = ""
 		}
 	}
@@ -982,7 +987,8 @@ func (c *ServerCommand) Run(args []string) int {
 			"No configuration files found. Please provide configurations with the " +
 				"-config flag. If you are supplying the path to a directory, please " +
 				"ensure the directory contains files with the .hcl or .json " +
-				"extension."))
+				"extension.",
+		))
 		return 1
 	}
 
@@ -1197,7 +1203,8 @@ func (c *ServerCommand) Run(args []string) int {
 		}
 		c.UI.Warn(wrapAtLength(
 			"WARNING! A non-fatal error occurred during initialization. Please " +
-				"check the logs for more information."))
+				"check the logs for more information.",
+		))
 		c.UI.Warn("")
 
 	}
@@ -1289,7 +1296,8 @@ func (c *ServerCommand) Run(args []string) int {
 		c.UI.Output(fmt.Sprintf(
 			"%24s: %s",
 			titleCaser.String(k),
-			info[k]))
+			info[k],
+		))
 	}
 
 	c.UI.Output("")
@@ -2052,7 +2060,8 @@ func (c *ServerCommand) enableThreeNodeDevCluster(base *vault.CoreConfig, info m
 			"%s%s: %s",
 			strings.Repeat(" ", padding-len(k)),
 			titleCaser.String(k),
-			info[k]))
+			info[k],
+		))
 	}
 
 	c.UI.Output("")
@@ -2494,7 +2503,8 @@ func setSeal(c *ServerCommand, config *server.Config, kms *kmsplugin.Catalog, in
 			seal = vault.NewDefaultSeal(vaultseal.NewAccess(vaultseal.NewShamirWrapper()))
 		default:
 			wrapper, config, err := kms.ConfigureWrapper(
-				context.Background(), configSeal.Type, wrapping.WithConfigMap(configSeal.Config))
+				context.Background(), configSeal.Type, wrapping.WithConfigMap(configSeal.Config),
+			)
 			if err != nil {
 				//nolint:staticcheck // User-facing error.
 				return nil, nil, nil, nil, nil, fmt.Errorf("Error configuring seal %q: %w", configSeal.Type, err)
@@ -2862,7 +2872,8 @@ func initDevCore(c *ServerCommand, coreConfig *vault.CoreConfig, config *server.
 						"WARNING! dev mode is enabled! In this mode, OpenBao runs entirely " +
 							"in-memory and starts unsealed with a single unseal key. The root " +
 							"token is already authenticated to the CLI, so you can immediately " +
-							"begin using OpenBao."))
+							"begin using OpenBao.",
+					))
 					c.UI.Warn("")
 					c.UI.Warn("You may need to set the following environment variables:")
 					c.UI.Warn("")
@@ -2898,7 +2909,8 @@ func initDevCore(c *ServerCommand, coreConfig *vault.CoreConfig, config *server.
 						c.UI.Warn("")
 						c.UI.Warn(wrapAtLength(
 							"The unseal key and root token are displayed below in case you want " +
-								"to seal/unseal the Vault or re-authenticate."))
+								"to seal/unseal the Vault or re-authenticate.",
+						))
 						c.UI.Warn("")
 						c.UI.Warn(fmt.Sprintf("Unseal Key: %s", base64.StdEncoding.EncodeToString(init.SecretShares[0])))
 					}
@@ -2907,7 +2919,8 @@ func initDevCore(c *ServerCommand, coreConfig *vault.CoreConfig, config *server.
 						c.UI.Warn("")
 						c.UI.Warn(wrapAtLength(
 							"The recovery key and root token are displayed below in case you want " +
-								"to seal/unseal the Vault or re-authenticate."))
+								"to seal/unseal the Vault or re-authenticate.",
+						))
 						c.UI.Warn("")
 						c.UI.Warn(fmt.Sprintf("Recovery Key: %s", base64.StdEncoding.EncodeToString(init.RecoveryShares[0])))
 					}
@@ -2917,7 +2930,8 @@ func initDevCore(c *ServerCommand, coreConfig *vault.CoreConfig, config *server.
 					if len(plugins) > 0 {
 						c.UI.Warn("")
 						c.UI.Warn(wrapAtLength(
-							"The following dev plugins are registered in the catalog:"))
+							"The following dev plugins are registered in the catalog:",
+						))
 						for _, p := range plugins {
 							c.UI.Warn(fmt.Sprintf("    - %s", p))
 						}
@@ -2926,7 +2940,8 @@ func initDevCore(c *ServerCommand, coreConfig *vault.CoreConfig, config *server.
 					if len(pluginsNotLoaded) > 0 {
 						c.UI.Warn("")
 						c.UI.Warn(wrapAtLength(
-							"The following dev plugins FAILED to be registered in the catalog due to unknown type:"))
+							"The following dev plugins FAILED to be registered in the catalog due to unknown type:",
+						))
 						for _, p := range pluginsNotLoaded {
 							c.UI.Warn(fmt.Sprintf("    - %s", p))
 						}
@@ -2934,7 +2949,8 @@ func initDevCore(c *ServerCommand, coreConfig *vault.CoreConfig, config *server.
 
 					c.UI.Warn("")
 					c.UI.Warn(wrapAtLength(
-						"Development mode should NOT be used in production installations!"))
+						"Development mode should NOT be used in production installations!",
+					))
 					c.UI.Warn("")
 				})
 			}),

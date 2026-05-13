@@ -124,7 +124,8 @@ func Test(tt TestT, c TestCase) {
 	if c.AcceptanceTest && api.ReadBaoVariable(TestEnvVar) == "" {
 		tt.Skip(fmt.Sprintf(
 			"Acceptance tests skipped unless env %q set",
-			TestEnvVar))
+			TestEnvVar,
+		))
 		return
 	}
 
@@ -413,7 +414,8 @@ func Test(tt TestT, c TestCase) {
 			tt.Error(fmt.Sprintf(
 				"WARNING: Revoking the following secret failed. It may\n"+
 					"still exist. Please verify:\n\n%#v",
-				s))
+				s,
+			))
 		}
 	}
 }

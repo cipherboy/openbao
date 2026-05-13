@@ -1522,7 +1522,8 @@ func (i *IdentityStore) CreateOrFetchEntity(ctx context.Context, alias *logical.
 				metricsutil.NamespaceLabel(ns),
 				{Name: "auth_method", Value: newAlias.MountType},
 				{Name: "mount_point", Value: newAlias.MountPath},
-			})
+			},
+		)
 		entityCreated = true
 	}
 

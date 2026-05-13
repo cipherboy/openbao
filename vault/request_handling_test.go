@@ -414,7 +414,8 @@ func TestRequestHandling_LoginMetric(t *testing.T) {
 	}
 
 	// There should be two counters
-	checkCounter(t, sink, "token.creation",
+	checkCounter(
+		t, sink, "token.creation",
 		map[string]string{
 			"cluster":      "test-cluster",
 			"namespace":    "root",
@@ -424,7 +425,8 @@ func TestRequestHandling_LoginMetric(t *testing.T) {
 			"token_type":   "service",
 		},
 	)
-	checkCounter(t, sink, "token.creation",
+	checkCounter(
+		t, sink, "token.creation",
 		map[string]string{
 			"cluster":      "test-cluster",
 			"namespace":    "root",
@@ -466,7 +468,8 @@ func TestRequestHandling_SecretLeaseMetric(t *testing.T) {
 		t.Fatalf("bad: %#v", resp)
 	}
 
-	checkCounter(t, sink, "secret.lease.creation",
+	checkCounter(
+		t, sink, "secret.lease.creation",
 		map[string]string{
 			"cluster":       "test-cluster",
 			"namespace":     "root",
@@ -723,12 +726,14 @@ path "secret/metadata/by-metadata/subdir/both" {
 					}
 
 					onList, present := entries[entry]
-					require.True(t,
+					require.True(
+						t,
 						present,
 						"list included %v but shouldn't have; path: %v\n\texpected: %#v\n\tactual: %#v", entry, req.Path, entries, resp.Data["keys"].([]string),
 					)
 
-					require.False(t,
+					require.False(
+						t,
 						req.Operation == logical.ListOperation && !onList,
 						"list operation included recursive entry %v\n\tactual: %#v", entry, resp.Data["keys"].([]string),
 					)

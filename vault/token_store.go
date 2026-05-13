@@ -3642,7 +3642,8 @@ func (ts *TokenStore) tokenStoreRoleCreateUpdate(ctx context.Context, req *logic
 				if !matched {
 					return logical.ErrorResponse(
 						"given role path suffix contains invalid characters; must match %s",
-						pathSuffixSanitize.String()), nil
+						pathSuffixSanitize.String(),
+					), nil
 				}
 			}
 			entry.PathSuffix = pathSuffix
@@ -3794,7 +3795,8 @@ func (ts *TokenStore) tokenStoreRoleCreateUpdate(ctx context.Context, req *logic
 			}
 			resp.AddWarning(fmt.Sprintf(
 				"Given explicit max TTL of %d is greater than system/mount allowed value of %d seconds; until this is fixed attempting to create tokens against this role will result in an error",
-				int64(finalExplicitMaxTTL.Seconds()), int64(sysView.MaxLeaseTTL().Seconds())))
+				int64(finalExplicitMaxTTL.Seconds()), int64(sysView.MaxLeaseTTL().Seconds()),
+			))
 		}
 	}
 

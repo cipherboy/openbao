@@ -548,7 +548,8 @@ func (c *PluginCatalog) newPluginClient(ctx context.Context, pluginRunner *plugi
 	// adjusted once we query from the plugin whether it can multiplex or not
 	if !extPlugin.multiplexingSupport || len(extPlugin.connections) == 0 {
 		c.logger.Debug("spawning a new plugin process", "plugin_name", pluginRunner.Name, "id", id)
-		client, err := pluginRunner.RunConfig(ctx,
+		client, err := pluginRunner.RunConfig(
+			ctx,
 			pluginutil.PluginSets(config.PluginSets),
 			pluginutil.HandshakeConfig(config.HandshakeConfig),
 			pluginutil.Logger(config.Logger),
