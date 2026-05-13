@@ -21,6 +21,7 @@ export const deprecationWorkflowConfig = {
     { handler: 'log', matchId: 'ember-cli-page-object.multiple' },
     { handler: 'log', matchId: 'ember-cli-mirage-config-routes-only-export' },
     { handler: 'log', machtId: 'ember-engines.deprecation-camelized-engine-names' },
+    { handler: 'log', matchId: 'ember-engines.deprecation-router-service-from-host' },
   ],
 };
 
