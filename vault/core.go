@@ -4024,3 +4024,62 @@ func (c *Core) teardownPolicyStore() error {
 	c.policyStore = nil
 	return nil
 }
+
+func (c *Core) NamespacesWithKeys(ctx context.Context) ([]string, error) {
+	return c.sealManager.NamespacesWithKeys(ctx)
+}
+
+func (c *Core) NamespacesMissingKeys(ctx context.Context) ([]string, error) {
+	return c.sealManager.NamespacesMissingKeys(ctx)
+}
+
+func (c *Core) SetNamespaceKeys(ctx context.Context, keys map[string][]byte) error {
+	var err error
+
+	for uuid, rootKey := range keys {
+		ns, nsErr := c.namespaceStore.GetNamespace(ctx, uuid)
+		if nsErr != nil {
+			err = multierror.Append(err, fmt.Errorf("for namespace %v: %w", uuid, nsErr))
+			continue
+		}
+
+		if unsealErr := c.sealManager.UnsealWithRootKey(ctx, ns, rootKey); unsealErr != nil {
+			err = multierror.Append(err, fmt.Errorf("for namespace %v: %w", uuid, unsealErr))
+			continue
+		}
+
+		go func() {
+			if err := c.namespaceStore.postNamespaceUnseal(c.activeContext.Load(), ns); err != nil {
+				c.logger.Error("failed to load namespace after unseal", "error", err, "ns", uuid)
+			}
+		}()
+	}
+
+	return err
+}
+
+func (c *Core) NamespaceKeys(ctx context.Context, namespaces []string) (map[string][]byte, error) {
+	var err error
+	rootKeys := make(map[string][]byte, len(namespaces))
+
+	for _, uuid := range namespaces {
+		ns, nsErr := c.namespaceStore.GetNamespace(ctx, uuid)
+		if nsErr != nil {
+			err = multierror.Append(err, fmt.Errorf("for namespace %v: %w", uuid, nsErr))
+			continue
+		}
+		if ns == nil {
+			continue
+		}
+
+		rootKey, rootKeyErr := c.sealManager.GetRootKey(ctx, ns)
+		if rootKeyErr != nil && !errors.Is(rootKeyErr, barrier.ErrNamespaceSealed) {
+			err = multierror.Append(err, fmt.Errorf("for namespace %v: %w", uuid, rootKeyErr))
+			continue
+		}
+
+		rootKeys[uuid] = rootKey
+	}
+
+	return rootKeys, err
+}

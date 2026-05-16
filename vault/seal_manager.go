@@ -56,9 +56,10 @@ type SealManager struct {
 	// invalidated atomic.Bool
 
 	sealByNamespace              map[string]Seal
+	barrierByNamespace           map[string]barrier.SecurityBarrier
 	unlockInformationByNamespace map[string]*unlockInformation
 	rotationConfigByNamespace    map[string]*rotationConfig
-	barrierByNamespace           *radix.Tree
+	barrierByNamespacePath       *radix.Tree
 
 	// logger is the server logger copied over from core
 	logger hclog.Logger
@@ -69,6 +70,7 @@ func NewSealManager(core *Core, logger hclog.Logger) *SealManager {
 	return &SealManager{
 		core:                         core,
 		sealByNamespace:              make(map[string]Seal),
+		barrierByNamespace:           make(map[string]barrier.SecurityBarrier),
 		unlockInformationByNamespace: make(map[string]*unlockInformation),
 		rotationConfigByNamespace:    make(map[string]*rotationConfig),
 		logger:                       logger,
@@ -86,7 +88,7 @@ func (c *Core) SetupSealManager() {
 // sealAll seals barriers of all namespaces and resets seal manager state.
 func (sm *SealManager) sealAll() error {
 	var errs error
-	sm.barrierByNamespace.Walk(func(path string, b interface{}) bool {
+	sm.barrierByNamespacePath.Walk(func(path string, b interface{}) bool {
 		if b != nil {
 			errs = errors.Join(errs, b.(barrier.SecurityBarrier).Seal())
 		}
@@ -99,12 +101,15 @@ func (sm *SealManager) sealAll() error {
 
 // Reset clears all internal state, leaving only the root namespace's seal.
 func (sm *SealManager) Reset() {
-	sm.barrierByNamespace = radix.NewFromMap(map[string]interface{}{
+	sm.barrierByNamespacePath = radix.NewFromMap(map[string]interface{}{
 		"": sm.core.barrier,
 	})
 
 	sm.sealByNamespace = map[string]Seal{
 		namespace.RootNamespaceUUID: sm.core.seal,
+	}
+	sm.barrierByNamespace = map[string]barrier.SecurityBarrier{
+		namespace.RootNamespaceUUID: sm.core.barrier,
 	}
 
 	sm.unlockInformationByNamespace = map[string]*unlockInformation{}
@@ -148,8 +153,10 @@ func (sm *SealManager) SetSeal(ctx context.Context, sealConfig *SealConfig, ns *
 		return fmt.Errorf("error initializing seal: %w", err)
 	}
 
-	sm.barrierByNamespace.Insert(ns.Path, barrier.NewAESGCMBarrier(sm.core.physical, metaPrefix))
+	newBarrier := barrier.NewAESGCMBarrier(sm.core.physical, metaPrefix)
+	sm.barrierByNamespacePath.Insert(ns.Path, newBarrier)
 	sm.sealByNamespace[ns.UUID] = defaultSeal
+	sm.barrierByNamespace[ns.UUID] = newBarrier
 
 	if writeToStorage {
 		if err := defaultSeal.SetBarrierConfig(ctx, sealConfig); err != nil {
@@ -170,9 +177,10 @@ func (sm *SealManager) RemoveNamespace(ns *namespace.Namespace) {
 	}
 
 	delete(sm.sealByNamespace, ns.UUID)
+	delete(sm.barrierByNamespace, ns.UUID)
 	delete(sm.unlockInformationByNamespace, ns.UUID)
 	delete(sm.rotationConfigByNamespace, ns.UUID)
-	sm.barrierByNamespace.Delete(ns.Path)
+	sm.barrierByNamespacePath.Delete(ns.Path)
 }
 
 // NamespaceView returns the BarrierView that applies to the given namespace.
@@ -196,7 +204,7 @@ func (sm *SealManager) NamespaceBarrierByLongestPrefix(nsPath string) barrier.Se
 // namespaceBarrierByLongestPrefix returns the barrier of a namespace matching
 // the longest prefix of the provided path, going up to the root namespace.
 func (sm *SealManager) namespaceBarrierByLongestPrefix(nsPath string) barrier.SecurityBarrier {
-	_, v, exists := sm.barrierByNamespace.LongestPrefix(nsPath)
+	_, v, exists := sm.barrierByNamespacePath.LongestPrefix(nsPath)
 	if !exists {
 		return nil
 	}
@@ -214,7 +222,7 @@ func (sm *SealManager) NamespaceBarrier(nsPath string) barrier.SecurityBarrier {
 
 // namespaceBarrier returns a namespace's barrier by namespace path.
 func (sm *SealManager) namespaceBarrier(nsPath string) barrier.SecurityBarrier {
-	v, exists := sm.barrierByNamespace.Get(nsPath)
+	v, exists := sm.barrierByNamespacePath.Get(nsPath)
 	if !exists {
 		return nil
 	}
@@ -355,6 +363,33 @@ func (sm *SealManager) UnsealNamespace(ctx context.Context, ns *namespace.Namesp
 	sm.logger.Info("unsealed namespace", "namespace", ns.Path)
 
 	return true, nil
+}
+
+// UnsealWithRootKey is used for standby<->active key sharing, passing root
+// keys via the request forwarding mechanism.
+func (sm *SealManager) UnsealWithRootKey(ctx context.Context, ns *namespace.Namespace, rootKey []byte) error {
+	sm.lock.Lock()
+	defer sm.lock.Unlock()
+
+	sm.logger.Debug("namespace root key supplied")
+
+	barrier := sm.namespaceBarrier(ns.Path)
+	if barrier == nil {
+		return ErrNotSealable
+	}
+
+	// Check if already unsealed
+	if !barrier.Sealed() {
+		return nil
+	}
+
+	if err := barrier.Unseal(ctx, rootKey); err != nil {
+		return err
+	}
+
+	sm.logger.Info("unsealed namespace", "namespace", ns.Path)
+
+	return nil
 }
 
 // unsealFragment verifies and records one part of the unseal shares,
@@ -662,4 +697,56 @@ func (sm *SealManager) RotateBarrierKey(ctx context.Context, ns *namespace.Names
 	}
 
 	return nil
+}
+
+func (sm *SealManager) NamespacesWithKeys(ctx context.Context) ([]string, error) {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+
+	var namespaces []string
+	for uuid, b := range sm.barrierByNamespace {
+		if !b.Sealed() && uuid != namespace.RootNamespaceUUID {
+			namespaces = append(namespaces, uuid)
+		}
+	}
+
+	return namespaces, ctx.Err()
+}
+
+func (sm *SealManager) NamespacesMissingKeys(ctx context.Context) ([]string, error) {
+	sm.lock.RLock()
+	defer sm.lock.RUnlock()
+
+	var namespaces []string
+	for uuid, b := range sm.barrierByNamespace {
+		if b.Sealed() && uuid != namespace.RootNamespaceUUID {
+			namespaces = append(namespaces, uuid)
+		}
+	}
+
+	return namespaces, ctx.Err()
+}
+
+func (sm *SealManager) GetRootKey(ctx context.Context, ns *namespace.Namespace) ([]byte, error) {
+	if ns.ID == namespace.RootNamespaceID {
+		return nil, errors.New("refusing to return root namespace's root key")
+	}
+
+	path, v, exists := sm.barrierByNamespacePath.LongestPrefix(ns.Path)
+	if !exists {
+		return nil, ErrNotInit
+	}
+
+	// namespace is not sealed?
+	if path != ns.Path {
+		return nil, nil
+	}
+
+	b := v.(barrier.SecurityBarrier)
+	keyring, err := b.Keyring()
+	if err != nil {
+		return nil, err
+	}
+
+	return keyring.RootKey(), nil
 }
