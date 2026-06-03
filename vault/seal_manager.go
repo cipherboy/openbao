@@ -159,6 +159,9 @@ func (sm *SealManager) SetSeal(ctx context.Context, sealConfig *SealConfig, ns *
 	}
 
 	nsBarrier := barrier.NewAESGCMBarrier(sm.core.physical, metaPrefix)
+	if sm.core.withEncryptedStoragePaths {
+		nsBarrier = sm.core.barrier.(barrier.EncryptedPathsBarrier).Derive(nsBarrier)
+	}
 	sm.barrierByNamespacePath.Insert(ns.Path, nsBarrier)
 	sm.sealByNamespace[ns.UUID] = defaultSeal
 	sm.barrierByNamespace[ns.UUID] = nsBarrier

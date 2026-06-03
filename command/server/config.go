@@ -154,6 +154,10 @@ type Config struct {
 	// Whether to allow unsafe (usually URL encoded) relative request paths
 	// (containing `..`).
 	UnsafeRelativePaths bool `hcl:"unsafe_relative_paths"`
+
+	// Whether to use encryption on every path within OpenBao, limiting
+	// exposure of unencrypted file paths on the disk.
+	WithEncryptedStoragePaths bool `hcl:"with_encrypted_storage_paths"`
 }
 
 func (c *Config) Validate(sourceFilePath string) []configutil.ConfigError {
