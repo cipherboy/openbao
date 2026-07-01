@@ -8,9 +8,9 @@ import (
 	"errors"
 	"fmt"
 	"slices"
-	"sync"
 	"sync/atomic"
 
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/sdk/v2/helper/consts"
 	"github.com/openbao/openbao/sdk/v2/logical"
 )
@@ -30,12 +30,12 @@ var StdAllowedHeaders = []string{
 
 // CORSConfig stores the state of the CORS configuration.
 type CORSConfig struct {
-	sync.RWMutex     `json:"-"`
-	core             *Core
-	Enabled          *uint32  `json:"enabled"`
-	AllowedOrigins   []string `json:"allowed_origins,omitempty"`
-	AllowedHeaders   []string `json:"allowed_headers,omitempty"`
-	AllowCredentials bool     `json:"allow_credentials,omitempty"`
+	locking.DeadlockRWMutex `json:"-"`
+	core                    *Core
+	Enabled                 *uint32  `json:"enabled"`
+	AllowedOrigins          []string `json:"allowed_origins,omitempty"`
+	AllowedHeaders          []string `json:"allowed_headers,omitempty"`
+	AllowCredentials        bool     `json:"allow_credentials,omitempty"`
 }
 
 func (c *Core) saveCORSConfig(ctx context.Context) error {

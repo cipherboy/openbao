@@ -8,13 +8,13 @@ import (
 	"errors"
 	"fmt"
 	"runtime/debug"
-	"sync"
 	"time"
 
 	log "github.com/hashicorp/go-hclog"
 	metrics "github.com/hashicorp/go-metrics/compat"
 	multierror "github.com/hashicorp/go-multierror"
 	"github.com/openbao/openbao/audit"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/sdk/v2/logical"
 	"github.com/openbao/openbao/vault/barrier"
 )
@@ -28,7 +28,7 @@ type backendEntry struct {
 // AuditBroker is used to provide a single ingest interface to auditable
 // events given that multiple backends may be configured.
 type AuditBroker struct {
-	sync.RWMutex
+	locking.DeadlockRWMutex
 	backends map[string]backendEntry
 	logger   log.Logger
 }

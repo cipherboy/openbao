@@ -17,11 +17,11 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
 	metrics "github.com/hashicorp/go-metrics/compat"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/sdk/v2/logical"
 	"github.com/openbao/openbao/sdk/v2/physical"
@@ -70,7 +70,7 @@ type AESGCMBarrier struct {
 	namespace  *namespace.Namespace
 	metaPrefix string
 
-	l        sync.RWMutex
+	l        locking.DeadlockRWMutex
 	sealed   bool
 	readOnly atomic.Bool
 
@@ -81,7 +81,7 @@ type AESGCMBarrier struct {
 
 	// cache is used to reduce the number of AEAD constructions we do
 	cache     map[uint32]cipher.AEAD
-	cacheLock sync.RWMutex
+	cacheLock locking.DeadlockRWMutex
 
 	// currentAESGCMVersionByte is prefixed to a message to allow for
 	// future versioning of barrier implementations. It's var instead

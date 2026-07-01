@@ -23,6 +23,7 @@ import (
 	"github.com/openbao/openbao/helper/configutil"
 	"github.com/openbao/openbao/helper/kmsplugin"
 	"github.com/openbao/openbao/helper/listenerutil"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/metricsutil"
 	"github.com/openbao/openbao/physical/raft"
 	"github.com/openbao/openbao/sdk/v2/physical"
@@ -211,7 +212,7 @@ func (c *OperatorDiagnoseCommand) offlineDiagnostics(ctx context.Context) error 
 		}),
 		allLoggers:      []log.Logger{},
 		reloadFuncs:     &rloadFuncs,
-		reloadFuncsLock: new(sync.RWMutex),
+		reloadFuncsLock: new(locking.DeadlockRWMutex),
 	}
 
 	ctx, span := diagnose.StartSpan(ctx, "Vault Diagnose")

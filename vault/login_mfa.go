@@ -15,7 +15,6 @@ import (
 	"net/url"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	duoapi "github.com/duosecurity/duo_api_golang"
@@ -30,6 +29,7 @@ import (
 	"github.com/okta/okta-sdk-golang/v2/okta/query"
 	"github.com/openbao/openbao/helper/identity"
 	"github.com/openbao/openbao/helper/identity/mfa"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/sdk/v2/framework"
 	"github.com/openbao/openbao/sdk/v2/helper/identitytpl"
@@ -104,7 +104,7 @@ func (b *SystemBackend) loginMFAPaths() []*framework.Path {
 }
 
 type MFABackend struct {
-	*sync.RWMutex
+	*locking.DeadlockRWMutex
 	Core        *Core
 	db          *memdb.MemDB
 	mfaLogger   hclog.Logger
@@ -146,12 +146,12 @@ func NewMFABackend(core *Core, logger hclog.Logger, prefix string, schemaFuncs [
 	}
 
 	return &MFABackend{
-		RWMutex:     &sync.RWMutex{},
-		Core:        core,
-		db:          db,
-		mfaLogger:   mfaLogger,
-		namespacer:  core,
-		methodTable: prefix,
+		DeadlockRWMutex: &locking.DeadlockRWMutex{},
+		Core:            core,
+		db:              db,
+		mfaLogger:       mfaLogger,
+		namespacer:      core,
+		methodTable:     prefix,
 	}, nil
 }
 

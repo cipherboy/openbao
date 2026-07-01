@@ -23,16 +23,11 @@ type PostgreSQLBackendTransaction struct {
 }
 
 func (b *PostgreSQLBackend) newTransaction(ctx context.Context, readOnly bool) (physical.Transaction, error) {
-	// Grab a transaction permit pool entry so that we can limit the number of
-	// concurrent transactions.
-	b.txnPermitPool.Acquire()
-
 	tx, err := b.client.BeginTx(ctx, &sql.TxOptions{
 		Isolation: sql.LevelRepeatableRead,
 		ReadOnly:  readOnly,
 	})
 	if err != nil {
-		b.txnPermitPool.Release()
 		return nil, fmt.Errorf("failed to start underlying postgresql transaction: %w", err)
 	}
 
@@ -198,7 +193,6 @@ func (t *PostgreSQLBackendTransaction) Commit(ctx context.Context) error {
 	}
 
 	defer func() {
-		t.b.txnPermitPool.Release()
 		t.haveFinishedTx = true
 	}()
 
@@ -222,7 +216,6 @@ func (t *PostgreSQLBackendTransaction) Rollback(ctx context.Context) error {
 	}
 
 	defer func() {
-		t.b.txnPermitPool.Release()
 		t.haveFinishedTx = true
 	}()
 

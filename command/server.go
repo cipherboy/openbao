@@ -41,6 +41,7 @@ import (
 	"github.com/openbao/openbao/helper/configutil"
 	"github.com/openbao/openbao/helper/kmsplugin"
 	"github.com/openbao/openbao/helper/listenerutil"
+	"github.com/openbao/openbao/helper/locking"
 	loghelper "github.com/openbao/openbao/helper/logging"
 	"github.com/openbao/openbao/helper/metricsutil"
 	"github.com/openbao/openbao/helper/namespace"
@@ -105,7 +106,7 @@ type ServerCommand struct {
 
 	cleanupGuard sync.Once
 
-	reloadFuncsLock *sync.RWMutex
+	reloadFuncsLock *locking.DeadlockRWMutex
 	reloadFuncs     *map[string][]reloadutil.ReloadFunc
 	startedCh       chan (struct{}) // for tests
 	reloadedCh      chan (struct{}) // for tests
@@ -2346,7 +2347,7 @@ func (c *ServerCommand) detectRedirect(detect physical.RedirectDetect,
 	return url.String(), nil
 }
 
-func (c *ServerCommand) Reload(lock *sync.RWMutex, reloadFuncs *map[string][]reloadutil.ReloadFunc, configPath []string, core *vault.Core) error {
+func (c *ServerCommand) Reload(lock *locking.DeadlockRWMutex, reloadFuncs *map[string][]reloadutil.ReloadFunc, configPath []string, core *vault.Core) error {
 	lock.RLock()
 	defer lock.RUnlock()
 

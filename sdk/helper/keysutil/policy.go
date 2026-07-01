@@ -38,6 +38,7 @@ import (
 	"golang.org/x/crypto/hkdf"
 
 	"github.com/hashicorp/go-uuid"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/sdk/v2/helper/certutil"
 	"github.com/openbao/openbao/sdk/v2/helper/errutil"
 	"github.com/openbao/openbao/sdk/v2/helper/jsonutil"
@@ -302,7 +303,7 @@ type PolicyConfig struct {
 // NewPolicy takes a policy config and returns a Policy with those settings.
 func NewPolicy(config PolicyConfig) *Policy {
 	return &Policy{
-		l:                    new(sync.RWMutex),
+		l:                    new(locking.DeadlockRWMutex),
 		Name:                 config.Name,
 		Type:                 config.Type,
 		Derived:              config.Derived,
@@ -348,7 +349,7 @@ func LoadPolicy(ctx context.Context, s logical.Storage, path string) (*Policy, e
 		}
 	}
 
-	policy.l = new(sync.RWMutex)
+	policy.l = new(locking.DeadlockRWMutex)
 
 	return &policy, nil
 }
@@ -358,7 +359,7 @@ type Policy struct {
 	// This is a pointer on purpose: if we are running with cache disabled we
 	// need to actually swap in the lock manager's lock for this policy with
 	// the local lock.
-	l *sync.RWMutex
+	l *locking.DeadlockRWMutex
 	// writeLocked allows us to implement Lock() and Unlock()
 	writeLocked bool
 	// Stores whether it's been deleted. This acts as a guard for operations

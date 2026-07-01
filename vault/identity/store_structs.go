@@ -11,6 +11,7 @@ import (
 	log "github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-memdb"
 	"github.com/openbao/openbao/helper/identity"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/metricsutil"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/helper/storagepacker"
@@ -65,7 +66,7 @@ type identityStoreNamespaceView struct {
 // maintains active in-memory replicas of the storage contents indexed by
 // multiple fields.
 type IdentityStore struct {
-	sync.RWMutex
+	locking.DeadlockRWMutex
 	// IdentityStore is a secret backend in Vault
 	*framework.Backend
 
@@ -74,10 +75,10 @@ type IdentityStore struct {
 	views sync.Map
 
 	// locks to make sure things are consistent
-	oidcLock sync.RWMutex
+	oidcLock locking.DeadlockRWMutex
 
 	// groupLock is used to protect modifications to group entries
-	groupLock sync.RWMutex
+	groupLock locking.DeadlockRWMutex
 
 	// OidcCache stores common response data as well as when the periodic func needs
 	// to run. This is conservatively managed, and most writes to the OIDC endpoints

@@ -4,8 +4,7 @@
 package locksutil
 
 import (
-	"sync"
-
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/sdk/v2/helper/cryptoutil"
 )
 
@@ -14,7 +13,7 @@ const (
 )
 
 type LockEntry struct {
-	sync.RWMutex
+	locking.DeadlockRWMutex
 }
 
 // CreateLocks returns an array so that the locks can be iterated over in

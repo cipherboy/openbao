@@ -16,6 +16,7 @@ import (
 	metrics "github.com/hashicorp/go-metrics/compat"
 	"github.com/openbao/openbao/api/v2"
 	"github.com/openbao/openbao/helper/fairshare"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/sdk/v2/logical"
 	"github.com/openbao/openbao/vault/routing"
@@ -51,12 +52,12 @@ type RollbackManager struct {
 
 	inflightAll  sync.WaitGroup
 	inflight     map[string]*rollbackState
-	inflightLock sync.RWMutex
+	inflightLock locking.DeadlockRWMutex
 
 	doneCh          chan struct{}
 	shutdown        bool
 	shutdownCh      chan struct{}
-	shutdownLock    sync.Mutex
+	shutdownLock    locking.DeadlockMutex
 	stopTicker      chan struct{}
 	tickerIsStopped bool
 	quitContext     context.Context

@@ -10,7 +10,6 @@ import (
 	"maps"
 	"regexp"
 	"strings"
-	"sync"
 	"sync/atomic"
 	"time"
 
@@ -18,6 +17,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 	metrics "github.com/hashicorp/go-metrics/compat"
 	"github.com/hashicorp/go-secure-stdlib/strutil"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/sdk/v2/helper/consts"
 	"github.com/openbao/openbao/sdk/v2/helper/salt"
@@ -34,7 +34,7 @@ var wcAdjacentNonSlashRegEx = regexp.MustCompile(`\+[^/]|[^/]\+`).MatchString
 
 // Router is used to do prefix based routing of a request to a logical backend
 type Router struct {
-	l                  sync.RWMutex
+	l                  locking.DeadlockRWMutex
 	root               *radix.Tree
 	mountUUIDCache     *radix.Tree
 	mountAccessorCache *radix.Tree
@@ -63,7 +63,7 @@ func NewRouter(logger hclog.Logger) *Router {
 
 // RouteEntry is used to represent a mount point in the router
 type RouteEntry struct {
-	sync.RWMutex
+	locking.DeadlockRWMutex
 	tainted       bool
 	Backend       logical.Backend
 	MountEntry    *MountEntry

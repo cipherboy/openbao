@@ -8,12 +8,12 @@ import (
 	"crypto/subtle"
 	"errors"
 	"fmt"
-	"sync"
 
 	"github.com/armon/go-radix"
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-multierror"
 	"github.com/hashicorp/go-uuid"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/sdk/v2/helper/shamir"
 	"github.com/openbao/openbao/vault/barrier"
@@ -45,7 +45,7 @@ type unlockInformation struct {
 type SealManager struct {
 	core *Core
 
-	lock sync.RWMutex
+	lock locking.DeadlockRWMutex
 	// invalidated atomic.Bool
 
 	sealByNamespace              map[string]Seal

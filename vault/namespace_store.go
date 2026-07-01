@@ -12,7 +12,6 @@ import (
 	"path"
 	"slices"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
@@ -21,6 +20,7 @@ import (
 	"github.com/hashicorp/go-secure-stdlib/base62"
 	uuid "github.com/hashicorp/go-uuid"
 	"github.com/openbao/openbao/helper/fairshare"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/sdk/v2/logical"
 	"github.com/openbao/openbao/vault/barrier"
@@ -78,7 +78,7 @@ type NamespaceStore struct {
 	// This lock ensures we don't concurrently modify the store while using
 	// a namespace entry. We also store an atomic to check if we need to
 	// reload all namespaces.
-	lock sync.RWMutex
+	lock locking.DeadlockRWMutex
 
 	// List of all namespaces within the store. This is loaded at store
 	// initialization time and persisted throughout the lifetime of the

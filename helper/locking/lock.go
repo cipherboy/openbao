@@ -24,7 +24,7 @@ type RWMutex interface {
 	Unlock()
 }
 
-// DeadlockMutex (used when requested via config option `detact_deadlocks`),
+// DeadlockMutex (used when requested via config option `detect_deadlocks`),
 // behaves like a sync.Mutex but does periodic checking to see if outstanding
 // locks and requests look like a deadlock.  If it finds a deadlock candidate it
 // will output it prefixed with "POTENTIAL DEADLOCK", as described at

@@ -296,14 +296,14 @@ type Core struct {
 	// namespaceRootGens holds the shares for each namespace
 	// until we reach enough to verify the root key.
 	namespaceRootGens    map[string]*rootTokenGeneration
-	namespaceRootGenLock sync.RWMutex
+	namespaceRootGenLock locking.DeadlockRWMutex
 
 	// These variables holds the config and shares we have until we reach
 	// enough to verify the appropriate root key. Note that the same lock is
 	// used; this isn't time-critical so this shouldn't be a problem.
 	rootRotationConfig     *SealConfig
 	recoveryRotationConfig *SealConfig
-	rotationLock           sync.RWMutex
+	rotationLock           locking.DeadlockRWMutex
 
 	// mounts is loaded after unseal since it is a protected
 	// configuration
@@ -331,7 +331,7 @@ type Core struct {
 
 	// auditLock is used to ensure that the audit table does not
 	// change underneath a calling function
-	auditLock sync.RWMutex
+	auditLock locking.DeadlockRWMutex
 
 	// auditBroker is used to ingest the audit events and fan
 	// out into the configured audit backends
@@ -418,7 +418,7 @@ type Core struct {
 	reloadFuncs map[string][]reloadutil.ReloadFunc
 
 	// reloadFuncsLock controls access to the funcs
-	reloadFuncsLock sync.RWMutex
+	reloadFuncsLock locking.DeadlockRWMutex
 
 	// wrappingJWTKey is the key used for generating JWTs containing response
 	// wrapping information
@@ -434,7 +434,7 @@ type Core struct {
 	// Specific cipher suites to use for clustering, if any
 	clusterCipherSuites []uint16
 	// Used to modify cluster parameters
-	clusterParamsLock sync.RWMutex
+	clusterParamsLock locking.DeadlockRWMutex
 	// The private key stored in the barrier used for establishing
 	// mutually-authenticated connections between Vault cluster members
 	localClusterPrivateKey atomic.Pointer[ecdsa.PrivateKey]
@@ -448,10 +448,10 @@ type Core struct {
 	clusterHandler http.Handler
 	// Write lock used to ensure that we don't have multiple connections adjust
 	// this value at the same time
-	requestForwardingConnectionLock sync.RWMutex
+	requestForwardingConnectionLock locking.DeadlockRWMutex
 	// Lock for the leader values, ensuring we don't run the parts of Leader()
 	// that change things concurrently
-	leaderParamsLock sync.RWMutex
+	leaderParamsLock locking.DeadlockRWMutex
 	// Current cluster leader values
 	clusterLeaderParams atomic.Pointer[ClusterLeaderParams]
 	// Info on cluster members
@@ -503,7 +503,7 @@ type Core struct {
 	userFailedLoginInfo map[FailedLoginUser]*FailedLoginInfo
 
 	// userFailedLoginInfoLock controls access to the userFailedLoginInfoMap
-	userFailedLoginInfoLock sync.RWMutex
+	userFailedLoginInfoLock locking.DeadlockRWMutex
 
 	// This can be used to trigger operations to stop running when Vault is
 	// going to be shut down, stepped down, or sealed
@@ -522,7 +522,7 @@ type Core struct {
 
 	// Stores loggers so we can reset the level
 	allLoggers     []log.Logger
-	allLoggersLock sync.RWMutex
+	allLoggersLock locking.DeadlockRWMutex
 
 	// clusterListener starts up and manages connections on the cluster ports
 	clusterListener atomic.Pointer[cluster.Listener]
@@ -735,7 +735,7 @@ type CoreConfig struct {
 	RawConfig *server.Config
 
 	ReloadFuncs     *map[string][]reloadutil.ReloadFunc
-	ReloadFuncsLock *sync.RWMutex
+	ReloadFuncsLock *locking.DeadlockRWMutex
 
 	DisablePerformanceStandby bool
 	DisableIndexing           bool

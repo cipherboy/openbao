@@ -42,6 +42,7 @@ import (
 	"github.com/openbao/openbao/builtin/logical/kv"
 	"github.com/openbao/openbao/command/server"
 	"github.com/openbao/openbao/helper/configutil"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/metricsutil"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/helper/testhelpers/corehelpers"
@@ -1139,7 +1140,7 @@ type TestClusterCore struct {
 	Address              *net.TCPAddr
 	Listeners            []*TestListener
 	ReloadFuncs          *map[string][]reloadutil.ReloadFunc
-	ReloadFuncsLock      *sync.RWMutex
+	ReloadFuncsLock      *locking.DeadlockRWMutex
 	Server               *http.Server
 	ServerCert           *x509.Certificate
 	ServerCertBytes      []byte

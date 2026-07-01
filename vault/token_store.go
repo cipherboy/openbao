@@ -27,6 +27,7 @@ import (
 	"github.com/hashicorp/go-secure-stdlib/parseutil"
 	"github.com/hashicorp/go-secure-stdlib/strutil"
 	"github.com/hashicorp/go-sockaddr"
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/helper/metricsutil"
 	"github.com/openbao/openbao/helper/namespace"
 	"github.com/openbao/openbao/sdk/v2/framework"
@@ -803,10 +804,10 @@ type TokenStore struct {
 
 	logger log.Logger
 
-	saltLock sync.RWMutex
+	saltLock locking.DeadlockRWMutex
 	salts    map[string]*salt.Salt
 
-	tidyLock sync.Mutex
+	tidyLock locking.DeadlockMutex
 
 	quitContext context.Context
 
@@ -827,8 +828,6 @@ func NewTokenStore(ctx context.Context, logger log.Logger, core *Core, config *l
 		logger:                logger,
 		tokenLocks:            locksutil.CreateLocks(),
 		tokensPendingDeletion: &sync.Map{},
-		saltLock:              sync.RWMutex{},
-		tidyLock:              sync.Mutex{},
 		quitContext:           core.activeContext.Load(),
 		salts:                 make(map[string]*salt.Salt),
 	}

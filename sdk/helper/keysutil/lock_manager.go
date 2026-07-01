@@ -9,9 +9,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"sync"
 	"time"
 
+	"github.com/openbao/openbao/helper/locking"
 	"github.com/openbao/openbao/sdk/v2/helper/jsonutil"
 	"github.com/openbao/openbao/sdk/v2/helper/locksutil"
 	"github.com/openbao/openbao/sdk/v2/logical"
@@ -224,7 +224,7 @@ func (lm *LockManager) RestorePolicy(ctx context.Context, storage logical.Storag
 		return fmt.Errorf("failed to restore the policy %q: %w", name, err)
 	}
 
-	keyData.Policy.l = new(sync.RWMutex)
+	keyData.Policy.l = new(locking.DeadlockRWMutex)
 
 	// Update the cache to contain the restored policy
 	if lm.useCache {
@@ -395,7 +395,7 @@ func (lm *LockManager) GetPolicyWithLockType(ctx context.Context, req PolicyRequ
 		}
 
 		p = &Policy{
-			l:                    new(sync.RWMutex),
+			l:                    new(locking.DeadlockRWMutex),
 			Name:                 req.Name,
 			Type:                 req.KeyType,
 			Derived:              req.Derived,
@@ -427,7 +427,7 @@ func (lm *LockManager) GetPolicyWithLockType(ctx context.Context, req PolicyRequ
 		if lm.useCache {
 			lm.cache.Store(req.Name, p)
 		} else {
-			p.l = &lock.RWMutex
+			p.l = &lock.DeadlockRWMutex
 			p.writeLocked = true
 		}
 
@@ -446,7 +446,7 @@ func (lm *LockManager) GetPolicyWithLockType(ctx context.Context, req PolicyRequ
 	if lm.useCache {
 		lm.cache.Store(req.Name, p)
 	} else {
-		p.l = &lock.RWMutex
+		p.l = &lock.DeadlockRWMutex
 		p.writeLocked = true
 	}
 
@@ -486,7 +486,7 @@ func (lm *LockManager) ImportPolicy(ctx context.Context, req PolicyRequest, key 
 
 	if p == nil {
 		p = &Policy{
-			l:                        new(sync.RWMutex),
+			l:                        new(locking.DeadlockRWMutex),
 			Name:                     req.Name,
 			Type:                     req.KeyType,
 			Derived:                  req.Derived,

@@ -134,8 +134,8 @@ type ExpirationManager struct {
 	tidyLock atomic.Bool
 
 	restoreMode        atomic.Int64
-	restoreModeLock    sync.RWMutex
-	restoreRequestLock sync.RWMutex
+	restoreModeLock    locking.DeadlockRWMutex
+	restoreRequestLock locking.DeadlockRWMutex
 	restoreLocks       []*locksutil.LockEntry
 	restoreLoaded      sync.Map
 	quitCh             chan struct{}
