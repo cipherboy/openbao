@@ -1,0 +1,48 @@
+---
+sidebar_label: CEL Policies
+description: |-
+    Adds Common Expression Language (CEL) support to OpenBao's access control
+    policy engine for authorizing requests alongside existing ACL policy
+    support.
+---
+
+# CEL Support for Policies
+
+## Summary
+
+CEL-defined policies will give operators far greater control over requests
+than existing ACL-based policies by using a more expressive language without
+the need for server-side improvements to extend. This complements the rise of
+CEL in the role systems of auth and secret engines and the possibility of an
+external policy engine.
+
+## Problem Statement
+
+Existing ACL policies have not been expressive enough for many operators.
+
+## User-facing description
+
+This introduces a new policy type, `cel`, available under `sys/policies/cel`.
+Like the existing `acl` policy type, `cel` policies are a default deny, but
+any-one-pass-unless-explicit-deny behavior. 
+
+## Technical Description
+
+## Rationale and alternatives
+
+## Downsides
+
+## Security Implications
+
+## User/Developer Experience
+
+## Unresolved Questions
+
+## Related Issues
+
+- https://github.com/openbao/openbao/security/advisories/GHSA-h2f9-j6xg-6g3c (rejected)
+- https://github.com/openbao/openbao/issues/2277
+- https://github.com/orgs/openbao/discussions/783
+- https://github.com/openbao/openbao/issues/514
+
+## Proof of Concept
