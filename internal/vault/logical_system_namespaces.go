@@ -499,7 +499,11 @@ func (b *SystemBackend) handleNamespacesPatch() framework.OperationFunc {
 // handleNamespacesLock handles the "/sys/namespaces/api-lock/lock/<path>" endpoint to lock a namespace.
 func (b *SystemBackend) handleNamespacesLock() framework.OperationFunc {
 	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-		path := namespace.Canonicalize(data.Get("path").(string))
+		path, err := namespace.ParseName(data.Get("path").(string))
+		if err != nil {
+			return handleError(err)
+		}
+
 		unlockKey, err := b.Core.namespaceStore.LockNamespace(ctx, path)
 		if err != nil {
 			return handleError(err)
@@ -518,7 +522,11 @@ func (b *SystemBackend) handleNamespacesLock() framework.OperationFunc {
 // handleNamespacesUnlock handles the "/sys/namespaces/api-lock/unlock/<path>" endpoint to unlock a namespace.
 func (b *SystemBackend) handleNamespacesUnlock() framework.OperationFunc {
 	return func(ctx context.Context, req *logical.Request, data *framework.FieldData) (*logical.Response, error) {
-		path := namespace.Canonicalize(data.Get("path").(string))
+		path, err := namespace.ParseName(data.Get("path").(string))
+		if err != nil {
+			return handleError(err)
+		}
+
 		unlockKey := data.Get("unlock_key").(string)
 
 		// sudo check

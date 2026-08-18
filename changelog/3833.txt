@@ -1,0 +1,3 @@
+```release-note:security
+core/namespaces: Fix namespace path canonicalization of "." enabling unauthorized API locking/unlocking on the parent namespace. GHSA-h437-fh8v-hw9j.
+```
